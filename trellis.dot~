@@ -1,0 +1,29 @@
+digraph G {
+ranksep=10;rotate=90;
+
+subgraph cluster0 {"0,0";}
+"0,0" -> "1,0" [weight = 100, label="00"];
+"0,0" -> "1,1" [weight = 100, label="11"];
+
+subgraph cluster1 {"1,0";"1,1";}
+"1,0" -> "2,0" [weight = 100, label="00"];
+"1,0" -> "2,2" [weight = 100, label="11"];
+"1,1" -> "2,1" [weight = 100, label="01"];
+"1,1" -> "2,3" [weight = 100, label="10"];
+
+subgraph cluster2 {"2,0";"2,1";"2,2";"2,3";}
+"2,0" -> "3,0" [weight = 100, label="00000"];
+"2,0" -> "3,1" [weight = 100, label="11011"];
+"2,1" -> "3,0" [weight = 100, label="11000"];
+"2,1" -> "3,1" [weight = 100, label="00011"];
+"2,2" -> "3,0" [weight = 100, label="01110"];
+"2,2" -> "3,1" [weight = 100, label="10101"];
+"2,3" -> "3,0" [weight = 100, label="10110"];
+"2,3" -> "3,1" [weight = 100, label="01101"];
+
+subgraph cluster3 {"3,0";"3,1";}
+"3,0" -> "4,0" [weight = 100, label="0"];
+"3,1" -> "4,0" [weight = 100, label="1"];
+
+subgraph cluster4 {"4,0";}
+}
