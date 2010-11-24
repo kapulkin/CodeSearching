@@ -3,6 +3,7 @@ package codes;
 import math.BitSet;
 import math.GrayCode;
 import math.Matrix;
+import trellises.BeastAlgorithm;
 import trellises.Trellis;
 import trellises.ViterbiAlgorithm;
 
@@ -29,7 +30,7 @@ public class MinDistance {
 		}
 	}
 	
-	public static int findMinDistByTrellis(Trellis trellis, int distanceMetric, int cycles)
+	public static int findMinDist(Trellis trellis, int distanceMetric, int cycles)
 	{
 		int minDist = Integer.MAX_VALUE;		
 		
@@ -54,8 +55,28 @@ public class MinDistance {
 		
 		return minDist;
 	}
+
+	public static int findMinDistWithBEAST(Trellis trellis, int distanceMetric, int cycles) {
+		int minDist = Integer.MAX_VALUE;
+				
+		int length = Math.max(1, cycles) * trellis.Layers.length;
+		double weights[] = new double[length];
+		for (int i = 0; i < length; ++i) {
+			weights[i] = 1;
+		}
+		
+		for (int v = 0; v < trellis.Layers.length; ++v) {
+			BeastAlgorithm.Path paths[] = BeastAlgorithm.findOptimalPaths(trellis, v, 0, distanceMetric, weights, BeastAlgorithm.DISTANCE, BeastAlgorithm.CONVOLUTIONAL);
+			
+			for (int i = 0; i < paths.length; ++i) {
+				minDist = Math.min(minDist, (int)paths[i].metric);
+			}
+		}
+		
+		return minDist;
+	}
 	
-	public static int findMinDistByGenerator(Matrix gen)
+	public static int findMinDist(Matrix gen)
 	{
 		int minDist = Integer.MAX_VALUE;
 		BitSet codeWord = new BitSet(gen.getColumnCount());

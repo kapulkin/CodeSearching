@@ -1,44 +1,49 @@
 package math;
 
 public class BlockMatrix{
-	
-	private int totalColumns = 0;
-	private int totalRows = 0;
+		
 	private Matrix[][] blocks;
-	private int[] verticalSizes;
-	private int[] horizontalSizes;	
+	private int vSize;
+	private int hSize;
 	
 	public BlockMatrix(int m, int n)
-	{
-		verticalSizes = new int[m];
-		horizontalSizes = new int[n];
-		
-		for(int i = 0;i < m;i ++)
-		{
-			verticalSizes[i] = 0;
-		}
-		
-		for(int i = 0;i < n;i ++)
-		{
-			horizontalSizes[i] = 0;
-		}
-		
+	{		
+		vSize = 0;
+		hSize = 0;
 		blocks = new Matrix[m][n];		
+	}
+	
+	public BlockMatrix(PolyMatrix matr, int cellWidth)
+	{
+		vSize = 1;
+		hSize = cellWidth;
+		
+		blocks = new Matrix[matr.getRowCount()][matr.getColumnCount()];
+		for(int i = 0;i < matr.getRowCount();i ++)
+		{
+			for(int j = 0;j < matr.getColumnCount();j ++)
+			{
+				Matrix cell = new Matrix(1, cellWidth);
+				
+				for(int k = 0;k < cellWidth;k ++)
+				{
+					if(k < matr.get(i, j).getDegree() + 1)
+					{
+						cell.set(0, k, matr.get(i, j).getCoeff(k));
+					}else{
+						cell.set(0, k, false);
+					}
+				}
+				
+				blocks[i][j] = cell;
+			}
+		}
 	}
 	
 	public BlockMatrix(Matrix[] row)
 	{
-		verticalSizes = new int[1];
-		horizontalSizes = new int[row.length];
-				
-		verticalSizes[0] = row[0].getRowCount();
-		totalRows = row[0].getRowCount();
-		
-		for(int i = 0;i < row.length;i ++)
-		{
-			horizontalSizes[i] = row[i].getColumnCount();
-			totalColumns += row[i].getColumnCount();
-		}
+		vSize = row[0].getRowCount();
+		hSize = row[0].getColumnCount();		
 		
 		blocks = new Matrix[1][row.length];
 		blocks[0] = row;
@@ -47,22 +52,9 @@ public class BlockMatrix{
 	public BlockMatrix(Matrix mat, int bh, int bw)
 	{
 		int m = mat.getRowCount() / bh, n = mat.getColumnCount() / bw;
-		
-		verticalSizes = new int[m];
-		horizontalSizes = new int[n];
-		
-		for(int i = 0;i < m;i ++)
-		{
-			verticalSizes[i] = bh;
-			totalRows += bh;
-		}
-		
-		for(int i = 0;i < n;i ++)
-		{
-			horizontalSizes[i] = bw;
-			totalColumns += bw;
-		}
-		
+				
+		vSize = bh;
+		hSize = bw;
 		blocks = new Matrix[m][n];
 		
 		for(int bi = 0;bi < m;bi ++)
@@ -74,24 +66,24 @@ public class BlockMatrix{
 		}
 	}
 	
-	public int getVerticalSize(int sec)
+	public int getVerticalSize()
 	{
-		return verticalSizes[sec];
+		return vSize;
 	}
 	
-	public int getHorizontalSize(int sec)
+	public int getHorizontalSize()
 	{
-		return horizontalSizes[sec];
+		return hSize;
 	}
 	
 	public int getTotalRowCount()
 	{		
-		return totalRows;
+		return vSize * getRowCount();
 	}
 	
 	public int getTotalColumnCount()
 	{		
-		return totalColumns;
+		return hSize * getColumnCount();
 	}
 	
 	public int getRowCount()
@@ -115,16 +107,14 @@ public class BlockMatrix{
 		
 		if(value != null)
 		{
-			if(verticalSizes[i] == 0)
+			if(vSize == 0)
 			{
-				verticalSizes[i] =  value.getRowCount();
-				totalRows += verticalSizes[i];			
+				vSize =  value.getRowCount();
 			}
 			
-			if(horizontalSizes[j] == 0)
+			if(hSize == 0)
 			{
-				horizontalSizes[j] = value.getColumnCount();
-				totalColumns += horizontalSizes[j];
+				hSize = value.getColumnCount();				
 			}
 		}
 	}
@@ -141,13 +131,13 @@ public class BlockMatrix{
 			{
 				if(blocks[i][j] == null)
 				{
-					unblocked.setZeroBlock(rowPos, colPos, verticalSizes[i], horizontalSizes[j]);
+					unblocked.setZeroBlock(rowPos, colPos, vSize, hSize);
 				}else{
 					unblocked.setBlock(rowPos, colPos, blocks[i][j]);
 				}
-				colPos += horizontalSizes[j];
+				colPos += hSize;
 			}
-			rowPos += verticalSizes[i];
+			rowPos += vSize;
 		}
 		
 		return unblocked; 
@@ -173,7 +163,7 @@ public class BlockMatrix{
 		}		
 	}
 	
-	public BlockMatrix mul(BlockMatrix mat)
+	/*public BlockMatrix mul(BlockMatrix mat)
 	{
 		BlockMatrix res = new BlockMatrix(getRowCount(), mat.getColumnCount());
 		
@@ -181,7 +171,7 @@ public class BlockMatrix{
 		{
 			for(int j = 0;j < mat.getColumnCount();j ++)
 			{
-				Matrix val = new Matrix(verticalSizes[i], verticalSizes[i]);
+				Matrix val = new Matrix(vSize, vSize);
 				
 				for(int k = 0;k < getColumnCount();k ++)
 				{
@@ -224,7 +214,7 @@ public class BlockMatrix{
 		}
 		
 		return res;
-	}
+	}/**/
 	
 }
 

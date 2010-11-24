@@ -165,7 +165,7 @@ public class BlockCode {
 		Trellis t = getTrellis();
 		
 		MinDistance.computeDistanceMetrics(t);
-		minDist = MinDistance.findMinDistByTrellis(t, 0, 0);
+		minDist = MinDistance.findMinDist(t, 0, 0);
 		
 		return minDist;
 	}

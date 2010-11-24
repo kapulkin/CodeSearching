@@ -526,6 +526,18 @@ public class BitSet implements Cloneable, java.io.Serializable {
 	return result;
     }
 
+    public Boolean[] toArray()
+    {
+    	Boolean[] array = new Boolean[fixedSize];
+    	
+    	for(int i = 0;i < fixedSize;i ++)
+    	{
+    		array[i] = get(i);
+    	}
+    	
+    	return array;
+    }
+    
     /**
      * Returns the index of the first bit that is set to <code>true</code>
      * that occurs on or after the specified starting index. If no such

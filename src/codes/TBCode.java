@@ -169,7 +169,7 @@ public class TBCode extends BlockCode {
 		Trellis t = getTrellis();
 		
 		MinDistance.computeDistanceMetrics(t);
-		minDist = MinDistance.findMinDistByTrellis(t, 0, tbGenMatr.getColumnCount());
+		minDist = MinDistance.findMinDist(t, 0, tbGenMatr.getColumnCount());
 		
 		return minDist;
 	}

@@ -1,5 +1,7 @@
 package math;
 
+import java.util.ArrayList;
+
 public class MathAlgs {
 	
 	/**
@@ -178,5 +180,134 @@ public class MathAlgs {
 		}
 		
 		return new SpanForm(matr, spanHeads, spanTails);
+	}
+	
+	public static int[] findDependentRows(Matrix matr)
+	{
+		ArrayList<ArrayList<Integer>> combinations = new ArrayList<ArrayList<Integer>>();
+		
+		for(int i = 0;i < matr.getRowCount();i ++)
+		{
+			combinations.add(new ArrayList<Integer>());
+		}
+		
+		for(int i = 0;i < matr.getRowCount();i ++)
+		{
+			int bitPos = matr.getRow(i).nextSetBit(0);
+			
+			if(bitPos == -1)
+			{
+				int[] dependentRows = new int[combinations.get(i).size()+1];
+				
+				for(int j = 0;j < combinations.get(i).size();j ++)
+				{
+					dependentRows[j] = combinations.get(i).get(j);
+				}
+				
+				dependentRows[dependentRows.length - 1] = i;
+				return dependentRows;
+			}
+			
+			for(int j = i + 1;j < matr.getRowCount();j ++)
+			{
+				if(matr.get(j, bitPos) == true)
+				{
+					matr.getRow(j).xor(matr.getRow(i));
+					combinations.get(j).add(i);
+				}
+			}
+		}
+		
+		return new int[0];
+	}
+	
+	private static boolean decreaseConstraint(PolyMatrix matr)
+	{
+		Matrix highestDegreesMatr = new Matrix(matr.getRowCount(), matr.getColumnCount());
+		int[] highestDegrees = new int[matr.getRowCount()];
+		
+		for(int i = 0;i < matr.getRowCount();i ++)
+		{			
+			int maxDeg = Integer.MIN_VALUE;
+			
+			for(int j = 0;j < matr.getColumnCount();j ++)
+			{
+				int deg = matr.get(i, j).getDegree();
+				
+				if(deg > maxDeg)
+				{
+					maxDeg = deg;
+				}
+			}
+			
+			highestDegrees[i] = maxDeg;
+			
+			for(int j = 0;j < matr.getColumnCount();j ++)
+			{
+				int deg = matr.get(i, j).getDegree();
+				
+				if(deg == maxDeg)
+				{
+					highestDegreesMatr.set(i, j, true);
+				}else{
+					highestDegreesMatr.set(i, j, false);
+				}
+			}
+		}
+		
+		int[] dependentRows = findDependentRows(highestDegreesMatr);
+		
+		if(dependentRows.length < 2)
+		{
+			return false;
+		}
+		
+		int maxDegInd = -1;
+		int maxDeg = Integer.MIN_VALUE;
+		
+		for(int i = 0;i < dependentRows.length;i ++)
+		{
+			if(highestDegrees[dependentRows[i]] > maxDeg)
+			{
+				maxDeg = highestDegrees[dependentRows[i]];
+				maxDegInd = i;
+			}
+		}
+		
+		for(int i = 0;i < dependentRows.length;i ++)
+		{
+			if(i == maxDegInd)
+			{
+				continue;
+			}
+			
+			for(int j = 0;j < matr.getColumnCount();j ++)
+			{
+				Poly summand = matr.get(i, j).mulPow(maxDeg - highestDegrees[dependentRows[i]]);
+				matr.set(maxDegInd, j, matr.get(maxDegInd, j).sum(summand));
+			}
+		}
+		
+		return true;
+	}
+	
+	public static void toSpanForm(PolyMatrix matr)
+	{
+		while(decreaseConstraint(matr)) {}
+	}
+	
+	public static PolyMatrix findOrthogonalMatrix(SmithDecomposition decomp)
+	{
+		PolyMatrix ort = new PolyMatrix(decomp.getD().getColumnCount() - decomp.getD().getRowCount(), decomp.getD().getColumnCount());
+		
+		for(int i = 0;i < ort.getRowCount();i ++)
+		{
+			for(int j = 0;j < ort.getColumnCount();j ++)
+			{
+				ort.set(i, j, decomp.getInvB().get(j, i + decomp.getD().getRowCount()));
+			}
+		}
+		
+		return ort;
 	}
 }
