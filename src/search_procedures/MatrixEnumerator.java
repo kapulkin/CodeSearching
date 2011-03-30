@@ -35,9 +35,7 @@ public class MatrixEnumerator {
 	{
 		int[] seq = cEnum.getNext();
 		Matrix mat = new Matrix(k, n);
-	    
-		mat = new Matrix(k, n);
-		
+	    		
 		for(int i = 0;i < n;i ++)
 		{
 			for(int j = 0;j < k;j ++)

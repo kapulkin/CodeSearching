@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.ArrayList;
 
 import codes.BlockCode;
 import codes.ConvCode;
@@ -14,7 +13,6 @@ import codes.MinDistance;
 import codes.TBCode;
 import codes.ZTCode;
 
-import search_procedures.HighRateCCSearcher;
 import trellises.Trellis;
 import trellises.Trellises;
 
@@ -26,7 +24,6 @@ import math.Poly;
 import math.PolyMatrix;
 import math.SmithDecomposition;
 import math.SpanForm;
-import in_out_interfaces.IOBlockMatrix;
 import in_out_interfaces.IOConvCode;
 import in_out_interfaces.IOMatrix;
 import in_out_interfaces.IOPolyMatrix;
@@ -144,12 +141,18 @@ public class Main {
 			System.out.println();
 		}/**/
 		
-		PolyMatrix parityCheck = new PolyMatrix(1, 4);
+//		PolyMatrix parityCheck = new PolyMatrix(1, 4);
+//		
+//		parityCheck.set(0, 0, new Poly(new Boolean[]{true}));
+//		parityCheck.set(0, 1, new Poly(new Boolean[]{true, true}));
+//		parityCheck.set(0, 2, new Poly(new Boolean[]{true, false, true}));
+//		parityCheck.set(0, 3, new Poly(new Boolean[]{true, true, true}));
 		
-		parityCheck.set(0, 0, new Poly(new Boolean[]{true}));
-		parityCheck.set(0, 1, new Poly(new Boolean[]{true, true}));
-		parityCheck.set(0, 2, new Poly(new Boolean[]{true, false, true}));
-		parityCheck.set(0, 3, new Poly(new Boolean[]{true, true, true}));
+		PolyMatrix parityCheck = new PolyMatrix(1, 4);
+		parityCheck.set(0, 0, new Poly(new Boolean[]{true, false}));
+		parityCheck.set(0, 1, new Poly(new Boolean[]{true, true, true}));
+		parityCheck.set(0, 2, new Poly(new Boolean[]{true, true, false, true}));
+		parityCheck.set(0, 3, new Poly(new Boolean[]{true, true, true, true}));
 		
 		Trellis trellis = Trellises.trellisFromParityCheckHR(parityCheck);
 		
@@ -157,7 +160,7 @@ public class Main {
 		
 		MinDistance.computeDistanceMetrics(trellis);
 		
-		int minDist = MinDistance.findMinDistWithBEAST(trellis, 0, 6);
+		int minDist = MinDistance.findFreeDistWithBEAST(trellis, 0, 6);
 		
 		System.out.println(minDist);
 	}

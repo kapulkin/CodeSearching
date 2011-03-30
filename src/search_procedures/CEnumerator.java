@@ -1,5 +1,8 @@
 package search_procedures;
 
+import java.security.InvalidParameterException;
+import java.util.NoSuchElementException;
+
 public class CEnumerator {
 	
 	private int n;
@@ -8,6 +11,10 @@ public class CEnumerator {
 	
 	public CEnumerator(int n, int k)
 	{
+		if (n < k) {
+			throw new InvalidParameterException("There is no combinations with n < k.");
+		}
+		
 		this.n = n;
 		this.k = k;			
 	}
@@ -29,6 +36,10 @@ public class CEnumerator {
 	
 	public int[] getNext()
 	{
+		if (!hasNext()) {
+			throw new NoSuchElementException("There is no next combination.");
+		}
+		
 		if(sequence == null)
 		{
 			initSequence();

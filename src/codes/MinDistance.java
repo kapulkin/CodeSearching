@@ -4,6 +4,7 @@ import math.BitSet;
 import math.GrayCode;
 import math.Matrix;
 import trellises.BeastAlgorithm;
+import trellises.CyclicTrellisIterator;
 import trellises.Trellis;
 import trellises.ViterbiAlgorithm;
 
@@ -11,19 +12,19 @@ public class MinDistance {
 
 	public static void computeDistanceMetrics(Trellis trellis)
 	{
-		for(int i = 0;i < trellis.Layers.length;i ++)
+		for(int i = 0; i < trellis.Layers.length; i++)
 		{
-			for(int j = 0;j < trellis.Layers[i].length;j ++)
+			for(int j = 0; j < trellis.Layers[i].length; j++)
 			{
-				for(int k = 0;k < trellis.Layers[i][j].Accessors.length;k ++)
+				for(int k = 0; k < trellis.Layers[i][j].Accessors.length; k++)
 				{
 					double[] oldMetrics = trellis.Layers[i][j].Accessors[k].Metrics;
 					
-					trellis.Layers[i][j].Accessors[k].Metrics = new double[oldMetrics.length+1];
+					trellis.Layers[i][j].Accessors[k].Metrics = new double[oldMetrics.length + 1];
 					trellis.Layers[i][j].Accessors[k].Metrics[0] = trellis.Layers[i][j].Accessors[k].Bits.cardinality(); 
-					for(int m = 1;m < oldMetrics.length+1;m++)
+					for(int m = 1; m < oldMetrics.length + 1; m++)
 					{
-						trellis.Layers[i][j].Accessors[k].Metrics[m] = oldMetrics[m-1];
+						trellis.Layers[i][j].Accessors[k].Metrics[m] = oldMetrics[m - 1];
 					}
 				}
 			}			
@@ -56,7 +57,7 @@ public class MinDistance {
 		return minDist;
 	}
 
-	public static int findMinDistWithBEAST(Trellis trellis, int distanceMetric, int cycles) {
+	public static int findFreeDistWithBEAST(Trellis trellis, int distanceMetric, int cycles) {
 		int minDist = Integer.MAX_VALUE;
 				
 		int length = Math.max(1, cycles) * trellis.Layers.length;
@@ -66,10 +67,12 @@ public class MinDistance {
 		}
 		
 		for (int v = 0; v < trellis.Layers.length; ++v) {
-			BeastAlgorithm.Path paths[] = BeastAlgorithm.findOptimalPaths(trellis, v, 0, distanceMetric, weights, BeastAlgorithm.DISTANCE, BeastAlgorithm.CONVOLUTIONAL);
+			CyclicTrellisIterator root = new CyclicTrellisIterator(trellis, 0, 0);
+			CyclicTrellisIterator toor = new CyclicTrellisIterator(trellis, v, 0);
+			BeastAlgorithm.Path paths[] = BeastAlgorithm.findOptimalPaths(root, toor, distanceMetric, weights, BeastAlgorithm.DISTANCE);
 			
 			for (int i = 0; i < paths.length; ++i) {
-				minDist = Math.min(minDist, (int)paths[i].metric);
+				minDist = Math.min(minDist, (int)paths[i].metric());
 			}
 		}
 		

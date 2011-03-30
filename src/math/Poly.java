@@ -2,6 +2,21 @@ package math;
 
 import java.util.ArrayList;
 
+/**
+ * 
+ * Класс является реализацией многочлена с бинарными коэффициентами (из GF(2)).
+ * Реализованы многие опрерации, такие как сложение, умножение, деление и т.п.
+ * 
+ * В данной реалицации коэффициенты хранятся в векторе из переменных типа 
+ * <code>Boolean</code>. Младшие коэффициенты хранятся в начале вектора, 
+ * старшие в конце. Корректным состоянием класса является такое, при котором в 
+ * векторе коэффициент при старшей степени многочлена степени хотя бы 1 
+ * ненулевой.
+ * 
+ * @author fedor
+ *
+ */
+
 public class Poly {
 	private ArrayList<Boolean> polyCoeffs = new ArrayList<Boolean>(); 
 
@@ -12,10 +27,24 @@ public class Poly {
 	
 	public Poly(Boolean[] polyCoeffs)
 	{
+		if (polyCoeffs.length == 0) {
+			throw new IllegalArgumentException("polyCoeffs length is zero.");
+		}
+		
 		for(int i = 0;i < polyCoeffs.length;i ++)
 		{
 			this.polyCoeffs.add(polyCoeffs[i]);
 		}
+		trim();
+	}
+	
+	public Poly(ArrayList<Boolean> polyCoeffs) {
+		if (polyCoeffs.size() == 0) {
+			throw new IllegalArgumentException("polyCoeffs size is zero.");
+		}
+
+		this.polyCoeffs = polyCoeffs;
+
 		trim();
 	}
 	
@@ -44,75 +73,88 @@ public class Poly {
 	public void setCoeff(int index, Boolean val)
 	{
 		if(polyCoeffs.size() <= index)
-			return;
+			throw new IndexOutOfBoundsException();
 		polyCoeffs.set(index, val);
+
+		trim();
+	}
+	
+	public void add(Poly poly) {
+		if (getDegree() < poly.getDegree()) {
+			int delta = poly.getDegree() - getDegree();
+			
+			for(int i = 0; i < delta; ++i)  {				
+				polyCoeffs.add(false);
+			}
+		}
+		
+		for (int i = 0; i <= poly.getDegree(); ++i) {
+			polyCoeffs.set(i, polyCoeffs.get(i) ^ poly.polyCoeffs.get(i));
+		}
+		
+		trim();
 	}
 	
 	public Poly sum(Poly poly)
 	{
 		Poly res = new Poly(this);
 		
-		if(getDegree() < poly.getDegree())
-		{
-			int delta = poly.getDegree() - getDegree();
-			
-			for(int i = 0;i < delta;i ++)
-			{				
-				res.polyCoeffs.add(false);
-			}
-		}
+		res.add(poly);
 		
-		for(int i = 0;i <= res.getDegree();i ++)
-		{
-			if(i <= poly.getDegree())
-			{
-				res.polyCoeffs.set(i, res.polyCoeffs.get(i)^poly.polyCoeffs.get(i));
-			}else{
-				break;
-			}
-		}
-		
-		res.trim();
 		return res;
 	}
 	
 	public Poly mul(Poly poly)
 	{
 		Poly res = new Poly();
+
+		Poly tmp = new Poly(this);
+		int lastMulPow = 0;
 		for(int i = 0;i <= poly.getDegree();i ++)
 		{
 			if(poly.getCoeff(i))
-			{
-				Poly tmp = new Poly(this);
-				
-				tmp = tmp.mulPow(i);
-				res = res.sum(tmp);
+			{			
+				tmp.increaseDegree(i - lastMulPow);
+				lastMulPow = i;
+				res.add(tmp);
 			}
 		}
 		
 		return res;
 	}
 	
+	public void increaseDegree(int pow) {
+		if (getDegree() == 0 && getCoeff(0) == false) {
+			return ;
+		}
+		
+		for(int i = 0; i < pow; ++i) {
+			polyCoeffs.add(i, false);
+		}
+	}
+	
 	public Poly mulPow(int pow)
 	{
 		Poly res = new Poly(this);
-		for(int i = 0;i < pow;i ++)
-		{
-			res.polyCoeffs.add(0, false);
-		}
+		
+		res.increaseDegree(pow);
+
 		return res;
 	}
 	
 	public Poly getQuotient(Poly poly)
 	{
-		ArrayList<Boolean> quotient = new ArrayList<Boolean>();
-		Poly tempPoly = new Poly(this);
+		if (poly.isZero()) {
+			throw new IllegalArgumentException("Division by zero!");
+		}
 		
 		if(getDegree() < poly.getDegree())
 		{
-			quotient.add(false);
-			return new Poly(quotient.toArray(new Boolean[quotient.size()]));
+			return new Poly();
 		}
+
+		ArrayList<Boolean> quotient = new ArrayList<Boolean>();
+		Poly tempPoly = new Poly(this);
 		
 		quotient.ensureCapacity(getDegree() - poly.getDegree() + 1);
 		for(int i = 0;i < getDegree() - poly.getDegree() + 1; i++)
@@ -129,13 +171,12 @@ public class Poly {
 			}/**/
 			quotient.set(tempPoly.getDegree() - poly.getDegree(), true);
 			
-			Poly subPoly = new Poly(poly);
+			Poly subPoly = poly.mulPow(tempPoly.getDegree() - poly.getDegree());
 			
-			subPoly = subPoly.mulPow(tempPoly.getDegree() - poly.getDegree());
 			tempPoly = tempPoly.sum(subPoly);
 		}
 		
-		return new Poly(quotient.toArray(new Boolean[quotient.size()]));
+		return new Poly(quotient);
 	}
 	
 	public Poly getRemainder(Poly poly)
@@ -190,6 +231,12 @@ public class Poly {
 		return new Poly(new Boolean[]{ true });
 	}
 	
+	/**
+	 * Return such <em>x</em>, <em>y</em>, <em>d</em>, that <em>d = a*x + b*y</em> and <em>d</em> has a minimum degree.
+	 * @param a polynomial
+	 * @param b polynomial
+	 * @return array of three polynomials <em>x</em>, <em>y</em>, <em>d</em>.
+	 */
 	public static Poly[] extendedEuclid(Poly a, Poly b)
 	{
 		Poly x, y, d; 
@@ -197,7 +244,7 @@ public class Poly {
 		if(a.isZero())
 		{
 			x = new Poly();
-			y = new Poly(new Boolean[]{ true });
+			y = unitPoly();
 			d = new Poly(b);
 			
 			return new Poly[]{x, y, d};
@@ -218,7 +265,7 @@ public class Poly {
 	
 	private void trim()
 	{
-		for(int i = polyCoeffs.size() - 1;i > 0;i --)
+		for(int i = polyCoeffs.size() - 1; i > 0; --i)
 		{
 			if(polyCoeffs.get(i) == false)
 			{

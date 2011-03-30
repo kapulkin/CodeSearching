@@ -1,5 +1,11 @@
 package math;
 
+/**
+ * Матрица битовых блоков размером vSize на hSize   
+ * 
+ * @author fedor
+ *
+ */
 public class BlockMatrix{
 		
 	private Matrix[][] blocks;

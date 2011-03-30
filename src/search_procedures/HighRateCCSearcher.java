@@ -14,7 +14,7 @@ import codes.MinDistance;
 
 public class HighRateCCSearcher {
 
-	public ConvCode search(int delay, int freeDistance, int infoBits)
+	public static ConvCode search(int delay, int freeDistance, int infoBits)
 	{
 		MatrixEnumerator enumerator = new MatrixEnumerator(delay - 1, infoBits + 1);
 		
@@ -54,7 +54,7 @@ public class HighRateCCSearcher {
 			
 			MinDistance.computeDistanceMetrics(trellis);
 			
-			int minDist = MinDistance.findMinDistWithBEAST(trellis, 0, 2 * (delay+1));			
+			int minDist = MinDistance.findFreeDistWithBEAST(trellis, 0, 2 * (delay+1));			
 						
 			if(minDist >= freeDistance)
 			{

@@ -1,11 +1,5 @@
 package math;
 
-import in_out_interfaces.IOPolyMatrix;
-
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-
 public class SmithDecomposition 
 {	
 	private int b;
@@ -63,7 +57,6 @@ public class SmithDecomposition
 		/*try {
 			IOPolyMatrix.writeMatrix(D, new BufferedWriter(new OutputStreamWriter(System.out)));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}/**/
 		

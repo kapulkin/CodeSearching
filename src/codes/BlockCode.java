@@ -2,7 +2,6 @@ package codes;
 
 import trellises.Trellis;
 import trellises.Trellises;
-import trellises.ViterbiAlgorithm;
 import math.MathAlgs;
 import math.Matrix;
 import math.SpanForm;
@@ -118,7 +117,7 @@ public class BlockCode {
 	public Matrix parityCheck()
 	{
 		if(checkMatr == null)
-			checkMatr = MathAlgs.findOrthogonalMatrix(generator(), false);
+			checkMatr = MathAlgs.findOrthogonalMatrix(genMatr, false);
 		return checkMatr;
 	}
 	

@@ -46,7 +46,7 @@ public class ViterbiAlgorithm {
 		// Текущие индексы путей в сливаемых массивах
 		int[] pathIds = new int[edges.length];
 		
-		for(int i = 0;i < edges.length;i ++)
+		for(int i = 0; i < edges.length; i++)
 		{
 			pathsCnt += srcVertices[i].Paths.length;
 		}
@@ -86,7 +86,6 @@ public class ViterbiAlgorithm {
 			
 			pathIds[bestSrc] ++;
 		}
-
 	}
 	
 	/**
