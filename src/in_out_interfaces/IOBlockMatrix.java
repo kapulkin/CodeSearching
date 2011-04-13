@@ -1,12 +1,12 @@
 package in_out_interfaces;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import math.BitSet;
 import math.BlockMatrix;
 import math.Matrix;
 
@@ -77,4 +77,22 @@ public class IOBlockMatrix {
 		return matr;
 	}
 
+	public static void writeMatrix(BlockMatrix mat, BufferedWriter writer) throws IOException {
+		for (int i = 0; i < mat.getRowCount(); ++i) {
+			for (int v = 0; v < mat.getVerticalSize(); ++v) {
+				for (int j = 0; j < mat.getColumnCount(); ++j) {
+					for (int h = 0; h < mat.getHorizontalSize(); ++h) {
+						if (mat.get(i, j) == null) {
+							writer.write("0");
+						} else {
+							writer.write(mat.get(i, j).get(v, h) ? "1" : "0");
+						}
+					}
+					writer.write(" ");
+				}
+				writer.newLine();
+			}
+		}
+		writer.flush();
+	}
 }

@@ -23,6 +23,10 @@ public class MatrixEnumerator {
 	{
 		k = rows;
 		n = columns;
+		
+		if (k >= Long.SIZE - 1) {
+			throw new IllegalArgumentException("Overflow during shift operation.");
+		}
 		cEnum = new CEnumerator((1<<k), n);		
 	}
 	
@@ -33,7 +37,7 @@ public class MatrixEnumerator {
 	
 	public Matrix getNext()
 	{
-		int[] seq = cEnum.getNext();
+		long[] seq = cEnum.getNext();
 		Matrix mat = new Matrix(k, n);
 	    		
 		for(int i = 0;i < n;i ++)

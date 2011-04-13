@@ -115,8 +115,8 @@ public class TBCode extends BlockCode {
 		{			
 			for(int i = 0;i < parentCode.getRegCount();i ++)
 			{
-				spanHeads[rowBlock * parentCode.getRegCount() + i] = (pattSpanForm.SpanHeads[i] + rowBlock * parentCode.getAdderCount()) % (tbGenMatr.getTotalColumnCount());
-				spanTails[rowBlock * parentCode.getRegCount() + i] = (pattSpanForm.SpanTails[i] + rowBlock * parentCode.getAdderCount()) % (tbGenMatr.getTotalColumnCount());
+				spanHeads[rowBlock * parentCode.getRegCount() + i] = (pattSpanForm.spanHeads[i] + rowBlock * parentCode.getAdderCount()) % (tbGenMatr.getTotalColumnCount());
+				spanTails[rowBlock * parentCode.getRegCount() + i] = (pattSpanForm.spanTails[i] + rowBlock * parentCode.getAdderCount()) % (tbGenMatr.getTotalColumnCount());
 			}
 			
 			for(int colBlock = 0;colBlock < scale;colBlock ++)

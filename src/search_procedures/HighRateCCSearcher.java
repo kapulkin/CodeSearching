@@ -1,6 +1,15 @@
 package search_procedures;
 
-import trellises.BeastAlgorithm;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.ArrayList;
+
+import in_out_interfaces.IOPolyMatrix;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import trellises.Trellis;
 import trellises.Trellises;
 import math.BlockMatrix;
@@ -13,12 +22,38 @@ import codes.ConvCode;
 import codes.MinDistance;
 
 public class HighRateCCSearcher {
-
-	public static ConvCode search(int delay, int freeDistance, int infoBits)
+	volatile boolean searchRunning = false;
+	ArrayList<ConvCodeListener> listeners = new ArrayList<ConvCodeListener>();
+	
+	public void addCodeListener(ConvCodeListener listener) {
+		listeners.add(listener);
+	}
+	
+	public void removeCodeListener(ConvCodeListener listener) {
+		listeners.remove(listener);
+	}
+	
+	/*
+	 * Правильный итерфейс поисковика:
+	 * начни искать коды с расстоянием больше заданного (удовлетворяющего 
+	 * условиям) и с заданными парметрами. Если нашел код - выдай его листенеру.
+	 * startSearch(freeDistance, ...)
+	 * 
+	 * Всегда можно остановить поиск:
+	 * stopSearch();
+	 * 
+	 * Если перебор закончился, то остановиться и кинуть листенеру информацию 
+	 * об этом. 
+	 */
+	public void startSearch(int delay, int freeDistance, int infoBits) throws IOException
 	{
+		searchRunning = true;
+		
+		Logger logger = LoggerFactory.getLogger(this.getClass());
+		
 		MatrixEnumerator enumerator = new MatrixEnumerator(delay - 1, infoBits + 1);
 		
-		while(enumerator.hasNext())
+		while (searchRunning && enumerator.hasNext())
 		{			
 			Matrix candidate = enumerator.getNext();
 			PolyMatrix checkMatrix = new PolyMatrix(1, infoBits + 1);
@@ -45,8 +80,7 @@ public class HighRateCCSearcher {
 			
 			SmithDecomposition decomp = new SmithDecomposition(checkMatrix);
 			
-			if(decomp.getD().get(0, 0).isZero())
-			{
+			if(decomp.getD().get(0, 0).isZero()) {
 				continue;
 			}
 					
@@ -54,18 +88,33 @@ public class HighRateCCSearcher {
 			
 			MinDistance.computeDistanceMetrics(trellis);
 			
-			int minDist = MinDistance.findFreeDistWithBEAST(trellis, 0, 2 * (delay+1));			
+			int minDist = MinDistance.findFreeDistWithBEAST(trellis, 0, 2 * (delay+1));
 						
 			if(minDist >= freeDistance)
 			{
+				logger.debug("free dist: " + minDist);
+				if (logger.isDebugEnabled()) {
+					StringWriter writer = new StringWriter();
+					IOPolyMatrix.writeMatrix(checkMatrix, new BufferedWriter(writer));
+					logger.debug("\n" + writer.getBuffer().substring(0));
+				}
+
 				PolyMatrix genMatrix = MathAlgs.findOrthogonalMatrix(decomp);
 				ConvCode code = new ConvCode(new BlockMatrix(genMatrix, delay + 1), true);
 				
-				return code;
+				for (ConvCodeListener listener : listeners) {
+					listener.codeFound(code);
+				}
 			}
 		}
 		
-		return null;
+		for (ConvCodeListener listener : listeners) {
+			listener.searchFinished();
+		}
 	}	
+	
+	public void stopSearch() {
+		searchRunning = false;
+	}
 
 }

@@ -1,5 +1,7 @@
 package trellises;
 
+import common.Common;
+
 import math.BitSet;
 
 /**
@@ -7,9 +9,9 @@ import math.BitSet;
  * @author fedor
  *
  */
-public class Trellis {
+public class Trellis implements ITrellis{
 	
-	public class Edge{
+	static public class Edge{
 		
 		/**
 		 * Индекс начала ребра в слое 
@@ -30,9 +32,14 @@ public class Trellis {
 		 * Кодовые символы на ребре
 		 */
 		public BitSet Bits;
+		
+		@Override
+		public String toString() {
+			return Src + "‒" + Common.bitsToString(Bits, Bits.getFixedSize()) + "→" + Dst;
+		}
 	} 
 	
-	public class Vertex{
+	static public class Vertex{
 		
 		/**
 		 * Ребра с началом в данной вершине
@@ -50,4 +57,19 @@ public class Trellis {
 	 *  Массив слоев
 	 */
 	public Vertex[][] Layers;
+
+	@Override
+	public TrellisIterator iterator(int layer, int vertexIndex) {
+		return new CyclicTrellisIterator(this, layer, vertexIndex);
+	}
+
+	@Override
+	public int layerSize(int layer) {
+		return Layers[layer].length;
+	}
+
+	@Override
+	public int layersCount() {
+		return Layers.length;
+	}
 }

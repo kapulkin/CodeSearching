@@ -37,7 +37,7 @@ public class IOPolyMatrix {
 					{						
 						if(k > 1)
 						{
-							writer.write("D"+k);
+							writer.write("D" + k);
 						}else{
 							writer.write("D");
 						}
@@ -55,6 +55,7 @@ public class IOPolyMatrix {
 			writer.newLine();
 		}
 		
+		writer.newLine();
 		writer.flush();
 	}
 	

@@ -5,11 +5,11 @@ import java.util.NoSuchElementException;
 
 public class CEnumerator {
 	
-	private int n;
+	private long n;
 	private int k;
-	private int[] sequence;
+	private long[] sequence;
 	
-	public CEnumerator(int n, int k)
+	public CEnumerator(long n, int k)
 	{
 		if (n < k) {
 			throw new InvalidParameterException("There is no combinations with n < k.");
@@ -21,7 +21,7 @@ public class CEnumerator {
 	
 	private void initSequence()
 	{
-		sequence = new int[k];
+		sequence = new long[k];
 		
 		for(int i = 0;i < k;i ++)
 		{
@@ -34,7 +34,7 @@ public class CEnumerator {
 		return sequence == null || sequence[0] != (n-k+1);
 	}
 	
-	public int[] getNext()
+	public long[] getNext()
 	{
 		if (!hasNext()) {
 			throw new NoSuchElementException("There is no next combination.");

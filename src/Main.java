@@ -36,7 +36,7 @@ public class Main {
 	{
 		Matrix mat = IOMatrix.readMatrix(new BufferedReader(new FileReader(new File("matr1.txt"))));				
 		BlockCode blockCode = new BlockCode(mat, true);		
-		SpanForm sf = blockCode.getGenSpanForm();		
+		SpanForm sf = blockCode.getGeneratorSpanForm();		
 		Matrix ort = blockCode.parityCheck();		
 		Trellis trellis = blockCode.getTrellis();		
 		int minDist = blockCode.getMinDistByTrellis();

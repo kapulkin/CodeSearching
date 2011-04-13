@@ -52,14 +52,15 @@ public class SmithDecomposition
 	
 	private void decomposeSubmatrix(int diagInd)
 	{
+		if (D.get(diagInd, diagInd).isZero()) {
+			trySetNonZeroCorner(diagInd);
+			
+			if (D.get(diagInd, diagInd).isZero()) {
+				return ;
+			}
+		}
+		
 		cleanRow(diagInd);		
-		
-		/*try {
-			IOPolyMatrix.writeMatrix(D, new BufferedWriter(new OutputStreamWriter(System.out)));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}/**/
-		
 		cleanColumn(diagInd);		
 		
 		while(true)
@@ -67,40 +68,47 @@ public class SmithDecomposition
 			Poly corner = D.get(diagInd, diagInd);
 			int badRow = -1;
 			
-			if(corner.isZero())
+		badRowSearch: 
+			for (int i = diagInd + 1; i < b; ++i)
 			{
-				break;
-			}
-			
-			for(int i = diagInd + 1;i < b;i ++)
-			{
-				for(int j = diagInd + 1;j < c;j ++)
+				for (int j = diagInd + 1; j < c; ++j)
 				{
 					if(!D.get(i, j).getRemainder(corner).isZero())
 					{
 						badRow = i;
-						break;
+						break badRowSearch;
 					}
 				}
-				
-				if(badRow != -1)
-				{
-					break;					
-				}
 			}
+			
 			
 			if(badRow == -1)
 			{
 				break;
 			}
 			
-			addRows(diagInd, badRow, Poly.unitPoly());
+			addRows(diagInd, badRow, Poly.getUnitPoly());
 			cleanRow(diagInd);			
 		}
 		
 		if(diagInd < b - 1)
 		{
 			decomposeSubmatrix(diagInd + 1);
+		}
+	}
+
+	private void trySetNonZeroCorner(int diagInd) {
+		for (int i = diagInd; i < c; ++i) {
+			for (int j = diagInd; j < b; ++j) {
+				if (!D.get(i, j).isZero()) {
+					if (i != diagInd) {
+						swapColumns(i, diagInd);
+					}
+					if (j != diagInd) {
+						swapRows(diagInd, j);
+					}
+				}
+			}
 		}
 	}
 	
@@ -110,20 +118,8 @@ public class SmithDecomposition
 		
 		if(corner.isZero())
 		{
-			for(int i = diagInd + 1;i < c;i ++)
-			{
-				if(!D.get(diagInd, i).isZero())
-				{
-					addColumns(diagInd, i, Poly.unitPoly());
-					corner = D.get(diagInd, diagInd);
-					break;
-				}
-			}
-			
-			if(corner.isZero())
-			{
-				return;
-			}
+			// just for debug. In correct program this exception shouldn't be thrown.
+			throw new IllegalStateException("The corner shouldn't be zero!");
 		}
 		
 		for(int i = diagInd + 1;i < c;i ++)
@@ -152,20 +148,8 @@ public class SmithDecomposition
 		
 		if(corner.isZero())
 		{
-			for(int i = diagInd + 1;i < b;i ++)
-			{
-				if(!D.get(i, diagInd).isZero())
-				{
-					addRows(diagInd, i, Poly.unitPoly());
-					corner = D.get(diagInd, diagInd);
-					break;
-				}
-			}
-			
-			if(corner.isZero())
-			{
-				return;
-			}
+			// just for debug. In correct program this exception shouldn't be thrown.
+			throw new IllegalStateException("The corner shouldn't be zero!");
 		}
 		
 		for(int i = diagInd + 1;i < b;i ++)
@@ -190,20 +174,29 @@ public class SmithDecomposition
 	
 	private void swapRows(int i, int j)
 	{
-		for(int k = 0;k < b;k ++)
-		{
-			Poly tmp = A.get(k, i);
-			
-			A.set(k, i, A.get(k, j));
-			A.set(k, j, tmp);
-		}
-		
+		// D
 		for(int k = 0;k < c;k ++)
 		{
 			Poly tmp = D.get(i, k);
 			
 			D.set(i, k, D.get(j, k));
 			D.set(j, k, tmp);
+		}
+		// InvA
+		for(int k = 0;k < b;k ++)
+		{
+			Poly tmp = InvA.get(i, k);
+			
+			InvA.set(i, k, InvA.get(j, k));
+			InvA.set(j, k, tmp);
+		}
+		// A
+		for(int k = 0;k < b;k ++)
+		{
+			Poly tmp = A.get(k, i);
+			
+			A.set(k, i, A.get(k, j));
+			A.set(k, j, tmp);
 		}
 	}
 	
@@ -223,14 +216,7 @@ public class SmithDecomposition
 	
 	private void swapColumns(int i, int j)
 	{
-		for(int k = 0;k < c;k ++)
-		{
-			Poly tmp = B.get(i, k);
-			
-			B.set(i, k, B.get(j, k));
-			B.set(j, k, tmp);			
-		}
-		
+		// D
 		for(int k = 0;k < b;k ++)
 		{
 			Poly tmp = D.get(k, i);
@@ -238,8 +224,37 @@ public class SmithDecomposition
 			D.set(k, i, D.get(k, j));
 			D.set(k, j, tmp);
 		}
+		// InvB
+		for(int k = 0;k < c;k ++)
+		{
+			Poly tmp = InvB.get(k, i);
+			
+			InvB.set(k, i, InvB.get(k, j));
+			InvB.set(k, j, tmp);			
+		}
+		//B
+		for(int k = 0;k < c;k ++)
+		{
+			Poly tmp = B.get(i, k);
+			
+			B.set(i, k, B.get(j, k));
+			B.set(j, k, tmp);			
+		}
 	}
 	
+	/**
+	 * Операция рассчитана на то, что в <code>diagInd</code> элемент 
+	 * <code>i</code>-ого ряда нужно поместить gcd, а в <code>diagInd</code> 
+	 * элемент <code>j</code>-ого ряда нужно обнулить. Другие элементы рядов 
+	 * преобразуются соотвествующим образом.
+	 * 
+	 * @param i
+	 * @param j
+	 * @param x
+	 * @param y
+	 * @param qx
+	 * @param qy
+	 */
 	private void specialRowCombination(int i, int j, Poly x, Poly y, Poly qx, Poly qy)
 	{				
 		for(int k = 0;k < c;k ++)

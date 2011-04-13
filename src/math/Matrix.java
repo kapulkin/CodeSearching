@@ -1,11 +1,12 @@
 package math;
 
 /**
+ * Матрица булевых значений
  * 
  * @author fedor
  *
  */
-public class Matrix{			
+public class Matrix implements Cloneable {			
 	
 	private BitSet[] data;
 	
@@ -182,5 +183,27 @@ public class Matrix{
 		
 		return new Matrix(rowClones);
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof Matrix))
+		    return false;
+		if (this == obj)
+		    return true;
+
+		Matrix matrix = (Matrix) obj;
 		
+		if (matrix.getRowCount() != getRowCount() ||
+				matrix.getColumnCount() != getColumnCount()) {
+			return false;
+		}
+		
+		for (int i = 0; i < getRowCount(); ++i) {
+			if (!matrix.getRow(i).equals(getRow(i))) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
 }

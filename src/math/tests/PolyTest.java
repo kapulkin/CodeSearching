@@ -11,12 +11,17 @@ public class PolyTest {
 	@Test // constructor
 	public void correctPolyOfPositiveDegreeExample() {
 		Poly poly1 = new Poly(new Boolean[] {true, false, true, true});
-		assertTrue(poly1.getCoeff(poly1.getDegree()));
 		assertEquals(3, poly1.getDegree());
+		assertTrue(poly1.getCoeff(poly1.getDegree()));
 
 		Poly poly2 = new Poly(new Boolean[] {true, false, true, false});
-		assertTrue(poly2.getCoeff(poly2.getDegree()));
 		assertEquals(2, poly2.getDegree());		
+		assertTrue(poly2.getCoeff(poly2.getDegree()));
+		
+		Poly poly3 = new Poly(new int[] {0, 3, 2});
+		assertEquals(3, poly3.getDegree());
+		assertTrue(poly3.getCoeff(poly3.getDegree()));
+		assertTrue(poly1.equals(poly3));
 	}
 	
 	@Test // constructor
@@ -29,9 +34,19 @@ public class PolyTest {
 		assertEquals(0, zeroPoly.getDegree());
 		assertFalse(zeroPoly.getCoeff(0));
 
-		Poly identityPoly = new Poly(new Boolean[] {true});
-		assertEquals(0, identityPoly.getDegree());
-		assertTrue(identityPoly.getCoeff(0));
+		Poly unitPoly = new Poly(new Boolean[] {true});
+		assertEquals(0, unitPoly.getDegree());
+		assertTrue(unitPoly.getCoeff(0));
+		
+		Poly zeroPoly2 = new Poly(new int[] {});
+		assertEquals(0, zeroPoly2.getDegree());
+		assertFalse(zeroPoly2.getCoeff(0));
+		assertTrue(zeroPoly.equals(zeroPoly2));
+		
+		Poly unitPoly2 = new Poly(new int[] {0});
+		assertEquals(0, unitPoly2.getDegree());
+		assertTrue(unitPoly2.getCoeff(0));
+		assertTrue(unitPoly.equals(unitPoly2));
 	}
 		
 	@Test // setCoeff

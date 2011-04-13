@@ -17,7 +17,7 @@ import java.util.ArrayList;
  *
  */
 
-public class Poly {
+public class Poly implements Cloneable {
 	private ArrayList<Boolean> polyCoeffs = new ArrayList<Boolean>(); 
 
 	public Poly()
@@ -31,6 +31,7 @@ public class Poly {
 			throw new IllegalArgumentException("polyCoeffs length is zero.");
 		}
 		
+		this.polyCoeffs.ensureCapacity(polyCoeffs.length);
 		for(int i = 0;i < polyCoeffs.length;i ++)
 		{
 			this.polyCoeffs.add(polyCoeffs[i]);
@@ -38,7 +39,23 @@ public class Poly {
 		trim();
 	}
 	
-	public Poly(ArrayList<Boolean> polyCoeffs) {
+	public Poly(int powers[]) {
+		polyCoeffs.add(false);
+
+		for (int power : powers) {
+			if (polyCoeffs.size() <= power) {
+				polyCoeffs.ensureCapacity(power + 1);
+				for (int i = polyCoeffs.size(); i < power; ++i) {
+					polyCoeffs.add(false);
+				}
+				polyCoeffs.add(true);
+			} else {
+				polyCoeffs.set(power, true);
+			}
+		}
+	}
+	
+	private Poly(ArrayList<Boolean> polyCoeffs) {
 		if (polyCoeffs.size() == 0) {
 			throw new IllegalArgumentException("polyCoeffs size is zero.");
 		}
@@ -226,7 +243,7 @@ public class Poly {
 		return new Poly(this);
 	}
 	
-	public static Poly unitPoly()
+	public static Poly getUnitPoly()
 	{
 		return new Poly(new Boolean[]{ true });
 	}
@@ -244,7 +261,7 @@ public class Poly {
 		if(a.isZero())
 		{
 			x = new Poly();
-			y = unitPoly();
+			y = getUnitPoly();
 			d = new Poly(b);
 			
 			return new Poly[]{x, y, d};

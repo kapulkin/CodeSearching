@@ -2,24 +2,27 @@ package trellises;
 
 import java.util.ArrayList;
 
+import trellises.Trellis.Vertex;
+
 import math.BitSet;
 import math.PolyMatrix;
 import math.SpanForm;
 
 public class Trellises {	
 	
-	private static void sortHeads(SpanForm sf)
+	public static void sortHeads(SpanForm sf)
 	{
-		for(int i = 0;i < sf.SpanHeads.length;i ++)
+		// сортировка выбором
+		for(int i = 0;i < sf.spanHeads.length;i ++)
 		{
 			int minHead = Integer.MAX_VALUE;
 			int minRow = -1;
 			
-			for(int j = i;j < sf.SpanHeads.length;j ++)
+			for(int j = i;j < sf.spanHeads.length;j ++)
 			{
-				if(sf.SpanHeads[j] < minHead)
+				if(sf.spanHeads[j] < minHead)
 				{
-					minHead = sf.SpanHeads[j];
+					minHead = sf.spanHeads[j];
 					minRow = j;
 				}
 			}
@@ -27,20 +30,54 @@ public class Trellises {
 			if(i != minRow)
 			{
 				BitSet iRow = sf.Matr.getRow(i);
-				int iHead = sf.SpanHeads[i], iTail = sf.SpanTails[i];
+				int iHead = sf.spanHeads[i], iTail = sf.spanTails[i];
 				
 				sf.Matr.setRow(i, sf.Matr.getRow(minRow));
 				sf.Matr.setRow(minRow, iRow);
 				
-				sf.SpanHeads[i] = sf.SpanHeads[minRow];
-				sf.SpanHeads[minRow] = iHead;
+				sf.spanHeads[i] = sf.spanHeads[minRow];
+				sf.spanHeads[minRow] = iHead;
 				
-				sf.SpanTails[i] = sf.SpanTails[minRow];
-				sf.SpanTails[minRow] = iTail;
+				sf.spanTails[i] = sf.spanTails[minRow];
+				sf.spanTails[minRow] = iTail;
 			}
 		}
 	}
 	
+	public static void sortTails(SpanForm sf)
+	{
+		// сортировка выбором
+		for(int i = 0;i < sf.spanTails.length;i ++)
+		{
+			int minTail = Integer.MAX_VALUE;
+			int minRow = -1;
+			
+			for(int j = i;j < sf.spanTails.length;j ++)
+			{
+				if(sf.spanTails[j] < minTail)
+				{
+					minTail = sf.spanTails[j];
+					minRow = j;
+				}
+			}
+			
+			if(i != minRow)
+			{
+				BitSet iRow = sf.Matr.getRow(i);
+				int iHead = sf.spanHeads[i], iTail = sf.spanTails[i];
+				
+				sf.Matr.setRow(i, sf.Matr.getRow(minRow));
+				sf.Matr.setRow(minRow, iRow);
+				
+				sf.spanHeads[i] = sf.spanHeads[minRow];
+				sf.spanHeads[minRow] = iHead;
+				
+				sf.spanTails[i] = sf.spanTails[minRow];
+				sf.spanTails[minRow] = iTail;
+			}
+		}
+	}
+
 	/**
 	 * Строит секционированную решетку кода по спеновой форме порождающей матрицы. Реализация основывается
 	 * на проходе по столбцам матрицы сканирущей прямой, хранящей информацию о активных строках. Возможные 
@@ -92,7 +129,7 @@ public class Trellises {
 		
 		sortHeads(sf);
 						
-		int initialColumn = sf.SpanHeads[begSeg];
+		int initialColumn = sf.spanHeads[begSeg];
 		ArrayList<Integer> activeRows = new ArrayList<Integer>();
 		Trellis.Vertex[] firstLayer;
 		
@@ -100,8 +137,8 @@ public class Trellises {
 		{
 			int shiftedColumn = initialColumn + sf.Matr.getColumnCount();
 			
-			if((sf.SpanHeads[i] < initialColumn && initialColumn <= sf.SpanTails[i]) ||
-				(sf.SpanHeads[i] < shiftedColumn && shiftedColumn <= sf.getUncycledTail(i)))
+			if((sf.spanHeads[i] < initialColumn && initialColumn <= sf.spanTails[i]) ||
+				(sf.spanHeads[i] < shiftedColumn && shiftedColumn <= sf.getUncycledTail(i)))
 			{
 				activeRows.add(i);			
 			}
@@ -110,7 +147,7 @@ public class Trellises {
 		firstLayer = new Trellis.Vertex[1 << activeRows.size()];
 		for(int i = 0;i < firstLayer.length;i ++)
 		{
-			firstLayer[i] = new Trellis().new Vertex();
+			firstLayer[i] = new Vertex();
 		}					
 		
 		layers.add(firstLayer);
@@ -143,7 +180,7 @@ public class Trellises {
 		
 		for(int v = 0;v < firstLayer.length;v ++)
 		{
-			firstLayer[v] = new Trellis().new Vertex();
+			firstLayer[v] = new Vertex();
 			firstLayer[v].Accessors = new Trellis.Edge[2];
 			firstLayer[v].Predecessors = new Trellis.Edge[2];
 		}
@@ -157,12 +194,12 @@ public class Trellises {
 			
 			for(int v = 0;v < newLayer.length;v ++)
 			{
-				newLayer[v] = new Trellis().new Vertex();
+				newLayer[v] = new Vertex();
 				newLayer[v].Accessors = new Trellis.Edge[2];
 				newLayer[v].Predecessors = new Trellis.Edge[2];
 				
-				Trellis.Edge edge0 = new Trellis().new Edge();
-				Trellis.Edge edge1 = new Trellis().new Edge();
+				Trellis.Edge edge0 = new Trellis.Edge();
+				Trellis.Edge edge1 = new Trellis.Edge();
 				
 				edge0.Bits = new BitSet(1);
 				edge0.Src = v;
@@ -229,8 +266,8 @@ public class Trellises {
 				}
 			}
 			
-			Trellis.Edge edge0 = new Trellis().new Edge();
-			Trellis.Edge edge1 = new Trellis().new Edge();
+			Trellis.Edge edge0 = new Trellis.Edge();
+			Trellis.Edge edge1 = new Trellis.Edge();
 			
 			edge0.Bits = new BitSet(2);
 			edge0.Src = v;

@@ -3,6 +3,9 @@ package trellises;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
+import trellises.Trellis.Edge;
+import trellises.Trellis.Vertex;
+
 import math.BitSet;
 import math.GrayCode;
 import math.SpanForm;
@@ -32,11 +35,11 @@ public class TrellisScanner
 	public TrellisScanner(SpanForm sf, Trellis.Vertex[] firstLayer, int begSeg, int endSeg)
 	{
 		this.scanRow = begSeg;
-		this.scanColumn = sf.SpanHeads[begSeg];		
+		this.scanColumn = sf.spanHeads[begSeg];		
 		
 		if(endSeg < sf.Matr.getRowCount())
 		{
-			this.maxColumn = sf.SpanHeads[endSeg]-1;
+			this.maxColumn = sf.spanHeads[endSeg]-1;
 		}else{
 			this.maxColumn = sf.Matr.getColumnCount()-1;
 		}
@@ -48,11 +51,11 @@ public class TrellisScanner
 		{
 			int shiftedColumn = scanColumn + sf.Matr.getColumnCount();
 			
-			if((sf.SpanHeads[i] < scanColumn && scanColumn <= sf.SpanTails[i]) ||
-				(sf.SpanHeads[i] < shiftedColumn && shiftedColumn <= sf.getUncycledTail(i)))
+			if((sf.spanHeads[i] < scanColumn && scanColumn <= sf.spanTails[i]) ||
+				(sf.spanHeads[i] < shiftedColumn && shiftedColumn <= sf.getUncycledTail(i)))
 			{
 				activeRows.add(i);			
-				activeRowTails.put(sf.SpanTails[i], i);
+				activeRowTails.put(sf.spanTails[i], i);
 			}
 		}
 		
@@ -92,7 +95,7 @@ public class TrellisScanner
 		bound = maxColumn;
 		
 		// если сканирующая прямая в положении начала строки, то сделать ее активной
-		if(scanColumn == sf.SpanHeads[scanRow])
+		if(scanColumn == sf.spanHeads[scanRow])
 		{
 			onExpandStage = true;
 			stillActiveRows.add(activeRows.size());
@@ -101,7 +104,7 @@ public class TrellisScanner
 		
 		if(scanRow < sf.Matr.getRowCount() - 1)
 		{
-			bound = Math.min(bound, sf.SpanHeads[scanRow+1]-1);
+			bound = Math.min(bound, sf.spanHeads[scanRow+1]-1);
 		}
 		
 		// Находим все строки, которые заканчиваются до границы bound
@@ -155,7 +158,7 @@ public class TrellisScanner
 				
 				if(rPredCounts[rStateFirst] == 0)
 				{											
-					rightLayer[rStateFirst] = new Trellis().new Vertex();
+					rightLayer[rStateFirst] = new Vertex();
 					rightLayer[rStateFirst].Predecessors = new Trellis.Edge[predsArraySize];
 				}
 				
@@ -166,7 +169,7 @@ public class TrellisScanner
 					
 					if(rPredCounts[rStateSecond] == 0)
 					{																	
-						rightLayer[rStateSecond] = new Trellis().new Vertex();
+						rightLayer[rStateSecond] = new Vertex();
 						rightLayer[rStateSecond].Predecessors = new Trellis.Edge[predsArraySize];
 					}
 				}
@@ -189,10 +192,10 @@ public class TrellisScanner
 			
 			lastEdgeBits.xor(changedBitContr);
 			
-			Trellis.Edge edge1 = new Trellis().new Edge();
-			Trellis.Edge edge2 = new Trellis().new Edge();
+			Trellis.Edge edge1 = new Edge();
+			Trellis.Edge edge2 = new Edge();
 			
-			edge1 = new Trellis().new Edge();
+			edge1 = new Edge();
 			edge1.Src = lState;
 			edge1.Dst = rStateFirst;
 			edge1.Bits = (BitSet)lastEdgeBits.clone();
@@ -202,7 +205,7 @@ public class TrellisScanner
 			
 			if(onExpandStage)
 			{
-				edge2 = new Trellis().new Edge();
+				edge2 = new Edge();
 				edge2.Src = lState;
 				edge2.Dst = rStateSecond;
 				edge2.Bits = (BitSet)lastEdgeBits.clone();
@@ -232,7 +235,7 @@ public class TrellisScanner
 		}
 		scanColumn = bound+1;	
 		
-		if(scanRow < sf.Matr.getRowCount()-1 && scanColumn == sf.SpanHeads[scanRow+1])
+		if(scanRow < sf.Matr.getRowCount()-1 && scanColumn == sf.spanHeads[scanRow+1])
 		{
 			scanRow ++;
 		}

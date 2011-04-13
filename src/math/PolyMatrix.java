@@ -96,4 +96,30 @@ public class PolyMatrix {
 		
 		return e;
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof PolyMatrix))
+		    return false;
+		if (this == obj)
+		    return true;
+		
+		
+		PolyMatrix matrix = (PolyMatrix) obj;
+		
+		if (getRowCount() != matrix.getRowCount() ||
+				getColumnCount() != matrix.getColumnCount()) {
+			return false;
+		}
+		
+		for (int i = 0; i < getRowCount(); ++i) {
+			for (int j = 0; j < getColumnCount(); ++j) {
+				if (!get(i, j).equals(matrix.get(i, j))) {
+					return false;
+				}
+			}
+		}
+		
+		return true;
+	}
 }

@@ -123,10 +123,14 @@ public class BlockCode {
 	
 	
 	/**
+	 * Метод возвращает спеновую форму порождающей матрицы. При первом вызове 
+	 * приводит порождающую матрицу кода к спеновой форме. Т.о. любой вызов 
+	 * метода <code>generator()</code> после вызова данного метода возварщает 
+	 * матрицу в спеновой форме.
 	 * 
 	 * @return Спеновая форма порождающей матрицы
 	 */
-	public SpanForm getGenSpanForm()
+	public SpanForm getGeneratorSpanForm()
 	{
 		if(genSpanForm == null)
 		{
@@ -136,6 +140,10 @@ public class BlockCode {
 		return genSpanForm;
 	}
 	
+	/* TODO: Этот метод, по-хорошему, надо убрать. Взамен создать класс 
+	 * BlockCodeTrellis implemtnts ITellis, возвращающий итератор, позволяющий 
+	 * ходить по решетке не строя ее.
+	 */
 	/**
 	 * 	
 	 * @return Решетка кода
@@ -144,7 +152,7 @@ public class BlockCode {
 	{
 		if(trellis == null)
 		{
-			trellis = Trellises.trellisFromGenSF(getGenSpanForm());
+			trellis = Trellises.trellisFromGenSF(getGeneratorSpanForm());
 		}
 		
 		return trellis;
