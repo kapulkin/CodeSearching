@@ -12,7 +12,7 @@ import java.util.NoSuchElementException;
  * @author stas
  *
  */
-public class ConvCodeTrellisIterator implements TrellisIterator {
+public class ConvCodeTrellisIterator implements ITrellisIterator {
 	Trellis trellis;
 	int depth;
 	int vertexIndex;
@@ -66,14 +66,14 @@ public class ConvCodeTrellisIterator implements TrellisIterator {
 	@Override
 	public void moveBackward(int edgeIndex) {
 		if (!hasBackward()) {
-			throw new NoSuchElementException("The iterator points to the root of odes tree.");
+			throw new NoSuchElementException("The iterator points to the root of nodes tree.");
 		}
 		vertexIndex = getPredecessors()[edgeIndex].Src;
 		--depth;
 	}
 	
 	@Override
-	public TrellisIterator clone() {
+	public ITrellisIterator clone() {
 		return new ConvCodeTrellisIterator(trellis, depth, vertexIndex);
 	}
 }

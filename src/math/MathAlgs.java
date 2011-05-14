@@ -2,6 +2,8 @@ package math;
 
 import java.util.ArrayList;
 
+
+
 public class MathAlgs {
 	
 	/**
@@ -96,93 +98,6 @@ public class MathAlgs {
 	}		
 	
 	/**
-	 * Расчет спэновой формы матрицы. Вычисления ведутся над входной матрицей.
-	 * @param matr
-	 * @return
-	 */
-	public static SpanForm toSpanForm(Matrix matr)
-	{
-		int[] spanHeads = new int[matr.getRowCount()];
-		int[] spanTails = new int[matr.getRowCount()];
-		int[] headUniqueIndices = new int[matr.getColumnCount()];
-		int[] tailUniqueIndices = new int[matr.getColumnCount()];
-		
-		for(int i = 0;i < matr.getColumnCount();i ++)
-		{
-			headUniqueIndices[i] = -1;
-			tailUniqueIndices[i] = -1;
-		}
-		
-		// упорядочение голов
-		for(int i = 0;i < matr.getRowCount();i ++)
-		{
-			spanTails[i] = matr.getRow(i).previousSetBit(matr.getColumnCount() - 1);
-			spanHeads[i] = matr.getRow(i).nextSetBit(0);			
-						
-			while(true)
-			{
-				int currentHead = spanHeads[i];
-				int currentUniqueRow = headUniqueIndices[currentHead];
-				
-				if(currentUniqueRow != -1)
-				{					
-					BitSet rowToAdd = matr.getRow(currentUniqueRow);
-					
-					matr.getRow(i).xor(rowToAdd);
-					
-					if(spanTails[currentUniqueRow] == spanTails[i])
-					{
-						spanTails[i] = matr.getRow(i).previousSetBit(matr.getColumnCount() - 1);
-					}else if(spanTails[currentUniqueRow] > spanTails[i])
-					{
-						spanTails[i] = spanTails[currentUniqueRow];
-					}
-					spanHeads[i] = matr.getRow(i).nextSetBit(0);					
-				}else{
-					headUniqueIndices[currentHead] = i;
-					break;
-				}
-			}
-		}
-
-		// упорядочение хвостов
-		for(int i = 0;i < matr.getRowCount();i ++)
-		{						
-			int indexToVerify = i;
-			while(true)
-			{
-				int currentTail = spanTails[indexToVerify];
-				int currentUniqueRow = tailUniqueIndices[currentTail]; 
-				if(currentUniqueRow != -1)
-				{
-					if(spanHeads[currentUniqueRow] > spanHeads[indexToVerify])
-					{						
-						BitSet smallerRow = matr.getRow(currentUniqueRow);
-						
-						matr.getRow(indexToVerify).xor(smallerRow);
-												
-						spanTails[indexToVerify] = matr.getRow(indexToVerify).previousSetBit(matr.getColumnCount()-1);
-					}else{
-						BitSet smallerRow = matr.getRow(indexToVerify);
-						
-						tailUniqueIndices[currentTail] = indexToVerify;
-						
-						matr.getRow(currentUniqueRow).xor(smallerRow);						
-						spanTails[currentUniqueRow] = matr.getRow(currentUniqueRow).previousSetBit(matr.getColumnCount()-1);
-						
-						indexToVerify = currentUniqueRow;						
-					}
-				}else{
-					tailUniqueIndices[currentTail] = indexToVerify;
-					break;
-				}
-			}
-		}
-		
-		return new SpanForm(matr, spanHeads, spanTails);
-	}
-	
-	/**
 	 * Ищет линейнозависимые строки в матрице "методом Гаусса": 
 	 * последовательно вычитает (с учетом бинарности логики прибавляет) первую 
 	 * строчку, содержащую единицу в данном столбце из всех остальных.
@@ -238,93 +153,4 @@ public class MathAlgs {
 		return new int[0];
 	}
 	
-	private static boolean decreaseConstraint(PolyMatrix matr)
-	{
-		Matrix highestDegreesMatr = new Matrix(matr.getRowCount(), matr.getColumnCount());
-		int[] highestDegrees = new int[matr.getRowCount()];
-		
-		for(int i = 0;i < matr.getRowCount();i ++)
-		{			
-			int maxDeg = Integer.MIN_VALUE;
-			
-			for(int j = 0;j < matr.getColumnCount();j ++)
-			{
-				int deg = matr.get(i, j).getDegree();
-				
-				if(deg > maxDeg)
-				{
-					maxDeg = deg;
-				}
-			}
-			
-			highestDegrees[i] = maxDeg;
-			
-			for(int j = 0;j < matr.getColumnCount();j ++)
-			{
-				int deg = matr.get(i, j).getDegree();
-				
-				if(deg == maxDeg)
-				{
-					highestDegreesMatr.set(i, j, true);
-				}else{
-					highestDegreesMatr.set(i, j, false);
-				}
-			}
-		}
-		
-		int[] dependentRows = findDependentRows(highestDegreesMatr);
-		
-		if(dependentRows.length < 2)
-		{
-			return false;
-		}
-		
-		int maxDegInd = -1;
-		int maxDeg = Integer.MIN_VALUE;
-		
-		for(int i = 0;i < dependentRows.length;i ++)
-		{
-			if(highestDegrees[dependentRows[i]] > maxDeg)
-			{
-				maxDeg = highestDegrees[dependentRows[i]];
-				maxDegInd = i;
-			}
-		}
-		
-		for(int i = 0;i < dependentRows.length;i ++)
-		{
-			if(i == maxDegInd)
-			{
-				continue;
-			}
-			
-			for(int j = 0;j < matr.getColumnCount();j ++)
-			{
-				Poly summand = matr.get(i, j).mulPow(maxDeg - highestDegrees[dependentRows[i]]);
-				matr.set(maxDegInd, j, matr.get(maxDegInd, j).sum(summand));
-			}
-		}
-		
-		return true;
-	}
-	
-	public static void toSpanForm(PolyMatrix matr)
-	{
-		while(decreaseConstraint(matr)) {}
-	}
-	
-	public static PolyMatrix findOrthogonalMatrix(SmithDecomposition decomp)
-	{
-		PolyMatrix ort = new PolyMatrix(decomp.getD().getColumnCount() - decomp.getD().getRowCount(), decomp.getD().getColumnCount());
-		
-		for(int i = 0;i < ort.getRowCount();i ++)
-		{
-			for(int j = 0;j < ort.getColumnCount();j ++)
-			{
-				ort.set(i, j, decomp.getInvB().get(j, i + decomp.getD().getRowCount()));
-			}
-		}
-		
-		return ort;
-	}
 }

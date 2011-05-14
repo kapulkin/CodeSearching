@@ -1,120 +1,148 @@
 package search_procedures;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayList;
-
-import in_out_interfaces.IOPolyMatrix;
+import java.util.NoSuchElementException;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import trellises.Trellis;
 import trellises.Trellises;
-import math.BlockMatrix;
-import math.MathAlgs;
-import math.Matrix;
-import math.Poly;
+import math.BitArray;
 import math.PolyMatrix;
-import math.SmithDecomposition;
 import codes.ConvCode;
 import codes.MinDistance;
 
 public class HighRateCCSearcher {
-	volatile boolean searchRunning = false;
-	ArrayList<ConvCodeListener> listeners = new ArrayList<ConvCodeListener>();
-	
-	public void addCodeListener(ConvCodeListener listener) {
-		listeners.add(listener);
-	}
-	
-	public void removeCodeListener(ConvCodeListener listener) {
-		listeners.remove(listener);
-	}
-	
-	/*
-	 * Правильный итерфейс поисковика:
-	 * начни искать коды с расстоянием больше заданного (удовлетворяющего 
-	 * условиям) и с заданными парметрами. Если нашел код - выдай его листенеру.
-	 * startSearch(freeDistance, ...)
-	 * 
-	 * Всегда можно остановить поиск:
-	 * stopSearch();
-	 * 
-	 * Если перебор закончился, то остановиться и кинуть листенеру информацию 
-	 * об этом. 
-	 */
-	public void startSearch(int delay, int freeDistance, int infoBits) throws IOException
-	{
-		searchRunning = true;
-		
-		Logger logger = LoggerFactory.getLogger(this.getClass());
-		
-		MatrixEnumerator enumerator = new MatrixEnumerator(delay - 1, infoBits + 1);
-		
-		while (searchRunning && enumerator.hasNext())
-		{			
-			Matrix candidate = enumerator.getNext();
-			PolyMatrix checkMatrix = new PolyMatrix(1, infoBits + 1);
-			
-			for(int i = 0;i < infoBits + 1;i ++)
-			{
-				Boolean[] polyCoeffs = new Boolean[delay+1];
-				
-				polyCoeffs[0] = true;
-				for(int j = 1;j < delay;j ++)
-				{
-					polyCoeffs[j] = candidate.get(j-1, i);
-				}
-				
-				if(i >= infoBits - 1)
-				{
-					polyCoeffs[delay] = true;
-				}else{
-					polyCoeffs[delay] = false;
-				}
-				
-				checkMatrix.set(0, i, new Poly(polyCoeffs));
-			}
-			
-			SmithDecomposition decomp = new SmithDecomposition(checkMatrix);
-			
-			if(decomp.getD().get(0, 0).isZero()) {
-				continue;
-			}
-					
-			Trellis trellis = Trellises.trellisFromParityCheckHR(checkMatrix);
-			
-			MinDistance.computeDistanceMetrics(trellis);
-			
-			int minDist = MinDistance.findFreeDistWithBEAST(trellis, 0, 2 * (delay+1));
-						
-			if(minDist >= freeDistance)
-			{
-				logger.debug("free dist: " + minDist);
-				if (logger.isDebugEnabled()) {
-					StringWriter writer = new StringWriter();
-					IOPolyMatrix.writeMatrix(checkMatrix, new BufferedWriter(writer));
-					logger.debug("\n" + writer.getBuffer().substring(0));
-				}
+	Logger logger = LoggerFactory.getLogger(this.getClass());
 
-				PolyMatrix genMatrix = MathAlgs.findOrthogonalMatrix(decomp);
-				ConvCode code = new ConvCode(new BlockMatrix(genMatrix, delay + 1), true);
-				
-				for (ConvCodeListener listener : listeners) {
-					listener.codeFound(code);
-				}
-			}
+	int delay;
+	int freeDist;
+
+	RowsEnumerator lowerRowsEnum;
+	RowsEnumerator higherRowsEnum;	
+	ArrayList<BitArray> lowerRows;
+	ArrayList<BitArray> higherRows;
+	
+	Random randGen = new Random();
+	
+	public HighRateCCSearcher(int delay, int freeDist) {
+		this.delay = delay;
+		this.freeDist = freeDist;
+		
+		if (freeDist <= 4) {
+			throw new IllegalArgumentException("This class searches codes with free distance >= 5.");
 		}
 		
-		for (ConvCodeListener listener : listeners) {
-			listener.searchFinished();
-		}
-	}	
+//		int codeLengthRestriction = (freeDist % 2 == 0) ? (1 << delay - 2) + 2 : (1 << delay - 1) + 2;
+		// инициализируем начальные ветора в зависимости от четности freeDist
+		// отдельно вектора степени v-1
+		lowerRowsEnum = new RowsEnumerator(1, freeDist % 2 == 0 ? delay - 2 : delay - 1);
+		lowerRows = new ArrayList<BitArray>();
+		lowerRows.add(lowerRowsEnum.getNext()[0]);
+		// отдельно nv вектора степени v
+		higherRowsEnum = new RowsEnumerator(1, freeDist % 2 == 0 ? delay - 2 : delay - 1);
+		higherRows = new ArrayList<BitArray>();
+		higherRows.add(higherRowsEnum.getNext()[0]);
+		
+	}
 	
-	public void stopSearch() {
-		searchRunning = false;
+	public ConvCode next() {
+		int attempts = delay * freeDist;
+		
+		boolean codeFound = false;
+		while (!codeFound && attempts > 0 && lowerRowsEnum.hasNext() && higherRowsEnum.hasNext()) {
+			--attempts;
+
+			BitArray lowerRowsArray[] = lowerRows.toArray(new BitArray[] {});
+			BitArray higherRowsArray[] = higherRows.toArray(new BitArray[] {});
+			if (!checkLowEstimation(makeCheckMatrix(lowerRowsArray, higherRowsArray), freeDist)) {
+				// удаляем случайный вектор: или из lowerRows или из higherRows
+				int rowIndex = randGen.nextInt(lowerRows.size() + higherRows.size());
+				if (rowIndex < lowerRows.size()) {
+					lowerRows.remove(rowIndex);
+				} else {
+					higherRows.remove(rowIndex - lowerRows.size());
+				}
+				
+				// добавляем следующий - если nv == 0, то обязательно из 
+				// higherRows, если nv == 2, то обязательно из lowerRows 
+				if (higherRows.isEmpty()) {
+					higherRows.add(higherRowsEnum.getNext()[0]);
+				} else if (higherRows.size() == 2) {
+					lowerRows.add(lowerRowsEnum.getNext()[0]);
+				} else {
+					if (randGen.nextBoolean()) {
+						lowerRows.add(lowerRowsEnum.getNext()[0]);
+					} else {
+						higherRows.add(higherRowsEnum.getNext()[0]);
+					}
+				}
+			} else {
+				codeFound = true;
+			}	
+		}
+		
+		if (codeFound) {
+			// нашли подходящий код.
+			BitArray lowerRowsArray[];
+			BitArray higherRowsArray[];
+
+			try {
+				boolean added = true;
+				do {
+					// добавляем следующий вектор к матрице
+					if (higherRows.size() == 2) {
+						lowerRows.add(lowerRowsEnum.getNext()[0]);
+					} else {
+						if (randGen.nextBoolean()) {
+							lowerRows.add(lowerRowsEnum.getNext()[0]);
+						} else {
+							higherRows.add(higherRowsEnum.getNext()[0]);
+							added = false;
+						}
+					}
+					lowerRowsArray = lowerRows.toArray(new BitArray[] {});
+					higherRowsArray = higherRows.toArray(new BitArray[] {});
+				} while (checkLowEstimation(makeCheckMatrix(lowerRowsArray, higherRowsArray), freeDist));
+				
+				// удаляем последний добавленный: откатываемся на последний рабочий вариант
+				if (added) {
+					lowerRows.remove(lowerRows.size() - 1);
+				} else {
+					higherRows.remove(higherRows.size() - 1);
+				}
+			} catch (NoSuchElementException e) {
+				// do nothing
+			}
+			lowerRowsArray = lowerRows.toArray(new BitArray[] {});
+			higherRowsArray = higherRows.toArray(new BitArray[] {});
+			return new ConvCode(makeCheckMatrix(lowerRowsArray, higherRowsArray), false);
+		}
+		
+		return null;
 	}
 
+	private boolean checkLowEstimation(PolyMatrix checkMatrix, int expectedFreeDist) {
+		Trellis trellis = Trellises.trellisFromParityCheckHR(checkMatrix);
+		MinDistance.computeDistanceMetrics(trellis);
+		
+		int freeDist = MinDistance.findMinDistWithBEAST(trellis, 0, 2 * (delay+1));
+
+		logger.debug("actual free dist = " + freeDist);
+		
+		return freeDist >= expectedFreeDist;
+		
+		// TODO: более хитрая проверка: перебираем все слова веса expectedFreeDist-1, длины k+1 и степени v-1
+		// TODO: умножаем их на матрицу - если в какой-то момент получается ноль - возвращаем false, иначе true
+		
+		// TODO: еще более хитрая проверка: вместо тупого перебора хитрые правила и более тонкий перебор.
+	}
+
+	private PolyMatrix makeCheckMatrix(BitArray[] lowerRows, BitArray[] higherRows) {
+		return (freeDist % 2 == 0) ? 
+				FreeDist4CCEnumerator.makeCheckMatrix(lowerRows, higherRows) :
+					FreeDist3CCEnumerator.makeCheckMatrix(lowerRows, higherRows);
+	}
 }

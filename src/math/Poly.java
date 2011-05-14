@@ -1,7 +1,5 @@
 package math;
 
-import java.util.ArrayList;
-
 /**
  * 
  * Класс является реализацией многочлена с бинарными коэффициентами (из GF(2)).
@@ -18,11 +16,9 @@ import java.util.ArrayList;
  */
 
 public class Poly implements Cloneable {
-	private ArrayList<Boolean> polyCoeffs = new ArrayList<Boolean>(); 
+	private BitSet polyCoeffs = new BitSet(); 
 
-	public Poly()
-	{
-		polyCoeffs.add(false);
+	public Poly() {
 	}
 	
 	public Poly(Boolean[] polyCoeffs)
@@ -31,85 +27,49 @@ public class Poly implements Cloneable {
 			throw new IllegalArgumentException("polyCoeffs length is zero.");
 		}
 		
-		this.polyCoeffs.ensureCapacity(polyCoeffs.length);
+		this.polyCoeffs = new BitSet(polyCoeffs.length);
 		for(int i = 0;i < polyCoeffs.length;i ++)
 		{
-			this.polyCoeffs.add(polyCoeffs[i]);
+			this.polyCoeffs.set(i, polyCoeffs[i]);
 		}
-		trim();
 	}
 	
 	public Poly(int powers[]) {
-		polyCoeffs.add(false);
-
 		for (int power : powers) {
-			if (polyCoeffs.size() <= power) {
-				polyCoeffs.ensureCapacity(power + 1);
-				for (int i = polyCoeffs.size(); i < power; ++i) {
-					polyCoeffs.add(false);
-				}
-				polyCoeffs.add(true);
-			} else {
-				polyCoeffs.set(power, true);
-			}
+			polyCoeffs.set(power, true);
 		}
 	}
 	
-	private Poly(ArrayList<Boolean> polyCoeffs) {
-		if (polyCoeffs.size() == 0) {
-			throw new IllegalArgumentException("polyCoeffs size is zero.");
-		}
-
-		this.polyCoeffs = polyCoeffs;
-
-		trim();
+	public Poly(BitSet polyCoeffs) {
+		this(polyCoeffs, true);
+	}
+	
+	private Poly(BitSet polyCoeffs, boolean clone) {
+		this.polyCoeffs = (clone ? (BitSet) polyCoeffs.clone() : polyCoeffs);
 	}
 	
 	public Poly(Poly poly)
 	{
-		polyCoeffs = new ArrayList<Boolean>();
-		
-		for(int i = 0;i < poly.polyCoeffs.size();i ++)
-		{
-			polyCoeffs.add(poly.polyCoeffs.get(i));
-		}
+		this(poly.polyCoeffs);
 	}
 	
 	public int getDegree()
 	{
-		return polyCoeffs.size() - 1;
+		return Math.max(polyCoeffs.length() - 1, 0);
 	}
 	
 	public Boolean getCoeff(int index)
 	{
-		if(polyCoeffs.size() <= index)
-			return false;
 		return polyCoeffs.get(index);
 	}
 	
 	public void setCoeff(int index, Boolean val)
 	{
-		if(polyCoeffs.size() <= index)
-			throw new IndexOutOfBoundsException();
 		polyCoeffs.set(index, val);
-
-		trim();
 	}
 	
 	public void add(Poly poly) {
-		if (getDegree() < poly.getDegree()) {
-			int delta = poly.getDegree() - getDegree();
-			
-			for(int i = 0; i < delta; ++i)  {				
-				polyCoeffs.add(false);
-			}
-		}
-		
-		for (int i = 0; i <= poly.getDegree(); ++i) {
-			polyCoeffs.set(i, polyCoeffs.get(i) ^ poly.polyCoeffs.get(i));
-		}
-		
-		trim();
+		polyCoeffs.xor(poly.polyCoeffs);
 	}
 	
 	public Poly sum(Poly poly)
@@ -141,13 +101,16 @@ public class Poly implements Cloneable {
 	}
 	
 	public void increaseDegree(int pow) {
-		if (getDegree() == 0 && getCoeff(0) == false) {
+		if (isZero() || pow == 0) {
 			return ;
 		}
 		
-		for(int i = 0; i < pow; ++i) {
-			polyCoeffs.add(i, false);
+		BitSet newCoeffs = new BitSet();
+		for (int bitIndex = polyCoeffs.nextSetBit(0); bitIndex >= 0; bitIndex = polyCoeffs.nextSetBit(bitIndex + 1)) {
+			newCoeffs.set(bitIndex + pow);
 		}
+		
+		polyCoeffs = newCoeffs;
 	}
 	
 	public Poly mulPow(int pow)
@@ -165,21 +128,16 @@ public class Poly implements Cloneable {
 			throw new IllegalArgumentException("Division by zero!");
 		}
 		
-		if(getDegree() < poly.getDegree())
+		if (getDegree() < poly.getDegree())
 		{
 			return new Poly();
 		}
 
-		ArrayList<Boolean> quotient = new ArrayList<Boolean>();
 		Poly tempPoly = new Poly(this);
 		
-		quotient.ensureCapacity(getDegree() - poly.getDegree() + 1);
-		for(int i = 0;i < getDegree() - poly.getDegree() + 1; i++)
-		{
-			quotient.add(false);
-		}
+		BitSet quotient = new BitSet(getDegree() - poly.getDegree() + 1);
 		
-		while(tempPoly.getDegree() >= poly.getDegree() && !tempPoly.isZero())
+		while (tempPoly.getDegree() >= poly.getDegree() && !tempPoly.isZero())
 		{
 			/*if(tempPoly.getCoeff(tempPoly.getDegree()) == false)
 			{
@@ -193,7 +151,7 @@ public class Poly implements Cloneable {
 			tempPoly = tempPoly.sum(subPoly);
 		}
 		
-		return new Poly(quotient);
+		return new Poly(quotient, false);
 	}
 	
 	public Poly getRemainder(Poly poly)
@@ -235,7 +193,7 @@ public class Poly implements Cloneable {
 	
 	public boolean isZero()
 	{
-		return polyCoeffs.size() == 1 && polyCoeffs.get(0) == false;
+		return polyCoeffs.length() == 0;
 	}
 	
 	public Poly clone()
@@ -280,16 +238,42 @@ public class Poly implements Cloneable {
 		return new Poly[] {x, y, d};
 	}
 	
-	private void trim()
-	{
-		for(int i = polyCoeffs.size() - 1; i > 0; --i)
-		{
-			if(polyCoeffs.get(i) == false)
-			{
-				polyCoeffs.remove(i);
-			}else{
-				break;
+	@Override
+	public String toString() {
+		if (isZero()) {
+			return "0";
+		}
+		
+		String str = new String();
+
+		boolean firstCoeffPrinted = false;
+		if (getCoeff(0)) {
+			str += "1";
+			firstCoeffPrinted = true;
+		}
+		
+		if (getCoeff(1)) {
+			str += (firstCoeffPrinted ? "+D" : "D");
+			firstCoeffPrinted = true;
+		}
+
+		int power = 2;
+		if (!firstCoeffPrinted) {
+			// print first non-zero coeff
+			for (; power <= getDegree(); ++power) {
+				if (getCoeff(power)) {
+					str += "D" + power;
+					firstCoeffPrinted = true;
+					break;
+				}
 			}
 		}
+		for (; power <= getDegree(); ++power) {
+			if (getCoeff(power)) {
+				str += "+D" + power;
+			}
+		}
+		
+		return str;
 	}
 }

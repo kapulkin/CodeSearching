@@ -2,7 +2,7 @@ package trellises;
 
 import java.util.NoSuchElementException;
 
-public class BlockCodeTrellisIterator implements TrellisIterator {
+public class BlockCodeTrellisIterator implements ITrellisIterator {
 	Trellis trellis;
 	int layer;
 	int vertexIndex;
@@ -66,7 +66,7 @@ public class BlockCodeTrellisIterator implements TrellisIterator {
 	}
 
 	@Override
-	public TrellisIterator clone() {
+	public ITrellisIterator clone() {
 		return new BlockCodeTrellisIterator(trellis, layer, vertexIndex);
 	}
 }

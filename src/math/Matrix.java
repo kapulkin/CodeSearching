@@ -8,19 +8,19 @@ package math;
  */
 public class Matrix implements Cloneable {			
 	
-	private BitSet[] data;
+	private BitArray[] data;
 	
 	public Matrix(int m, int n)
 	{
-		data = new BitSet[m];
+		data = new BitArray[m];
 		
 		for(int i = 0;i < m;i ++)
 		{
-			data[i] = new BitSet(n);			
+			data[i] = new BitArray(n);			
 		}
 	}
 	
-	public Matrix(BitSet[] data)
+	public Matrix(BitArray[] data)
 	{
 		this.data = data;
 	}
@@ -35,16 +35,16 @@ public class Matrix implements Cloneable {
 		return data[0].getFixedSize();
 	}
 	
-	public BitSet getRow(int i)
-	{
-		return data[i];
-	}
-	
 	public boolean get(int i, int j)
 	{
 		return data[i].get(j);
 	}
 	
+	public BitArray getRow(int i)
+	{
+		return data[i];
+	}
+
 	public Matrix getSubMatrix(int si, int sj, int rows, int cols)
 	{
 		Matrix subMat = new Matrix(rows, cols);
@@ -103,7 +103,7 @@ public class Matrix implements Cloneable {
 		}
 	}
 	
-	public void setRow(int i, BitSet row)
+	public void setRow(int i, BitArray row)
 	{
 		data[i] = row;
 	}
@@ -138,9 +138,9 @@ public class Matrix implements Cloneable {
 		return res;
 	}
 	
-	public BitSet mul(BitSet vec)
+	public BitArray mul(BitArray vec)
 	{
-		BitSet res = new BitSet(getRowCount());
+		BitArray res = new BitArray(getRowCount());
 		
 		for(int i = 0;i < getRowCount();i ++)
 		{
@@ -174,11 +174,11 @@ public class Matrix implements Cloneable {
 	
 	public Object clone()
 	{
-		BitSet[] rowClones = new BitSet[getRowCount()];
+		BitArray[] rowClones = new BitArray[getRowCount()];
 		
 		for(int i = 0;i < getRowCount();i ++)
 		{
-			rowClones[i] = (BitSet)data[i].clone();
+			rowClones[i] = (BitArray)data[i].clone();
 		}
 		
 		return new Matrix(rowClones);
@@ -205,5 +205,20 @@ public class Matrix implements Cloneable {
 		}
 		
 		return true;
+	}
+	
+	@Override
+	public String toString() {
+		String str = new String();
+		
+		for (int i = 0; i < getRowCount(); ++i) {
+			for (int j = 0; j < getColumnCount(); ++j) {
+				str += (get(i, j) ? 1 : 0); 
+			}
+			
+			str += "\n";
+		}
+		
+		return str;
 	}
 }

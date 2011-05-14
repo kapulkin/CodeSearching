@@ -13,5 +13,5 @@ public interface ITrellis {
 	 */
 	public int layerSize(int layer);
 	
-	public TrellisIterator iterator(int layer, int vertexIndex);
+	public ITrellisIterator iterator(int layer, int vertexIndex);
 }

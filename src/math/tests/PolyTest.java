@@ -58,27 +58,27 @@ public class PolyTest {
 		assertEquals(2, poly.getDegree());
 	}
 
-	@Test // setCoeff
-	public void couldSetOnlyExistingCoeffs() {
-		Poly poly = new Poly(new Boolean[] {true, false, true, true});
-		
-		poly.setCoeff(1, true);
-		assertTrue(isPolyCorrect(poly));
-
-		try {
-			poly.setCoeff(4, true);
-			fail("This code shouldn't be run because of expected exception.");
-		} catch (IndexOutOfBoundsException e) {
-			System.out.println("All is ok: expected exception was thrown.");
-		}
-
-		try {
-			poly.setCoeff(5, true);
-			fail("This code shouldn't be run because of expected exception.");
-		} catch (IndexOutOfBoundsException e) {
-			System.out.println("All is ok: expected exception was thrown.");
-		}
-	}
+//	@Test // setCoeff
+//	public void couldSetOnlyExistingCoeffs() {
+//		Poly poly = new Poly(new Boolean[] {true, false, true, true});
+//		
+//		poly.setCoeff(1, true);
+//		assertTrue(isPolyCorrect(poly));
+//
+//		try {
+//			poly.setCoeff(4, true);
+//			fail("This code shouldn't be run because of expected exception.");
+//		} catch (IndexOutOfBoundsException e) {
+//			System.out.println("All is ok: expected exception was thrown.");
+//		}
+//
+//		try {
+//			poly.setCoeff(5, true);
+//			fail("This code shouldn't be run because of expected exception.");
+//		} catch (IndexOutOfBoundsException e) {
+//			System.out.println("All is ok: expected exception was thrown.");
+//		}
+//	}
 
 	@Test // add
 	public void shouldRemainCorrectAfterAdd() {

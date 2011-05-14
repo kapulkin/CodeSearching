@@ -1,10 +1,10 @@
 package codes;
 
-import math.BitSet;
+import math.BitArray;
 import math.GrayCode;
 import math.Matrix;
 import trellises.BeastAlgorithm;
-import trellises.CyclicTrellisIterator;
+import trellises.ITrellisIterator;
 import trellises.Trellis;
 import trellises.ViterbiAlgorithm;
 
@@ -57,7 +57,7 @@ public class MinDistance {
 		return minDist;
 	}
 
-	public static int findFreeDistWithBEAST(Trellis trellis, int distanceMetric, int cycles) {
+	public static int findMinDistWithBEAST(Trellis trellis, int distanceMetric, int cycles) {
 		int minDist = Integer.MAX_VALUE;
 				
 		int length = Math.max(1, cycles) * trellis.Layers.length;
@@ -66,14 +66,12 @@ public class MinDistance {
 			weights[i] = 1;
 		}
 		
-		for (int v = 0; v < trellis.Layers.length; ++v) {
-			CyclicTrellisIterator root = new CyclicTrellisIterator(trellis, 0, 0);
-			CyclicTrellisIterator toor = new CyclicTrellisIterator(trellis, v, 0);
-			BeastAlgorithm.Path paths[] = BeastAlgorithm.findOptimalPaths(root, toor, distanceMetric, weights, BeastAlgorithm.DISTANCE);
-			
-			for (int i = 0; i < paths.length; ++i) {
-				minDist = Math.min(minDist, (int)paths[i].metric());
-			}
+		ITrellisIterator root = trellis.iterator(0, 0);
+		ITrellisIterator toor = trellis.iterator(trellis.Layers.length - 1, 0);
+		BeastAlgorithm.Path paths[] = BeastAlgorithm.findOptimalPaths(root, toor, distanceMetric, weights);
+		
+		for (int i = 0; i < paths.length; ++i) {
+			minDist = Math.min(minDist, (int)paths[i].weight());
 		}
 		
 		return minDist;
@@ -82,11 +80,11 @@ public class MinDistance {
 	public static int findMinDist(Matrix gen)
 	{
 		int minDist = Integer.MAX_VALUE;
-		BitSet codeWord = new BitSet(gen.getColumnCount());
+		BitArray codeWord = new BitArray(gen.getColumnCount());
 
 		for(int w = 1;w < (1<<(gen.getRowCount()));w ++)
 		{			
-			int changedBit = GrayCode.getChangedBit(w);
+			int changedBit = GrayCode.getChangedPosition(w);
 			int weight;
 			
 			codeWord.xor(gen.getRow(changedBit));

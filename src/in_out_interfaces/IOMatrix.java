@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import math.BitArray;
 import math.Matrix;
-import math.BitSet;
 
 public class IOMatrix {
 	
@@ -19,7 +19,7 @@ public class IOMatrix {
 	
 	public static Matrix readMatrix(BufferedReader reader, int rows) throws IOException
 	{		
-		ArrayList<BitSet> data = new ArrayList<BitSet>();
+		ArrayList<BitArray> data = new ArrayList<BitArray>();
 		String line;
 		boolean octValues = false;
 		int columnCount = 0;
@@ -38,7 +38,7 @@ public class IOMatrix {
 		{			
 			Pattern patt = octValues ? Pattern.compile("0|1|2|3|4|5|6|7") : Pattern.compile("0|1");
 			Matcher matcher = patt.matcher(line);
-			BitSet comprRow = new BitSet();
+			BitArray comprRow;
 			
 			if(!octValues)
 			{
@@ -49,14 +49,14 @@ public class IOMatrix {
 					row.add(matcher.group().equals("1"));
 				}
 				
-				comprRow = new BitSet(row.size());
+				comprRow = new BitArray(row.size());
 				
 				for(int i = 0;i < row.size();i ++)
 				{
 					comprRow.set(i, row.get(i));
 				}
 			}else{
-				comprRow = new BitSet(columnCount);
+				comprRow = new BitArray(columnCount);
 				for(int i = 0;i < Math.ceil(columnCount / 3);i ++)
 				{
 					if(matcher.find())

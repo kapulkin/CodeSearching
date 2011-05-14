@@ -28,8 +28,8 @@ public class ZTCode extends BlockCode {
 		
 		parentCode = convCode;
 		ztGenMatr = new BlockMatrix(scaleDelta+1, scale);
-		k = convCode.getRegCount() * (scaleDelta+1);
-		n = convCode.getAdderCount() * scale;
+		k = convCode.getK() * (scaleDelta+1);
+		n = convCode.getN() * scale;
 		
 		for(int rowBlock = 0;rowBlock < scaleDelta+1;rowBlock ++)
 		{

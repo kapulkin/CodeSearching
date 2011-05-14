@@ -4,83 +4,16 @@ import java.util.ArrayList;
 
 import trellises.Trellis.Vertex;
 
-import math.BitSet;
+import math.BitArray;
+import math.BlockCodeAlgs;
 import math.PolyMatrix;
 import math.SpanForm;
 
 public class Trellises {	
 	
-	public static void sortHeads(SpanForm sf)
-	{
-		// сортировка выбором
-		for(int i = 0;i < sf.spanHeads.length;i ++)
-		{
-			int minHead = Integer.MAX_VALUE;
-			int minRow = -1;
-			
-			for(int j = i;j < sf.spanHeads.length;j ++)
-			{
-				if(sf.spanHeads[j] < minHead)
-				{
-					minHead = sf.spanHeads[j];
-					minRow = j;
-				}
-			}
-			
-			if(i != minRow)
-			{
-				BitSet iRow = sf.Matr.getRow(i);
-				int iHead = sf.spanHeads[i], iTail = sf.spanTails[i];
-				
-				sf.Matr.setRow(i, sf.Matr.getRow(minRow));
-				sf.Matr.setRow(minRow, iRow);
-				
-				sf.spanHeads[i] = sf.spanHeads[minRow];
-				sf.spanHeads[minRow] = iHead;
-				
-				sf.spanTails[i] = sf.spanTails[minRow];
-				sf.spanTails[minRow] = iTail;
-			}
-		}
-	}
-	
-	public static void sortTails(SpanForm sf)
-	{
-		// сортировка выбором
-		for(int i = 0;i < sf.spanTails.length;i ++)
-		{
-			int minTail = Integer.MAX_VALUE;
-			int minRow = -1;
-			
-			for(int j = i;j < sf.spanTails.length;j ++)
-			{
-				if(sf.spanTails[j] < minTail)
-				{
-					minTail = sf.spanTails[j];
-					minRow = j;
-				}
-			}
-			
-			if(i != minRow)
-			{
-				BitSet iRow = sf.Matr.getRow(i);
-				int iHead = sf.spanHeads[i], iTail = sf.spanTails[i];
-				
-				sf.Matr.setRow(i, sf.Matr.getRow(minRow));
-				sf.Matr.setRow(minRow, iRow);
-				
-				sf.spanHeads[i] = sf.spanHeads[minRow];
-				sf.spanHeads[minRow] = iHead;
-				
-				sf.spanTails[i] = sf.spanTails[minRow];
-				sf.spanTails[minRow] = iTail;
-			}
-		}
-	}
-
 	/**
 	 * Строит секционированную решетку кода по спеновой форме порождающей матрицы. Реализация основывается
-	 * на проходе по столбцам матрицы сканирущей прямой, хранящей информацию о активных строках. Возможные 
+	 * на проходе по столбцам матрицы сканирущей прямой, хранящей информацию об активных строках. Возможные 
 	 * положения прямой - в начале или в конце текущей активной строчки.   
 	 * @param sf спеновая форма порождающей матрицы
 	 * @return решетка кода
@@ -127,9 +60,9 @@ public class Trellises {
 		// слои решетки
 		ArrayList<Trellis.Vertex[]> layers = new ArrayList<Trellis.Vertex[]>();		
 		
-		sortHeads(sf);
+		BlockCodeAlgs.sortHeads(sf);
 						
-		int initialColumn = sf.spanHeads[begSeg];
+		int initialColumn = sf.getHead(begSeg);
 		ArrayList<Integer> activeRows = new ArrayList<Integer>();
 		Trellis.Vertex[] firstLayer;
 		
@@ -137,8 +70,8 @@ public class Trellises {
 		{
 			int shiftedColumn = initialColumn + sf.Matr.getColumnCount();
 			
-			if((sf.spanHeads[i] < initialColumn && initialColumn <= sf.spanTails[i]) ||
-				(sf.spanHeads[i] < shiftedColumn && shiftedColumn <= sf.getUncycledTail(i)))
+			if((sf.getHead(i) < initialColumn && initialColumn <= sf.getTail(i)) ||
+				(sf.getHead(i) < shiftedColumn && shiftedColumn <= sf.getUncycledTail(i)))
 			{
 				activeRows.add(i);			
 			}
@@ -173,24 +106,25 @@ public class Trellises {
 	
 	public static Trellis trellisFromParityCheckHR(PolyMatrix parityCheck)
 	{
-		int degree = parityCheck.get(0, parityCheck.getColumnCount()-1).getDegree();
+		int degree = parityCheck.get(0, parityCheck.getColumnCount() - 1).getDegree();
+
 		int levels = parityCheck.getColumnCount() - 1;		
 		ArrayList<Trellis.Vertex[]> layers = new ArrayList<Trellis.Vertex[]>();
 		Trellis.Vertex[] firstLayer = new Trellis.Vertex[1<<degree];
-		
+	
+		// индекс вершины определяет содержимое регистров памяти
 		for(int v = 0;v < firstLayer.length;v ++)
 		{
 			firstLayer[v] = new Vertex();
 			firstLayer[v].Accessors = new Trellis.Edge[2];
 			firstLayer[v].Predecessors = new Trellis.Edge[2];
 		}
-		
 		layers.add(firstLayer);
 		
 		for(int l = 0;l < levels-1;l ++)
 		{
 			Trellis.Vertex[] lastLayer = layers.get(l);
-			Trellis.Vertex[] newLayer = new Trellis.Vertex[1<<degree];
+			Trellis.Vertex[] newLayer = new Trellis.Vertex[1 << degree];
 			
 			for(int v = 0;v < newLayer.length;v ++)
 			{
@@ -198,11 +132,12 @@ public class Trellises {
 				newLayer[v].Accessors = new Trellis.Edge[2];
 				newLayer[v].Predecessors = new Trellis.Edge[2];
 				
+				// индекс ребра соответствует значению l-ого бита кодового слова.
 				Trellis.Edge edge0 = new Trellis.Edge();
 				Trellis.Edge edge1 = new Trellis.Edge();
 				
-				edge0.Bits = new BitSet(1);
-				edge0.Src = v;
+				edge0.Bits = new BitArray(1);
+				edge0.Src = v;	// при переходе из lastLayer по нулевому ребру содержимое памяти не менялось
 				edge0.Dst = v;
 				edge0.Metrics = new double[0];
 				
@@ -215,17 +150,18 @@ public class Trellises {
 					lastLayer[edge0.Src].Accessors[1] = edge0;
 				}
 				
+				// при переходе из lastLayer по единичному ребру содержимое памяти изменилось в соотв. с H[l]
+				// вычисляем маску изменения памяти
 				int h = 0;
-				
 				for(int i = 0;i < parityCheck.get(0, l).getDegree() + 1;i ++)
 				{
 					if(parityCheck.get(0, l).getCoeff(i) == true)
 					{
-						h += (1<<i);
+						h |= (1<<i);
 					}
 				}
 				
-				edge1.Bits = new BitSet(1);
+				edge1.Bits = new BitArray(1);
 				edge1.Bits.set(0, true);
 				edge1.Src = v ^ h;
 				edge1.Dst = v;
@@ -246,6 +182,7 @@ public class Trellises {
 		
 		Trellis.Vertex[] finalLayer = layers.get(levels - 1);
 		
+		// основное требование при переходе: младший регистр памяти должен стать равен нулю, т.к. это бит синдрома
 		for(int v = 0;v < finalLayer.length;v ++)
 		{	
 			int h1 = 0, h2 = 0;
@@ -254,7 +191,7 @@ public class Trellises {
 			{
 				if(parityCheck.get(0, levels-1).getCoeff(i) == true)
 				{
-					h1 += (1<<i);
+					h1 |= (1<<i);
 				}
 			}
 			
@@ -262,14 +199,15 @@ public class Trellises {
 			{
 				if(parityCheck.get(0, levels).getCoeff(i) == true)
 				{
-					h2 += (1<<i);
+					h2 |= (1<<i);
 				}
 			}
 			
 			Trellis.Edge edge0 = new Trellis.Edge();
 			Trellis.Edge edge1 = new Trellis.Edge();
 			
-			edge0.Bits = new BitSet(2);
+			// нулевое ребро соотв. нулевому значению предпоследнего бита кодового слова. 
+			edge0.Bits = new BitArray(2);
 			edge0.Src = v;
 			edge0.Metrics = new double[0];
 			
@@ -289,8 +227,8 @@ public class Trellises {
 			}else{
 				firstLayer[edge0.Dst].Predecessors[1] = edge0;
 			}			
-			
-			edge1.Bits = new BitSet(2);
+			// единичное ребро соотв. единичному значению предпоследнего бита кодового слова. 
+			edge1.Bits = new BitArray(2);
 			edge1.Bits.set(0, true);
 			edge1.Src = v;
 			edge1.Metrics = new double[0];
@@ -316,13 +254,31 @@ public class Trellises {
 		Trellis trellis = new Trellis();
 		
 		trellis.Layers = new Trellis.Vertex[layers.size()][];
-		
-		for(int i = 0;i < layers.size();i ++)
-		{
-			trellis.Layers[i] = layers.get(i);
-		}
+		layers.toArray(trellis.Layers);
 		
 		return trellis;
 	}
 
+	/**
+	 * Строит решетку в явном виде эквивалентную исходной.
+	 * @param trellis решетка кода.
+	 * @return решетка кода, эквивалентная исходной.
+	 */
+	public static Trellis buildExplicitTrellis(ITrellis trellis) {
+		Trellis newTrellis = new Trellis();
+		
+		newTrellis.Layers = new Vertex[trellis.layersCount()][];
+		for (int i = 0; i < newTrellis.Layers.length; ++i) {
+			newTrellis.Layers[i] = new Vertex[trellis.layerSize(i)];
+			for (int j = 0; j < newTrellis.Layers[i].length; ++j) {
+				newTrellis.Layers[i][j] = new Vertex();
+				newTrellis.Layers[i][j].Accessors = trellis.iterator(i, j).getAccessors();
+			}
+		}
+
+		TrellisUtils.buildPredcessors(newTrellis);
+				
+		return newTrellis;
+	}
+	
 }

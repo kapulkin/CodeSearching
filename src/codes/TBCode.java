@@ -2,8 +2,8 @@ package codes;
 
 import trellises.Trellis;
 import trellises.Trellises;
+import math.BlockCodeAlgs;
 import math.BlockMatrix;
-import math.MathAlgs;
 import math.Matrix;
 import math.SpanForm;
 
@@ -37,8 +37,8 @@ public class TBCode extends BlockCode {
 		
 		parentCode = convCode;
 		tbGenMatr = new BlockMatrix(scale, scale);
-		k = convCode.getRegCount() * scale;
-		n = convCode.getAdderCount() * scale;
+		k = convCode.getK() * scale;
+		n = convCode.getN() * scale;
 		
 		for(int rowBlock = 0;rowBlock < scale;rowBlock ++)
 		{
@@ -102,21 +102,21 @@ public class TBCode extends BlockCode {
 		Matrix pattern = (new BlockMatrix(parentCode.getGenBlocks())).breakBlockStructure();
 		
 		// спеновая форма паттерна
-		SpanForm pattSpanForm = MathAlgs.toSpanForm(pattern);
+		SpanForm pattSpanForm = BlockCodeAlgs.toSpanForm(pattern);
 		
 		// разбиение паттерна на блоки
-		BlockMatrix dividedPattern = new BlockMatrix(pattern, parentCode.getRegCount(), parentCode.getAdderCount());
+		BlockMatrix dividedPattern = new BlockMatrix(pattern, parentCode.getK(), parentCode.getN());
 		
 		int scale = tbGenMatr.getRowCount();
-		int[] spanHeads = new int[scale * parentCode.getRegCount()];
-		int[] spanTails = new int[scale * parentCode.getRegCount()];
+		int[] spanHeads = new int[scale * parentCode.getK()];
+		int[] spanTails = new int[scale * parentCode.getK()];
 				
 		for(int rowBlock = 0;rowBlock < scale;rowBlock ++)
 		{			
-			for(int i = 0;i < parentCode.getRegCount();i ++)
+			for(int i = 0;i < parentCode.getK();i ++)
 			{
-				spanHeads[rowBlock * parentCode.getRegCount() + i] = (pattSpanForm.spanHeads[i] + rowBlock * parentCode.getAdderCount()) % (tbGenMatr.getTotalColumnCount());
-				spanTails[rowBlock * parentCode.getRegCount() + i] = (pattSpanForm.spanTails[i] + rowBlock * parentCode.getAdderCount()) % (tbGenMatr.getTotalColumnCount());
+				spanHeads[rowBlock * parentCode.getK() + i] = (pattSpanForm.getHead(i) + rowBlock * parentCode.getN()) % (tbGenMatr.getTotalColumnCount());
+				spanTails[rowBlock * parentCode.getK() + i] = (pattSpanForm.getTail(i) + rowBlock * parentCode.getN()) % (tbGenMatr.getTotalColumnCount());
 			}
 			
 			for(int colBlock = 0;colBlock < scale;colBlock ++)
@@ -135,7 +135,7 @@ public class TBCode extends BlockCode {
 		genSpanForm = new SpanForm(genMatr, spanHeads, spanTails);
 		genSpanForm.IsTailbiting = true;
 		
-		Trellis segment = Trellises.trellisSegmentFromGenSF(genSpanForm, 0, parentCode.getRegCount());
+		Trellis segment = Trellises.trellisSegmentFromGenSF(genSpanForm, 0, parentCode.getK());
 		
 		Trellis.Vertex[] firstLayer = segment.Layers[0];
 		Trellis.Vertex[] lastLayer = segment.Layers[segment.Layers.length-1];

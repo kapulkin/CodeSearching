@@ -1,7 +1,6 @@
 package trellises;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedMap;
@@ -12,29 +11,21 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import math.BitSet;
+import math.BitArray;
 import math.SpanForm;
 
 import trellises.Trellis.Edge;
+import trellises.TrellisSection.Boundary;
 import codes.BlockCode;
 
+/**
+ * Реализует интерфейс ITrellis для блокового кода, передаваемого в конструкторе.
+ * При этом решетка строится на лету, в явном виде построения не происходит.
+ * Для блокового кода со скроростью k/n время перехода в решекте O(k).   
+ * @author stas
+ *
+ */
 public class BlockCodeTrellis implements ITrellis {
-	/**
-	 * Граница активного ряда в спеновой форме. Может быть началом или концом 
-	 * ряда. 
-	 * @author stas
-	 *
-	 */
-	class Boundary {
-		int row;
-		int column;
-		
-		Boundary(int column, int row) {
-			this.column = column;
-			this.row = row;
-		}
-	}
-	
 	/**
 	 * Ярусы решетки блокогого кода расположены между сегментами порождающей 
 	 * матрицы. Сегмент включает в себя один или несколько последовательно 
@@ -44,7 +35,7 @@ public class BlockCodeTrellis implements ITrellis {
 	 * @author stas
 	 *
 	 */
-	class Layer {
+	static class Layer {
 		Boundary spanHead = null;
 		Boundary spanTail = null;
 
@@ -70,13 +61,19 @@ public class BlockCodeTrellis implements ITrellis {
 		}
 	}
 	
-	public class Iterator implements TrellisIterator {
+	public class Iterator implements ITrellisIterator {
 		Logger logger;
 		
 		int layer;
 		int vertexIndex;
 		
+		/**
+		 * Номера рядов, активных в текущем ярусе. Фактически, номера рядов, пересекающих ярус.
+		 */
 		SortedSet<Integer> currentActiveRows;
+		/**
+		 * Номера рядов, определяющих номер вершины в ярусе. Так же данные ряды складываются при вычислении меток на ребрах. 
+		 */
 		Set<Integer> currentSumRows;
 		
 		Iterator(int layer, int vertexIndex) {
@@ -86,7 +83,7 @@ public class BlockCodeTrellis implements ITrellis {
 			this.vertexIndex = vertexIndex;
 		
 			currentActiveRows = spanForm.getActiveRowsBefore(layers[layer].beginColumn());
-			currentSumRows = getSumRows(currentActiveRows, vertexIndex); 
+			currentSumRows = TrellisUtils.getSumRows(vertexIndex, currentActiveRows); 
 		}
 
 		@Override
@@ -94,8 +91,6 @@ public class BlockCodeTrellis implements ITrellis {
 			if (!hasForward()) {
 				return new Edge[0];
 			}
-
-			Edge edges[];
 
 			// получаем следующие активные ряды: добавляем к текущим начавшийся активный ряд и удаляем завершившийся
 			SortedSet<Integer> nextActiveRows = new TreeSet<Integer>(currentActiveRows);
@@ -106,28 +101,31 @@ public class BlockCodeTrellis implements ITrellis {
 				nextActiveRows.remove(layers[layer].spanTail.row);
 			}
 
+			Edge edges[] = new Edge[layers[layer].spanHead == null ? 1 : 2];
+			
 			// ребро нулевого пути.
-			Edge edge = new Edge();
-			edge.Src = vertexIndex;
-			edge.Dst = getVertexIndex(currentSumRows, nextActiveRows);
-			edge.Bits = getEdgeBits(currentSumRows, layers[layer].beginColumn(), layers[layer + 1].beginColumn());
+			edges[0] = new Edge();
+			edges[0].Src = vertexIndex;
+			edges[0].Dst = TrellisUtils.getVertexIndex(currentSumRows, nextActiveRows);
+			edges[0].Bits = TrellisUtils.getEdgeBits(spanForm.Matr, currentSumRows, 
+					layers[layer].beginColumn(), layers[layer + 1].beginColumn());
+			edges[0].Metrics = new double[1];
+			edges[0].Metrics[0] = edges[0].Bits.cardinality();
 
 			if (layers[layer].spanHead != null) {
 				int newRow = layers[layer].spanHead.row;
-				Set<Integer> nextSumRows = new HashSet<Integer>(currentSumRows);
-				nextSumRows.add(newRow);
-				edges = new Edge[2];
 
 				// ребро единичного пути.
 				edges[1] = new Edge();
 				edges[1].Src = vertexIndex;
-				edges[1].Dst = getVertexIndex(nextSumRows, nextActiveRows);
-				edges[1].Bits = (BitSet) edge.Bits.clone();
+				currentSumRows.add(newRow);
+				edges[1].Dst = TrellisUtils.getVertexIndex(currentSumRows, nextActiveRows);
+				currentSumRows.remove(newRow);
+				edges[1].Bits = (BitArray) edges[0].Bits.clone();
 				edges[1].Bits.xor(spanForm.Matr.getRow(newRow).get(layers[layer].beginColumn(), layers[layer + 1].beginColumn()));
-			} else {
-				edges = new Edge[1];
+				edges[1].Metrics = new double[1];
+				edges[1].Metrics[0] = edges[1].Bits.cardinality();
 			}
-			edges[0] = edge;
 			
 			for (int i = 0; i < edges.length; ++i) {
 				logger.debug("edge " + i + ": " + edges[i]);
@@ -136,96 +134,46 @@ public class BlockCodeTrellis implements ITrellis {
 			return edges;
 		}
 
-		private BitSet getEdgeBits(Iterable<Integer> sumRows, int fromIndex, int toIndex) {
-			BitSet bits = new BitSet(toIndex - fromIndex);
-
-			for (int row : sumRows) {
-				bits.xor(spanForm.Matr.getRow(row).get(fromIndex, toIndex));
-			}			
-			
-			return bits;
-		}
-
-		/**
-		 * Возвращает индекс вершины в ярусе, соотвествующий рядам 
-		 * <code>sumRows</code>.
-		 * @param sumRows ряды, которые участвуют в сложении
-		 * @param activeRows активные ряды в ярусе
-		 * @return
-		 */
-		private int getVertexIndex(Set<Integer> sumRows,
-				Iterable<Integer> activeRows) {
-			int vertexIndex = 0;
-			int i = 0;
-			for (int row : activeRows) {
-				if (sumRows.contains(row)) {
-					vertexIndex |= (1 << i);
-				}
-				++i;
-			}
-			return vertexIndex;
-		}
-
-		/**
-		 * Возвращает ряды, которые будут складываться для вычисления метки на ребре.
-		 * 
-		 * @param activeRows активные ряды, сложение которых может повлиять на метку. 
-		 * @param vertexIndex индекс вершины в ярусе, указывающие на ряды, учавствующие в сумме
-		 * @return индексы рядов, учавствующих в сумме.
-		 */
-		private Set<Integer> getSumRows(Iterable<Integer> activeRows,
-				int vertexIndex) {
-			Set<Integer> sumRows = new HashSet<Integer>();
-			
-			int i = 0;
-			for (int row : activeRows) {
-				if ((vertexIndex & (1 << i)) != 0) {
-					sumRows.add(row);
-				}
-				++i;
-			}
-
-			return sumRows;
-		}
-
 		@Override
 		public Edge[] getPredecessors() {
 			if (!hasBackward()) {
 				return new Edge[0];
 			}
 			
-			Edge edges[];
-
 			// получаем предыдущие активные ряды
 			SortedSet<Integer> prevActiveRows = new TreeSet<Integer>(currentActiveRows);
-			if (layers[layer - 1].spanHead != null) {
-				prevActiveRows.remove(layers[layer - 1].spanHead.row);
-			}
 			if (layers[layer - 1].spanTail != null) {
 				prevActiveRows.add(layers[layer - 1].spanTail.row);
 			}
+			if (layers[layer - 1].spanHead != null) {
+				prevActiveRows.remove(layers[layer - 1].spanHead.row);
+			}
+			
+			Edge edges[] = new Edge[layers[layer - 1].spanTail == null ? 1 : 2];
+
 			// ребро нулевого пути.
-			Edge edge = new Edge();
-			edge.Src = getVertexIndex(currentSumRows, prevActiveRows);
-			edge.Dst = vertexIndex;
-			edge.Bits = getEdgeBits(currentSumRows, layers[layer - 1].beginColumn(), layers[layer].beginColumn());
+			edges[0] = new Edge();
+			edges[0].Src = TrellisUtils.getVertexIndex(currentSumRows, prevActiveRows);
+			edges[0].Dst = vertexIndex;
+			edges[0].Bits = TrellisUtils.getEdgeBits(spanForm.Matr, currentSumRows, 
+					layers[layer - 1].beginColumn(), layers[layer].beginColumn());
+			edges[0].Metrics = new double[1];
+			edges[0].Metrics[0] = edges[0].Bits.cardinality();
 
 			if (layers[layer - 1].spanTail != null) {
 				int delRow = layers[layer - 1].spanTail.row;
-				Set<Integer> prevSumRows = new HashSet<Integer>(currentSumRows);
-				prevSumRows.add(delRow);
 				
-				edges = new Edge[2];
 				// ребро единичного пути.
 				edges[1] = new Edge();
-				edges[1].Src = getVertexIndex(prevSumRows, prevActiveRows);
+				currentSumRows.add(delRow);
+				edges[1].Src = TrellisUtils.getVertexIndex(currentSumRows, prevActiveRows);
+				currentSumRows.remove(delRow);
 				edges[1].Dst = vertexIndex;
-				edges[1].Bits = (BitSet) edge.Bits.clone();
+				edges[1].Bits = (BitArray) edges[0].Bits.clone();
 				edges[1].Bits.xor(spanForm.Matr.getRow(delRow).get(layers[layer - 1].beginColumn(), layers[layer].beginColumn()));
-			} else {
-				edges = new Edge[1];
+				edges[1].Metrics = new double[1];
+				edges[1].Metrics[0] = edges[1].Bits.cardinality();
 			}
-			edges[0] = edge;
 			
 			for (int i = 0; i < edges.length; ++i) {
 				logger.debug("edge " + i + ": " + edges[i]);
@@ -254,18 +202,24 @@ public class BlockCodeTrellis implements ITrellis {
 			if (!hasBackward()) {
 				throw new NoSuchElementException();
 			}
-			vertexIndex = getPredecessors()[edgeIndex].Src;
 
-			if (layers[layer].spanTail != null) {
-				currentActiveRows.add(layers[layer].spanTail.row);
+			if (edgeIndex < 0 ||
+				layers[layer - 1].spanTail == null && edgeIndex > 0) {
+				throw new IndexOutOfBoundsException("There is no edge with such index.");
+			}
+
+			if (layers[layer - 1].spanTail != null) {
+				currentActiveRows.add(layers[layer - 1].spanTail.row);
 				if (edgeIndex == 1) {
-					currentSumRows.add(layers[layer].spanTail.row);
+					currentSumRows.add(layers[layer - 1].spanTail.row);
 				}
 			}
-			if (layers[layer].spanHead != null) {
-				currentActiveRows.remove(layers[layer].spanHead.row);
-				currentSumRows.remove(layers[layer].spanHead.row);
+			if (layers[layer - 1].spanHead != null) {
+				currentActiveRows.remove(layers[layer - 1].spanHead.row);
+				currentSumRows.remove(layers[layer - 1].spanHead.row);
 			}
+			
+			vertexIndex = TrellisUtils.getVertexIndex(currentSumRows, currentActiveRows);
 
 			--layer;
 		}
@@ -275,8 +229,12 @@ public class BlockCodeTrellis implements ITrellis {
 			if (!hasForward()) {
 				throw new NoSuchElementException();
 			}
-			vertexIndex = getAccessors()[edgeIndex].Dst;
-			
+
+			if (edgeIndex < 0 ||
+				layers[layer].spanHead == null && edgeIndex > 0) {
+				throw new IndexOutOfBoundsException("There is no edge with such index.");
+			}
+
 			if (layers[layer].spanHead != null) {
 				currentActiveRows.add(layers[layer].spanHead.row);
 				if (edgeIndex == 1) {
@@ -287,7 +245,9 @@ public class BlockCodeTrellis implements ITrellis {
 				currentActiveRows.remove(layers[layer].spanTail.row);
 				currentSumRows.remove(layers[layer].spanTail.row);
 			}
-			
+
+			vertexIndex = TrellisUtils.getVertexIndex(currentSumRows, currentActiveRows);
+
 			++layer;
 		}
 
@@ -297,12 +257,11 @@ public class BlockCodeTrellis implements ITrellis {
 		}
 		
 		@Override
-		public TrellisIterator clone() {
+		public ITrellisIterator clone() {
 			return new Iterator(layer, vertexIndex);
 		}
 	}
 	
-	private BlockCode code;
 	private SpanForm spanForm;
 	private Layer layers[];
 
@@ -311,28 +270,27 @@ public class BlockCodeTrellis implements ITrellis {
 	public BlockCodeTrellis(BlockCode code) {
 		logger = LoggerFactory.getLogger(this.getClass());
 		
-		this.code = code;
 		this.spanForm = code.getGeneratorSpanForm();
 		
 		logger.debug("Construction of trellis for " + code.getK() + "/" + code.getN() + " code");
 		
 		// Создаем упорядоченный список всех границ. 
 		SortedMap<Integer, Layer> layersMap = new TreeMap<Integer, Layer>();
-		for (int row = 0; row < spanForm.spanHeads.length; ++row) {
-			int column = spanForm.spanHeads[row];
+		for (int row = 0; row < spanForm.getRowCount(); ++row) {
+			int column = spanForm.getHead(row);
 			if (!layersMap.containsKey(column)) {
 				layersMap.put(column, new Layer());
 			}
-			layersMap.get(column).spanHead = new Boundary(column, row);
+			layersMap.get(column).spanHead = new Boundary(row, column);
 		}
 		logger.debug("Span head layers count is " + layersMap.size());
 
-		for (int row = 0; row < spanForm.spanTails.length; ++row) {
-			int column = spanForm.spanTails[row];
+		for (int row = 0; row < spanForm.getRowCount(); ++row) {
+			int column = spanForm.getTail(row);
 			if (!layersMap.containsKey(column)) {
 				layersMap.put(column, new Layer());
 			}
-			layersMap.get(column).spanTail = new Boundary(column, row);
+			layersMap.get(column).spanTail = new Boundary(row, column);
 		}
 		logger.debug("Total span layers count is " + layersMap.size());
 
@@ -340,40 +298,22 @@ public class BlockCodeTrellis implements ITrellis {
 		// We hope that layersMap has at least one element. In other case the input code is illegal.
 		java.util.Iterator<Layer> iter = layersMap.values().iterator();
 		Layer layer = iter.next();
-		while (true) {
-			boolean layersAreMerged = false;
-			Layer nextLayer = null;
+		while (layer != null) {
+			Layer nextLayer = iter.hasNext() ? iter.next() : null;
 			
-			if (layer.spanHead != null && layer.spanTail == null) {
-				// если в текущем ярусе только одна гарница - начало ряда, ...
-				if (iter.hasNext()) {
-					nextLayer = iter.next();
-					if (nextLayer.spanHead == null && nextLayer.spanTail != null) {
-						// а в следующующем ярусе только одна граница - конец ряда, то объединяем ярусы.
-						layer.spanTail = nextLayer.spanTail;
-						layersAreMerged = true;
-					}
-				}
+			if (layer.spanTail == null && nextLayer != null && nextLayer.spanTail != null) {
+				// объединяем ярусы.
+				layer.spanTail = nextLayer.spanTail;
+				nextLayer = iter.hasNext() ? iter.next() : null;
 			}
 			
 			layersArray.add(layer);
 
-			if (nextLayer != null) {
-				if (!layersAreMerged) {
-					layer = nextLayer;
-					continue;
-				}
-			}
-			
-			if (iter.hasNext()) {
-				layer = iter.next();
-			} else {
-				break;
-			}
+			layer = nextLayer;
 		}
-		Boundary dummyBoundary = new Boundary(code.getN(), -1);
+		Boundary dummyBoundary = new Boundary(-1, code.getN());
 		Layer lastLayer = new Layer(dummyBoundary, null);
-		layersArray.add(lastLayer); // добавляем последний слой с финктивной границей
+		layersArray.add(lastLayer); // добавляем последний слой с фиктивной границей
 
 		for (Layer layer2 : layersArray) {
 			logger.debug(layer2.toString());
@@ -386,7 +326,7 @@ public class BlockCodeTrellis implements ITrellis {
 	}
 	
 	@Override
-	public TrellisIterator iterator(int layer, int vertexIndex) {
+	public ITrellisIterator iterator(int layer, int vertexIndex) {
 		return new Iterator(layer, vertexIndex);
 	}
 

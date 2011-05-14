@@ -1,14 +1,18 @@
 package codes;
 
+import smith_decomposition.SmithDecomposition;
+import math.BitArray;
 import math.BlockMatrix;
+import math.ConvCodeAlgs;
 import math.Matrix;
+import math.PolyMatrix;
 
 /**
  * 
  * @author fedor
  *
  */
-public class ConvCode {
+public class ConvCode implements Code{
 	
 	/**
 	 * Свободное расстояние кода
@@ -29,49 +33,59 @@ public class ConvCode {
 	 * Задержка кодера
 	 */
 	private int delay;
-	
+
 	/**
 	 * Порождающая матрица в полиномиальном представлении
 	 */
-	private BlockMatrix genMatr;
+	private PolyMatrix genMatr = null;
 	
 	/**
 	 * Блоки, циклические сдвиги которых формируют порождающую матрицу сверточного кода 	 
 	 */
-	private Matrix[] genBlocks;
+	private Matrix[] genBlocks = null;
 	
 	/**
 	 * Проверочная матрица в полиномиальном представлении
 	 */
-	private BlockMatrix checkMatr;
+	private PolyMatrix checkMatr = null;
 	
 	
 	/**
-	 * 
-	 * @param mat Порождающая или проверочная матрица в полиномиальном представлении
+	 * @param matrix Порождающая или проверочная матрица в полиномиальном представлении
 	 * @param isGenerator Является ли mat порождающей матрицей
 	 */
-	public ConvCode(BlockMatrix mat, boolean isGenerator)
+	public ConvCode(PolyMatrix matrix, boolean isGenerator)
 	{
 		if(isGenerator)
 		{
-			genMatr = mat;
+			genMatr = matrix;
 			regCount = genMatr.getRowCount();
 			adderCount = genMatr.getColumnCount();
-			delay = genMatr.get(0, 0).getColumnCount()-1;
+			delay = ConvCodeAlgs.getHigherDegree(genMatr);
 		}else{
-			checkMatr = mat;
+			checkMatr = matrix;
 			adderCount = checkMatr.getColumnCount();
 			regCount = adderCount - checkMatr.getRowCount();
-			delay = checkMatr.get(0, 0).getColumnCount()-1;
+			delay = ConvCodeAlgs.getHigherDegree(checkMatr);
 		}
+	}
+
+	public ConvCode(BlockMatrix matrix, boolean isGenerator) {
+		this(new PolyMatrix(matrix), isGenerator);
+	}
+	
+	public ConvCode(Matrix genBlocks[]) {
+		this.genBlocks = genBlocks;
+		regCount = genBlocks[0].getRowCount();
+		adderCount = genBlocks[0].getColumnCount();
+		delay = genBlocks.length - 1;
 	}
 	
 	/**
 	 * 
 	 * @return Количество регистров сдвига
 	 */
-	public int getRegCount()
+	public int getK()
 	{
 		return regCount; 
 	}
@@ -80,7 +94,7 @@ public class ConvCode {
 	 * 
 	 * @return Количество сумматоров по модулю 2
 	 */
-	public int getAdderCount()
+	public int getN()
 	{
 		return adderCount;
 	}
@@ -107,8 +121,22 @@ public class ConvCode {
 	 * 
 	 * @return Порождающая матрица в полиномиальном представлении
 	 */
-	public BlockMatrix generator()
+	public PolyMatrix generator()
 	{
+		if (genMatr == null) {
+			if (genBlocks != null) {
+				genMatr = new PolyMatrix(genBlocks[0].getRowCount(), genBlocks[0].getColumnCount());
+				for (int row = 0; row < genMatr.getRowCount(); ++row) {
+					for (int column = 0; column < genMatr.getColumnCount(); ++column) {
+						for (int power = 0; power < genBlocks.length; ++power) {
+							genMatr.get(row, column).setCoeff(power, genBlocks[power].get(row, column));
+						}
+					}
+				}
+			} else {
+				genMatr = ConvCodeAlgs.getOrthogonalMatrix(new SmithDecomposition(checkMatr));
+			}
+		}
 		return genMatr;
 	}
 	
@@ -116,8 +144,11 @@ public class ConvCode {
 	 * 
 	 * @return Проверочная матрица в полиномиальном представлении
 	 */
-	public BlockMatrix checkMatrix()
+	public PolyMatrix checkMatrix()
 	{
+		if (checkMatr == null) {
+			checkMatr = ConvCodeAlgs.getOrthogonalMatrix(new SmithDecomposition(genMatr));
+		}
 		return checkMatr;
 	}
 	
@@ -127,25 +158,21 @@ public class ConvCode {
 	 */
 	public Matrix[] getGenBlocks()
 	{
-		if(genBlocks != null)
+		if(genBlocks == null)
 		{
-			return genBlocks;
-		}
-		
-		genBlocks = new Matrix[delay + 1];
-		for(int i = 0;i < delay + 1;i ++)
-		{
-			genBlocks[i] = new Matrix(regCount, adderCount);
-			for(int j = 0;j < regCount;j ++)
-			{
-				for(int k = 0;k < adderCount;k ++)
-				{
-					genBlocks[i].set(j, k, genMatr.get(j, k).get(0, i));
-				}
-			}
+			genBlocks = ConvCodeAlgs.buildPowerDecomposition(generator());
 		}
 		
 		return genBlocks;
+	}
+	
+	public int getFreeDist() {
+		return freeDist;
+	}
+	
+	// TODO: заменить на умный способ посчитать freeDist каким-нибудь методом (например, передав метод через интерфейс).
+	public void setFreeDist(int freeDist) {
+		this.freeDist = freeDist;
 	}
 	
 	public int getFreeDistanceByVA()
@@ -159,6 +186,36 @@ public class ConvCode {
 		
 		freeDist = zt.getMinDistByTrellis();
 		return freeDist;
+	}
+
+	@Override
+	public BitArray encodeSeq(BitArray infSeq) {
+		if (infSeq.getFixedSize() % getK() != 0) {
+			throw new IllegalArgumentException();
+		}
+		
+		int wordsNumber = infSeq.getFixedSize() / getK();
+		BitArray codeSeq = new BitArray(getN() * wordsNumber);
+		for (int i = 0; i < wordsNumber; ++i) {
+			BitArray codeWord = new BitArray(getN());
+			
+			Matrix G[] = getGenBlocks();
+
+			int beginPos = Math.max(0, i - delay) * getK(); // позиция младшего бита, участвующего в текущей сумме
+			int endPos = i * getK() + getK() - 1; // позиция старшего бита, участвующего в сумме
+			
+			for (int bitPos = infSeq.nextSetBit(beginPos); bitPos <= endPos && bitPos >= 0; bitPos = infSeq.nextSetBit(bitPos + 1)) {
+				int matrixIndex = (endPos - bitPos) / getK();
+				int rowIndex = getK() - 1  - (endPos - bitPos) % getK();
+				codeWord.xor(G[matrixIndex].getRow(rowIndex));
+			}
+
+			for (int j = 0; j < getN(); ++j) {
+				codeSeq.set(i * getN() + j, codeWord.get(j));
+			}
+		}
+		
+		return codeSeq;
 	}
 		
 }

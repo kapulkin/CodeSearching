@@ -13,16 +13,16 @@ import codes.MinDistance;
 import codes.TBCode;
 import codes.ZTCode;
 
+import smith_decomposition.SmithDecomposition;
 import trellises.Trellis;
 import trellises.Trellises;
 
-import math.BitSet;
+import math.BitArray;
 import math.BlockMatrix;
-import math.MathAlgs;
+import math.ConvCodeAlgs;
 import math.Matrix;
 import math.Poly;
 import math.PolyMatrix;
-import math.SmithDecomposition;
 import math.SpanForm;
 import in_out_interfaces.IOConvCode;
 import in_out_interfaces.IOMatrix;
@@ -87,7 +87,7 @@ public class Main {
 		{
 			for(int j = 0;j < mat.getColumnCount();j ++)
 			{
-				BitSet coeffs = mat.get(i, j).getRow(0);
+				BitArray coeffs = mat.get(i, j).getRow(0);
 				
 				polyMat.set(i, j, new Poly(coeffs.toArray()));
 			}
@@ -110,12 +110,12 @@ public class Main {
 		IOPolyMatrix.writeMatrix(smithForm.getA().mul(smithForm.getD().mul(smithForm.getB())), new BufferedWriter(new OutputStreamWriter(System.out)));
 		System.out.println();
 		
-		PolyMatrix ort = MathAlgs.findOrthogonalMatrix(smithForm);
+		PolyMatrix ort = ConvCodeAlgs.getOrthogonalMatrix(smithForm);
 		
 		IOPolyMatrix.writeMatrix(ort, new BufferedWriter(new OutputStreamWriter(System.out)));
 		System.out.println();				
 		
-		MathAlgs.toSpanForm(polyMat);
+		ConvCodeAlgs.toMinimalForm(polyMat);
 		IOPolyMatrix.writeMatrix(polyMat, new BufferedWriter(new OutputStreamWriter(System.out)));
 		System.out.println();
 	}
@@ -160,7 +160,7 @@ public class Main {
 		
 		MinDistance.computeDistanceMetrics(trellis);
 		
-		int minDist = MinDistance.findFreeDistWithBEAST(trellis, 0, 6);
+		int minDist = MinDistance.findMinDistWithBEAST(trellis, 0, 6);
 		
 		System.out.println(minDist);
 	}

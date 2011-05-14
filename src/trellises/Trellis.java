@@ -1,8 +1,6 @@
 package trellises;
 
-import common.Common;
-
-import math.BitSet;
+import math.BitArray;
 
 /**
  * 
@@ -31,11 +29,11 @@ public class Trellis implements ITrellis{
 		/**
 		 * Кодовые символы на ребре
 		 */
-		public BitSet Bits;
+		public BitArray Bits;
 		
 		@Override
 		public String toString() {
-			return Src + "‒" + Common.bitsToString(Bits, Bits.getFixedSize()) + "→" + Dst;
+			return Src + "‒" + Bits + "→" + Dst;
 		}
 	} 
 	
@@ -59,8 +57,8 @@ public class Trellis implements ITrellis{
 	public Vertex[][] Layers;
 
 	@Override
-	public TrellisIterator iterator(int layer, int vertexIndex) {
-		return new CyclicTrellisIterator(this, layer, vertexIndex);
+	public ITrellisIterator iterator(int layer, int vertexIndex) {
+		return new TrellisIterator(this, layer, vertexIndex);
 	}
 
 	@Override

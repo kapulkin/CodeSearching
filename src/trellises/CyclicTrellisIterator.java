@@ -4,7 +4,7 @@ import java.util.NoSuchElementException;
 
 import trellises.Trellis.Edge;
 
-public class CyclicTrellisIterator implements TrellisIterator {
+public class CyclicTrellisIterator implements ITrellisIterator {
 	Trellis trellis;
 	int layer;
 	int vertexIndex;
@@ -57,8 +57,8 @@ public class CyclicTrellisIterator implements TrellisIterator {
 		return vertexIndex;
 	}
 
-@Override
-	public TrellisIterator clone() {
+	@Override
+	public ITrellisIterator clone() {
 		return new CyclicTrellisIterator(trellis, layer, vertexIndex);
 	}	
 }

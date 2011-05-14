@@ -19,6 +19,13 @@ public class BlockMatrix{
 		blocks = new Matrix[m][n];		
 	}
 	
+	/**
+	 * Переводит матрицу полиномов в матрицу блоков размером 
+	 * 1 x <code>cellWidth</code>. Каждый блок матрицы представляет собой 
+	 * <code>cellWidth</code> коэффициентов соотвествующего полинома.
+	 * @param matr матрица полиномов
+	 * @param cellWidth ограничение степени
+	 */
 	public BlockMatrix(PolyMatrix matr, int cellWidth)
 	{
 		vSize = 1;
@@ -33,12 +40,7 @@ public class BlockMatrix{
 				
 				for(int k = 0;k < cellWidth;k ++)
 				{
-					if(k < matr.get(i, j).getDegree() + 1)
-					{
-						cell.set(0, k, matr.get(i, j).getCoeff(k));
-					}else{
-						cell.set(0, k, false);
-					}
+					cell.set(0, k, matr.get(i, j).getCoeff(k));
 				}
 				
 				blocks[i][j] = cell;

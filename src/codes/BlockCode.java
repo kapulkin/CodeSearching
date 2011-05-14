@@ -2,6 +2,8 @@ package codes;
 
 import trellises.Trellis;
 import trellises.Trellises;
+import math.BitArray;
+import math.BlockCodeAlgs;
 import math.MathAlgs;
 import math.Matrix;
 import math.SpanForm;
@@ -11,7 +13,7 @@ import math.SpanForm;
  * @author fedor
  *
  */
-public class BlockCode {
+public class BlockCode implements Code {
 	
 	/**
 	 * Минимальное расстояние кода
@@ -134,7 +136,7 @@ public class BlockCode {
 	{
 		if(genSpanForm == null)
 		{
-			genSpanForm = MathAlgs.toSpanForm(generator());
+			genSpanForm = BlockCodeAlgs.toSpanForm(generator());
 		}
 		
 		return genSpanForm;
@@ -175,6 +177,29 @@ public class BlockCode {
 		minDist = MinDistance.findMinDist(t, 0, 0);
 		
 		return minDist;
+	}
+
+	@Override
+	public BitArray encodeSeq(BitArray infSeq) {
+		if (infSeq.getFixedSize() % getK() != 0) {
+			throw new IllegalArgumentException();
+		}
+		
+		int wordsNumber = infSeq.getFixedSize() / getK();
+		BitArray codeSeq = new BitArray(getN() * wordsNumber);
+		for (int i = 0; i < wordsNumber; ++i) {
+			BitArray infWord = infSeq.get(i * getK(), i * getK() + getK());
+			BitArray codeWord = new BitArray(getN());
+			for (int bitPos = infWord.nextSetBit(0); bitPos >= 0; bitPos = infWord.nextSetBit(bitPos + 1)) {
+				codeWord.xor(generator().getRow(bitPos));
+			}
+			
+			for (int j = 0; j < getN(); ++j) {
+				codeSeq.set(i * getN() + j, codeWord.get(j));
+			}
+		}
+
+		return codeSeq;
 	}
 			
 }

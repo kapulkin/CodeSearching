@@ -17,6 +17,18 @@ public class PolyMatrix {
 		}
 	}
 	
+	public PolyMatrix(BlockMatrix matrix) {
+		this(matrix.getRowCount(), matrix.getColumnCount());
+		
+		for (int i = 0; i < matrix.getRowCount(); ++i) {
+			for (int j = 0; j < matrix.getColumnCount(); ++j) {
+				for (int k = 0; k < matrix.get(i, j).getColumnCount(); ++k) {
+					get(i, j).setCoeff(k, matrix.get(i, j).get(0, k));
+				}
+			}
+		}
+	}
+	
 	public int getRowCount()
 	{
 		return data.length;
@@ -35,6 +47,14 @@ public class PolyMatrix {
 	public Poly get(int i, int j)
 	{
 		return data[i][j];
+	}
+	
+	public Poly[] getRow(int i) {
+		return data[i];
+	}
+	
+	public void setRow(int i, Poly[] row) {
+		data[i] = row;
 	}
 	
 	public void add(PolyMatrix mat)
@@ -121,5 +141,17 @@ public class PolyMatrix {
 		}
 		
 		return true;
+	}
+	
+	@Override
+	public String toString() {
+		String str = new String();
+		for (int i = 0; i < getRowCount(); ++i) {
+			for (int j = 0; j < getColumnCount(); ++j) {
+				str += get(i, j) + "\t";
+			}
+			str += "\n";
+		}
+		return str;
 	}
 }

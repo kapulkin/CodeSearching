@@ -6,7 +6,7 @@ import java.util.TreeMap;
 import trellises.Trellis.Edge;
 import trellises.Trellis.Vertex;
 
-import math.BitSet;
+import math.BitArray;
 import math.GrayCode;
 import math.SpanForm;
 
@@ -35,11 +35,11 @@ public class TrellisScanner
 	public TrellisScanner(SpanForm sf, Trellis.Vertex[] firstLayer, int begSeg, int endSeg)
 	{
 		this.scanRow = begSeg;
-		this.scanColumn = sf.spanHeads[begSeg];		
+		this.scanColumn = sf.getHead(begSeg);		
 		
 		if(endSeg < sf.Matr.getRowCount())
 		{
-			this.maxColumn = sf.spanHeads[endSeg]-1;
+			this.maxColumn = sf.getHead(endSeg)-1;
 		}else{
 			this.maxColumn = sf.Matr.getColumnCount()-1;
 		}
@@ -51,11 +51,11 @@ public class TrellisScanner
 		{
 			int shiftedColumn = scanColumn + sf.Matr.getColumnCount();
 			
-			if((sf.spanHeads[i] < scanColumn && scanColumn <= sf.spanTails[i]) ||
-				(sf.spanHeads[i] < shiftedColumn && shiftedColumn <= sf.getUncycledTail(i)))
+			if((sf.getHead(i) < scanColumn && scanColumn <= sf.getTail(i)) ||
+				(sf.getHead(i) < shiftedColumn && shiftedColumn <= sf.getUncycledTail(i)))
 			{
 				activeRows.add(i);			
-				activeRowTails.put(sf.spanTails[i], i);
+				activeRowTails.put(sf.getTail(i), i);
 			}
 		}
 		
@@ -95,7 +95,7 @@ public class TrellisScanner
 		bound = maxColumn;
 		
 		// если сканирующая прямая в положении начала строки, то сделать ее активной
-		if(scanColumn == sf.spanHeads[scanRow])
+		if(scanColumn == sf.getHead(scanRow))
 		{
 			onExpandStage = true;
 			stillActiveRows.add(activeRows.size());
@@ -104,7 +104,7 @@ public class TrellisScanner
 		
 		if(scanRow < sf.Matr.getRowCount() - 1)
 		{
-			bound = Math.min(bound, sf.spanHeads[scanRow+1]-1);
+			bound = Math.min(bound, sf.getHead(scanRow+1)-1);
 		}
 		
 		// Находим все строки, которые заканчиваются до границы bound
@@ -123,7 +123,7 @@ public class TrellisScanner
 			activeRowTails.remove(nearestTail);
 		}					
 
-		BitSet lastEdgeBits = new BitSet(bound - scanColumn + 1);
+		BitArray lastEdgeBits = new BitArray(bound - scanColumn + 1);
 		// количесво битов характеризующих состояние в левом слое
 		int lStateBitsCount = activeRows.size();		
 		// количесво битов характеризующих состояние в правом слое
@@ -142,7 +142,7 @@ public class TrellisScanner
 		{
 			//состояние в левом слое
 			int lState = GrayCode.getWord(v);				
-			int changedBit = GrayCode.getChangedBit(v);
+			int changedBit = GrayCode.getChangedPosition(v);
 							
 			// если состояние в правом слое поменялось
 			if(changedBit == -1 || stillActiveRows.contains(changedBit))
@@ -177,8 +177,8 @@ public class TrellisScanner
 			}
 			
 			//расчитываем биты на ребрах
-			BitSet changedBitContr = new BitSet(bound - scanColumn + 1);
-			BitSet activeBitContr = new BitSet(bound - scanColumn + 1);
+			BitArray changedBitContr = new BitArray(bound - scanColumn + 1);
+			BitArray activeBitContr = new BitArray(bound - scanColumn + 1);
 			
 			for(int col = scanColumn;col <= bound;col ++)
 			{
@@ -198,7 +198,7 @@ public class TrellisScanner
 			edge1 = new Edge();
 			edge1.Src = lState;
 			edge1.Dst = rStateFirst;
-			edge1.Bits = (BitSet)lastEdgeBits.clone();
+			edge1.Bits = (BitArray)lastEdgeBits.clone();
 			edge1.Metrics = new double[0];
 			
 			rightLayer[rStateFirst].Predecessors[rPredCounts[rStateFirst]++] = edge1;
@@ -208,7 +208,7 @@ public class TrellisScanner
 				edge2 = new Edge();
 				edge2.Src = lState;
 				edge2.Dst = rStateSecond;
-				edge2.Bits = (BitSet)lastEdgeBits.clone();
+				edge2.Bits = (BitArray)lastEdgeBits.clone();
 				edge2.Bits.xor(activeBitContr);
 				edge2.Metrics = new double[0];
 				
@@ -235,7 +235,7 @@ public class TrellisScanner
 		}
 		scanColumn = bound+1;	
 		
-		if(scanRow < sf.Matr.getRowCount()-1 && scanColumn == sf.spanHeads[scanRow+1])
+		if(scanRow < sf.Matr.getRowCount()-1 && scanColumn == sf.getHead(scanRow+1))
 		{
 			scanRow ++;
 		}

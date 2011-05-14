@@ -3,17 +3,31 @@ package search_procedures;
 import java.security.InvalidParameterException;
 import java.util.NoSuchElementException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CEnumerator {
 	
 	private long n;
 	private int k;
 	private long[] sequence;
+	Logger logger = LoggerFactory.getLogger(this.getClass());
+	
 	
 	public CEnumerator(long n, int k)
 	{
 		if (n < k) {
 			throw new InvalidParameterException("There is no combinations with n < k.");
 		}
+
+		long combinations = 1; // = n!/k!/(n-k)! = (k+1)*..*n/(n-k)!
+		for (long i = k + 1; i <= n; ++i) {
+			combinations *= i;
+		}
+		for (long i = 2; i <= n - k; ++i) {
+			combinations /= i;
+		}
+		logger.debug("C(" + n + ", " + k + ") gives " + combinations + " combinations.");
 		
 		this.n = n;
 		this.k = k;			
