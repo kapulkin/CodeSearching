@@ -25,11 +25,11 @@ public class FreeDist4CCEnumeratorTest {
 			++codeCount;
 
 			ConvCode code = codeEnumerator.next();
-			logger.debug("code:\n" + code.checkMatrix());
-			Trellis trellis = Trellises.trellisFromParityCheckHR(code.checkMatrix());
+			logger.debug("code:\n" + code.parityCheck());
+			Trellis trellis = Trellises.trellisFromParityCheckHR(code.parityCheck());
 			MinDistance.computeDistanceMetrics(trellis);
 			
-			int freeDist = MinDistance.findMinDistWithBEAST(trellis, 0, 2 * (code.getDelay() + 1));
+			int freeDist = MinDistance.findMinDistWithBEAST(trellis, 0, code.getN() * (code.getDelay() + 1));
 			logger.debug("free dist = " + freeDist);
 			assertTrue(freeDist >= 4);
 		}

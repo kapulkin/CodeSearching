@@ -260,7 +260,8 @@ public class Trellises {
 	}
 
 	/**
-	 * Строит решетку в явном виде эквивалентную исходной.
+	 * Строит решетку в явном виде эквивалентную исходной. Входная решетка
+	 * должна удовлетворять ограничениям создаваемой решетки класса Trellis. 
 	 * @param trellis решетка кода.
 	 * @return решетка кода, эквивалентная исходной.
 	 */
@@ -268,11 +269,29 @@ public class Trellises {
 		Trellis newTrellis = new Trellis();
 		
 		newTrellis.Layers = new Vertex[trellis.layersCount()][];
-		for (int i = 0; i < newTrellis.Layers.length; ++i) {
-			newTrellis.Layers[i] = new Vertex[trellis.layerSize(i)];
-			for (int j = 0; j < newTrellis.Layers[i].length; ++j) {
-				newTrellis.Layers[i][j] = new Vertex();
-				newTrellis.Layers[i][j].Accessors = trellis.iterator(i, j).getAccessors();
+		for (int layer = 0; layer < newTrellis.Layers.length; ++layer) {
+			if (trellis.layerSize(layer) > Integer.MAX_VALUE) {
+				throw new IllegalArgumentException("Trellises with more then " + Integer.MAX_VALUE +
+						" vertices in a layer are not supported: " + layer);
+			}
+			newTrellis.Layers[layer] = new Vertex[(int)trellis.layerSize(layer)];
+			for (int vertexIndex = 0; vertexIndex < newTrellis.Layers[layer].length; ++vertexIndex) {
+				newTrellis.Layers[layer][vertexIndex] = new Vertex();
+				
+				ITrellisEdge accessors[] = trellis.iterator(layer, vertexIndex).getAccessors();
+				newTrellis.Layers[layer][vertexIndex].Accessors = new Trellis.Edge[accessors.length];
+				for (int e = 0; e < accessors.length; ++e) {
+					if (accessors[e].src() != vertexIndex) {
+						throw new IllegalArgumentException("Wrong src index on the edge: " + layer + ", " + vertexIndex + ", " + e);
+					}
+					if (accessors[e].dst() >= Integer.MAX_VALUE || accessors[e].dst() < 0) {
+						throw new IllegalArgumentException("A dst index on the edge is not inside [0, " + Integer.MAX_VALUE + "]:" +
+								layer + ", " + vertexIndex + ", " + e);
+					}
+					newTrellis.Layers[layer][vertexIndex].Accessors[e] = new Trellis.Edge(
+							(int)accessors[e].src(), (int)accessors[e].dst(), 
+							accessors[e].bits(), accessors[e].metrics());
+				}
 			}
 		}
 

@@ -64,7 +64,8 @@ public class IOBlockMatrix {
 			data.add(comprRow);
 		}while((line=reader.readLine()) != null && !line.trim().equals(""));
 		
-		BlockMatrix matr = new BlockMatrix(data.size(), data.get(0).length);
+		BlockMatrix matr = new BlockMatrix(data.size(), data.get(0).length,
+				data.get(0)[0].getRowCount(), data.get(0)[0].getColumnCount());
 		
 		for(int i = 0;i < matr.getRowCount();i ++)
 		{
@@ -82,11 +83,7 @@ public class IOBlockMatrix {
 			for (int v = 0; v < mat.getVerticalSize(); ++v) {
 				for (int j = 0; j < mat.getColumnCount(); ++j) {
 					for (int h = 0; h < mat.getHorizontalSize(); ++h) {
-						if (mat.get(i, j) == null) {
-							writer.write("0");
-						} else {
-							writer.write(mat.get(i, j).get(v, h) ? "1" : "0");
-						}
+						writer.write(mat.get(i, j).get(v, h) ? "1" : "0");
 					}
 					writer.write(" ");
 				}

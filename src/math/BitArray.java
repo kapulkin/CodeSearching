@@ -115,9 +115,36 @@ public class BitArray implements Cloneable{
 		return bitSet.get(bitIndex);
 	}
 
+	/**
+	 * Возвращает 
+	 * @param fromIndex
+	 * @param toIndex
+	 * @return
+	 */
+    /**
+     * Returns a new <tt>BitSet</tt> composed of bits from this <tt>BitSet</tt>
+     * from <tt>fromIndex</tt> (inclusive) to <tt>toIndex</tt> (exclusive)
+     * <strong>cyclically</strong>.
+     *
+     * @param     fromIndex   index of the first bit to include.
+     * @param     toIndex     index after the last bit to include.
+     * @return    a new <tt>BitSet</tt> from a cyclic range of this <tt>BitSet</tt>.
+     * @exception IndexOutOfBoundsException if <tt>fromIndex</tt> is negative,
+     *            or <tt>toIndex</tt> is negative, or <tt>toIndex</tt> is
+     *            larger than <tt>fixedSize()</tt>.
+     */
 	public BitArray get(int fromIndex, int toIndex) {
 		if (toIndex > getFixedSize()) {
 			throw new IndexOutOfBoundsException(fromIndex + ", " + toIndex);
+		}
+		
+		if (toIndex < fromIndex) {
+			BitArray array = new BitArray(getFixedSize() - fromIndex + toIndex);
+			array.bitSet.or(bitSet.get(fromIndex, getFixedSize()));
+			for (int i = 0; i < toIndex; ++i) {
+				array.set(getFixedSize() - fromIndex + i, bitSet.get(i));
+			}
+			return array;
 		}
 		
 		BitArray array = new BitArray(toIndex - fromIndex);

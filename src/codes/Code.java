@@ -23,7 +23,7 @@ public interface Code {
 	public double getRate();
 	
 	/**
-	 * The method encodes the given information sequence of into the code sequence.
+	 * The method encodes the given information sequence into the code sequence.
 	 * The information sequence should contain a whole number of information words, 
 	 * i.e. length of the sequence should be divisible by <em>k</em>.   
 	 * @param infSeq information sequence

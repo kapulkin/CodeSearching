@@ -25,13 +25,13 @@ public class TrellisUtils {
 	 * 
 	 * @return индексы рядов, учавствующих в сумме.
 	 */
-	public static Set<Integer> getSumRows(int vertexIndex,
+	public static Set<Integer> getSumRows(long vertexIndex,
 			SortedSet<Integer> activeRows) {
 		Set<Integer> sumRows = new HashSet<Integer>();
 		
 		int i = 0;
 		for (int row : activeRows) {
-			if ((vertexIndex & (1 << i)) != 0) {
+			if ((vertexIndex & (1L << i)) != 0) {
 				sumRows.add(row);
 			}
 			++i;
@@ -47,34 +47,48 @@ public class TrellisUtils {
 	 * @param activeRows активные ряды в ярусе
 	 * @return
 	 */
-	public static int getVertexIndex(Set<Integer> sumRows,
+	public static long getVertexIndex(Set<Integer> sumRows,
 			SortedSet<Integer> activeRows) {
-		int vertexIndex = 0;
+		long vertexIndex = 0;
 		int i = 0;
 		for (int row : activeRows) {
 			if (sumRows.contains(row)) {
-				vertexIndex |= (1 << i);
+				vertexIndex |= (1L << i);
 			}
 			++i;
 		}
 		return vertexIndex;
 	}
 
+	/**
+	 * Вычисляет кодовые биты на ребре. Для этого суммируются биты строк 
+	 * матрицы, участвующие в сумме. Биты берутся из циклического интервала 
+	 * [<code>fromIndex</code>, <code>toIndex</code>].
+	 * @param matrix матрица кода
+	 * @param sumRows индексы рядов матрицы, участвующих в сумме
+	 * @param fromIndex начальная граница интервала
+	 * @param toIndex конечная граница интервала
+	 * @return сумма битов строк матрицы из заданного интервала
+	 */
 	public static BitArray getEdgeBits(Matrix matrix, Iterable<Integer> sumRows, int fromIndex, int toIndex) {
-		BitArray bits = new BitArray(toIndex - fromIndex);
-
+		BitArray bits = new BitArray(matrix.getColumnCount());
 		for (int row : sumRows) {
-			bits.xor(matrix.getRow(row).get(fromIndex, toIndex));
-		}			
-		
-		return bits;
+			bits.xor(matrix.getRow(row));
+		}
+		return bits.get(fromIndex, toIndex);
+
+//		BitArray bits = new BitArray((toIndex + matrix.getColumnCount() - fromIndex) % matrix.getColumnCount());
+//		for (int row : sumRows) {
+//			bits.xor(matrix.getRow(row).get(fromIndex, toIndex));
+//		}		
+//		return bits;
 	}
 
 	public static BitArray getEdgeBits(BitArray rows[], Iterable<Integer> sumRows, int fromIndex, int toIndex) {
 		return getEdgeBits(new Matrix(rows), sumRows, fromIndex, toIndex);
 	}	
 	
-	public static TrellisSection[] buildSections(ISpanForm spanForm) {
+	public static ArrayList<TrellisSection> buildSections(ISpanForm spanForm) {
 		// вычисляем секции будующей решетки
 		SortedMap<Integer, TrellisSection> sectionsMap = new TreeMap<Integer, TrellisSection>();
 		for (int row = 0; row < spanForm.getRowCount(); ++row) {
@@ -111,9 +125,7 @@ public class TrellisUtils {
 			section = nextSection;
 		}
 	
-		TrellisSection sections[] = new TrellisSection[sectionsArray.size()];
-		sectionsArray.toArray(sections);
-		return sections;
+		return sectionsArray;
 	}
 
 	/**

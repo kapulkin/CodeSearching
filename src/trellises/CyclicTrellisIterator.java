@@ -53,7 +53,7 @@ public class CyclicTrellisIterator implements ITrellisIterator {
 	}
 
 	@Override
-	public int vertexIndex() {
+	public long vertexIndex() {
 		return vertexIndex;
 	}
 

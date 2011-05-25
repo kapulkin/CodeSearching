@@ -12,11 +12,21 @@ public class BlockMatrix{
 	private int vSize;
 	private int hSize;
 	
-	public BlockMatrix(int m, int n)
+	/**
+	 * Создает нулевую блоковую матрицу с заданными размерами. При этом
+	 * используется ленивая инициализация: память под нулевые блоки в
+	 * конструкторе не выделяется. Создание нулевого блока происходит лишь по
+	 * запросу в методе get. 
+	 * @param m количество блоков по вертикали
+	 * @param n количество блоков по горизонатли
+	 * @param vSize высота блока (кол-во строк в блоке)
+	 * @param hSize ширина блока (кол-во столбцов в блоке)
+	 */
+	public BlockMatrix(int m, int n, int vSize, int hSize)
 	{		
-		vSize = 0;
-		hSize = 0;
-		blocks = new Matrix[m][n];		
+		this.vSize = vSize;
+		this.hSize = hSize;
+		blocks = new Matrix[m][n];
 	}
 	
 	/**
@@ -104,27 +114,24 @@ public class BlockMatrix{
 		return blocks[0].length;
 	}
 	
+	/**
+	 * Возврашает блок в <code>i</code>-ом ряду и <code>j</code>-ом столбце.
+	 * Если блок еще не был создан, предварительно инициализирует его нулевой матрицей.
+	 * @param i номер ряда
+	 * @param j номер столбца
+	 * @return блок в <code>i</code>-ом ряду и <code>j</code>-ом столбце
+	 */
 	public Matrix get(int i, int j)
 	{
+		if (blocks[i][j] == null) {
+			blocks[i][j] = new Matrix(vSize, hSize);
+		}
 		return blocks[i][j];
 	}
 	
 	public void set(int i, int j, Matrix value)
 	{
 		blocks[i][j] = value;
-		
-		if(value != null)
-		{
-			if(vSize == 0)
-			{
-				vSize =  value.getRowCount();
-			}
-			
-			if(hSize == 0)
-			{
-				hSize = value.getColumnCount();				
-			}
-		}
 	}
 	
 	public Matrix breakBlockStructure()
@@ -132,15 +139,10 @@ public class BlockMatrix{
 		Matrix unblocked = new Matrix(getTotalRowCount(), getTotalColumnCount());		
 		int rowPos = 0;
 		
-		for(int i = 0;i < getRowCount();i ++)
-		{
+		for (int i = 0; i < getRowCount(); ++i) {
 			int colPos = 0;
-			for(int j = 0;j < getColumnCount();j ++)
-			{
-				if(blocks[i][j] == null)
-				{
-					unblocked.setZeroBlock(rowPos, colPos, vSize, hSize);
-				}else{
+			for (int j = 0; j < getColumnCount(); ++j) {
+				if(blocks[i][j] != null) {
 					unblocked.setBlock(rowPos, colPos, blocks[i][j]);
 				}
 				colPos += hSize;

@@ -1,5 +1,7 @@
 package math;
 
+import java.util.StringTokenizer;
+
 /**
  * 
  * Класс является реализацией многочлена с бинарными коэффициентами (из GF(2)).
@@ -15,7 +17,7 @@ package math;
  *
  */
 
-public class Poly implements Cloneable {
+public class Poly implements Cloneable, Comparable<Poly> {
 	private BitSet polyCoeffs = new BitSet(); 
 
 	public Poly() {
@@ -34,6 +36,19 @@ public class Poly implements Cloneable {
 		}
 	}
 	
+	public Poly(boolean[] polyCoeffs)
+	{
+		if (polyCoeffs.length == 0) {
+			throw new IllegalArgumentException("polyCoeffs length is zero.");
+		}
+		
+		this.polyCoeffs = new BitSet(polyCoeffs.length);
+		for(int i = 0;i < polyCoeffs.length;i ++)
+		{
+			this.polyCoeffs.set(i, polyCoeffs[i]);
+		}
+	}
+
 	public Poly(int powers[]) {
 		for (int power : powers) {
 			polyCoeffs.set(power, true);
@@ -203,7 +218,7 @@ public class Poly implements Cloneable {
 	
 	public static Poly getUnitPoly()
 	{
-		return new Poly(new Boolean[]{ true });
+		return new Poly(new boolean[]{ true });
 	}
 	
 	/**
@@ -236,6 +251,30 @@ public class Poly implements Cloneable {
 		y = _x;
 		
 		return new Poly[] {x, y, d};
+	}
+
+	/**
+	 * Compares two polynomials in a lexicographical manner, where the 
+	 * polynomial is written as Dn+...+D2+D+1.
+	 */
+	public int compareTo(Poly poly) {
+		int degreeComp = getDegree() - poly.getDegree();
+		if (degreeComp != 0) {
+			return degreeComp;
+		}
+		
+		int degree = getDegree();
+		
+		for (int i = 0; i <= degree; ++i) {
+			if (getCoeff(i) && !poly.getCoeff(i)) {
+				return 1;
+			}
+			if (!getCoeff(i) && poly.getCoeff(i)) {
+				return -1;
+			}
+		}
+		
+		return 0;
 	}
 	
 	@Override
@@ -275,5 +314,38 @@ public class Poly implements Cloneable {
 		}
 		
 		return str;
+	}
+
+	public static Poly parsePoly(String str) {
+		Poly poly = new Poly();
+		StringTokenizer polyTokenizer = new StringTokenizer(str, "+");
+		while (polyTokenizer.hasMoreTokens()) {
+			String monomialString = polyTokenizer.nextToken();
+			if (monomialString.equals("0")) {
+				if (!poly.isZero()) {
+					throw new NumberFormatException("Wrong format of string.");
+				}
+			} else if (monomialString.equals("1")) {
+				if (poly.getCoeff(0)) {
+					throw new NumberFormatException("Wrong format of string.");
+				}
+				poly.setCoeff(0, true);
+			} else if (monomialString.equals("D")) {
+				if (poly.getCoeff(1)) {
+					throw new NumberFormatException("Wrong format of string.");
+				}
+				poly.setCoeff(1, true);
+			} else {
+				if (monomialString.charAt(0) != 'D') {
+					throw new NumberFormatException("Wrong format of string.");
+				}
+				int power = Integer.parseInt(monomialString.substring(1));
+				if (poly.getCoeff(power)) {
+					throw new NumberFormatException("Wrong format of string.");
+				}
+				poly.setCoeff(power, true);
+			}
+		}
+		return poly;
 	}
 }

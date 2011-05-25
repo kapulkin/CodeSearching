@@ -125,31 +125,32 @@ public class ConvCode implements Code{
 	{
 		if (genMatr == null) {
 			if (genBlocks != null) {
-				genMatr = new PolyMatrix(genBlocks[0].getRowCount(), genBlocks[0].getColumnCount());
-				for (int row = 0; row < genMatr.getRowCount(); ++row) {
-					for (int column = 0; column < genMatr.getColumnCount(); ++column) {
-						for (int power = 0; power < genBlocks.length; ++power) {
-							genMatr.get(row, column).setCoeff(power, genBlocks[power].get(row, column));
-						}
-					}
-				}
+				genMatr = ConvCodeAlgs.buildPolyComposition(genBlocks);
 			} else {
 				genMatr = ConvCodeAlgs.getOrthogonalMatrix(new SmithDecomposition(checkMatr));
 			}
 		}
 		return genMatr;
 	}
+
+	public boolean isGeneratorNull() {
+		return genMatr == null;
+	}
 	
 	/**
 	 * 
 	 * @return Проверочная матрица в полиномиальном представлении
 	 */
-	public PolyMatrix checkMatrix()
+	public PolyMatrix parityCheck()
 	{
 		if (checkMatr == null) {
-			checkMatr = ConvCodeAlgs.getOrthogonalMatrix(new SmithDecomposition(genMatr));
+			checkMatr = ConvCodeAlgs.getOrthogonalMatrix(new SmithDecomposition(generator()));
 		}
 		return checkMatr;
+	}
+	
+	public boolean isParityCheckNull() {
+		return checkMatr == null;
 	}
 	
 	/**
@@ -175,18 +176,18 @@ public class ConvCode implements Code{
 		this.freeDist = freeDist;
 	}
 	
-	public int getFreeDistanceByVA()
-	{
-		if(freeDist != -1)
-		{
-			return freeDist;
-		}
-		
-		ZTCode zt = new ZTCode(this, delay);
-		
-		freeDist = zt.getMinDistByTrellis();
-		return freeDist;
-	}
+//	public int getFreeDistanceByVA()
+//	{
+//		if(freeDist != -1)
+//		{
+//			return freeDist;
+//		}
+//		
+//		ZTCode zt = new ZTCode(this, delay);
+//		
+//		freeDist = zt.getMinDistByTrellis();
+//		return freeDist;
+//	}
 
 	@Override
 	public BitArray encodeSeq(BitArray infSeq) {

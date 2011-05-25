@@ -90,6 +90,20 @@ public class PolyMatrix {
 		return res;
 	}
 	
+	public boolean isZero() {
+		for(int i = 0;i < getRowCount();i ++)
+		{
+			for(int j = 0;j < getColumnCount();j ++)
+			{
+				if (!get(i, j).isZero()) {
+					return false;
+				}
+			}
+		}
+		
+		return true;
+	}
+	
 	public PolyMatrix clone()
 	{
 		PolyMatrix clon = new PolyMatrix(getRowCount(), getColumnCount());
@@ -111,7 +125,7 @@ public class PolyMatrix {
 		
 		for(int i = 0;i < size;i ++)
 		{
-			e.set(i, i, new Poly(new Boolean[]{true}));
+			e.set(i, i, Poly.getUnitPoly());
 		}
 		
 		return e;

@@ -172,6 +172,19 @@ public class Matrix implements Cloneable {
 		return tr;
 	}
 	
+	public boolean isZero() {
+		for(int i = 0;i < getRowCount();i ++)
+		{
+			for(int j = 0;j < getColumnCount();j ++)
+			{
+				if (get(i, j) == true) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
 	public Object clone()
 	{
 		BitArray[] rowClones = new BitArray[getRowCount()];
@@ -213,7 +226,7 @@ public class Matrix implements Cloneable {
 		
 		for (int i = 0; i < getRowCount(); ++i) {
 			for (int j = 0; j < getColumnCount(); ++j) {
-				str += (get(i, j) ? 1 : 0); 
+				str += (get(i, j) ? "1" : "0"); 
 			}
 			
 			str += "\n";

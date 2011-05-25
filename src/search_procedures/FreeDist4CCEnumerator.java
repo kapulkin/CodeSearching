@@ -92,7 +92,7 @@ public class FreeDist4CCEnumerator {
 	 */
 	public static  PolyMatrix makeCheckMatrix(BitArray[] lowerRows, BitArray[] higherRows) {
 		int codeLength = lowerRows.length + higherRows.length;
-		int delay = higherRows[0].getFixedSize() + 1;
+		int delay = higherRows[0].getFixedSize() + 2;
 		
 		PolyMatrix checkMatrix = new PolyMatrix(1, codeLength);
 		for (int i = 0; i < lowerRows.length; ++i) {

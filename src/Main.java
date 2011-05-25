@@ -18,6 +18,7 @@ import trellises.Trellis;
 import trellises.Trellises;
 
 import math.BitArray;
+import math.BlockCodeAlgs;
 import math.BlockMatrix;
 import math.ConvCodeAlgs;
 import math.Matrix;
@@ -38,8 +39,8 @@ public class Main {
 		BlockCode blockCode = new BlockCode(mat, true);		
 		SpanForm sf = blockCode.getGeneratorSpanForm();		
 		Matrix ort = blockCode.parityCheck();		
-		Trellis trellis = blockCode.getTrellis();		
-		int minDist = blockCode.getMinDistByTrellis();
+		Trellis trellis = BlockCodeAlgs.buildTrellis(blockCode);		
+		int minDist = MinDistance.findMinDist(trellis, 0, 0);
 		
 		IOMatrix.writeMatrix(sf.Matr, new BufferedWriter(new OutputStreamWriter(System.out)));
 		
@@ -69,13 +70,14 @@ public class Main {
 		
 		System.out.println();
 		
-		IOTrellis.writeTrellisInGVZFormat(ztCode.getTrellis(), new BufferedWriter(new FileWriter(new File("trellis.dot"))));
+		IOTrellis.writeTrellisInGVZFormat(BlockCodeAlgs.buildTrellis(ztCode), new BufferedWriter(new FileWriter(new File("trellis.dot"))));
 		
 		System.out.println();
 		
 		System.out.println(tbCode.getMinDistByTrellis());
 		System.out.println(MinDistance.findMinDist(tbCode.generator()));
-		System.out.println(convCode.getFreeDistanceByVA());
+//		System.out.println(convCode.getFreeDistanceByVA());
+		System.out.println(MinDistance.findMinDist(BlockCodeAlgs.buildTrellis(ztCode), 0, 0));
 	}
 	
 	private static void smithDecompositionTest() throws FileNotFoundException, IOException
@@ -93,30 +95,30 @@ public class Main {
 			}
 		}
 		
-		IOPolyMatrix.writeMatrix(polyMat, new BufferedWriter(new OutputStreamWriter(System.out)));
+		IOPolyMatrix.writeMatrix(polyMat, System.out);
 		System.out.println();
 		
 		SmithDecomposition smithForm = new SmithDecomposition(polyMat);				
 		
-		IOPolyMatrix.writeMatrix(smithForm.getA(), new BufferedWriter(new OutputStreamWriter(System.out)));
+		IOPolyMatrix.writeMatrix(smithForm.getA(), System.out);
 		System.out.println();
 		
-		IOPolyMatrix.writeMatrix(smithForm.getD(), new BufferedWriter(new OutputStreamWriter(System.out)));
+		IOPolyMatrix.writeMatrix(smithForm.getD(), System.out);
 		System.out.println();
 		
-		IOPolyMatrix.writeMatrix(smithForm.getB(), new BufferedWriter(new OutputStreamWriter(System.out)));
+		IOPolyMatrix.writeMatrix(smithForm.getB(), System.out);
 		System.out.println();
 		
-		IOPolyMatrix.writeMatrix(smithForm.getA().mul(smithForm.getD().mul(smithForm.getB())), new BufferedWriter(new OutputStreamWriter(System.out)));
+		IOPolyMatrix.writeMatrix(smithForm.getA().mul(smithForm.getD().mul(smithForm.getB())), System.out);
 		System.out.println();
 		
 		PolyMatrix ort = ConvCodeAlgs.getOrthogonalMatrix(smithForm);
 		
-		IOPolyMatrix.writeMatrix(ort, new BufferedWriter(new OutputStreamWriter(System.out)));
+		IOPolyMatrix.writeMatrix(ort, System.out);
 		System.out.println();				
 		
 		ConvCodeAlgs.toMinimalForm(polyMat);
-		IOPolyMatrix.writeMatrix(polyMat, new BufferedWriter(new OutputStreamWriter(System.out)));
+		IOPolyMatrix.writeMatrix(polyMat, System.out);
 		System.out.println();
 	}
 	

@@ -217,6 +217,26 @@ public class ConvCodeAlgs {
 	}
 
 	/**
+	 * Строит полиномиальную матрицу по ее разложению по степеням.
+	 * Можно сказать, что выполняет действие, обратное разложению по степеням.
+	 * 
+	 * @param polyDecomposition разложение матрицы полиномов по степеням
+	 * @return матрица полиномов
+	 */
+	public static PolyMatrix buildPolyComposition(Matrix [] polyDecomposition) {
+		PolyMatrix matrix = new PolyMatrix(polyDecomposition[0].getRowCount(), polyDecomposition[0].getColumnCount());
+		for (int row = 0; row < matrix.getRowCount(); ++row) {
+			for (int column = 0; column < matrix.getColumnCount(); ++column) {
+				for (int power = 0; power < polyDecomposition.length; ++power) {
+					matrix.get(row, column).setCoeff(power, polyDecomposition[power].get(row, column));
+				}
+			}
+		}
+		
+		return matrix;
+	}
+	
+	/**
 	 * Строит спеновую форму порождающей матрицы сверточного кода в minimal-base форме.
 	 * Спеновая форма включает в себя массив матриц - разложение полиномиальной по степеням, а так же индексы начал и концов строк.
 	 * @param matrix порождающая матрица сверточного кода в minimal-base форме.
@@ -296,8 +316,10 @@ public class ConvCodeAlgs {
 						addLongRow(matrices, row, maxSpanHeadRow, degree);
 					}
 				}
-				spanTails[maxSpanHeadRow] = col;
-				processedTailRows.add(maxSpanHeadRow);
+				if (maxSpanHeadRow != -1) {
+					spanTails[maxSpanHeadRow] = col;
+					processedTailRows.add(maxSpanHeadRow);
+				}
 			}
 		}		
 
@@ -325,32 +347,27 @@ public class ConvCodeAlgs {
 		
 		logger.debug("Here is a (" + b + ", " + c + ", " + v + ") code.");
 		
-		// формируем ряды, по которым дальше будем строить решетку. Фактически 
+		// Формируем ряды, по которым дальше будем строить решетку. Фактически 
 		// мы берем матрицы G0..Gm и выстраиваем их вертикально, исключая при 
 		// этом нулевые ряды.
 		BitArray rows[] = new BitArray[v + b];
 		// Номера рядов в rows, в которых находятся ряды из Gi со старшими степенями.
 		Map<Integer, Integer> tailsRows = new TreeMap<Integer, Integer>();
-//		// Смещения рядов при переходне из последненго слоя решетки к первому.
-//		Map<Integer, Integer> rowsShift = new TreeMap<Integer, Integer>();
-//		int shift = b;
+
 		int rowIndex = 0;
 		for (int degree = 0; degree < spanForm.matrices.length; ++degree) {
 			for (int row = 0; row < b; ++row) {
 				if (spanForm.degrees[row] >= degree) {
 					if (spanForm.degrees[row] == degree) {
 						tailsRows.put(row, rowIndex);
-//						--shift;
-//					} else {
-//						rowsShift.put(rowIndex, shift);
-//						logger.debug("row = " + rowIndex + ", shift = " + shift);
 					}
 					rows[rowIndex++] = spanForm.matrices[degree].getRow(row);
 				}
 			}
 		}
 		
-		TrellisSection[] sections = TrellisUtils.buildSections(spanForm);
+
+		TrellisSection[] sections = TrellisUtils.buildSections(spanForm).toArray(new TrellisSection[0]);
 
 		for (TrellisSection section : sections) {
 			logger.debug(section.toString());
@@ -383,8 +400,7 @@ public class ConvCodeAlgs {
 			int to = (layer == sections.length - 1) ? c : sections[layer + 1].beginColumn();
 			BitArray sum = new BitArray(to - from);
 
-			Integer activeRowsArray[] = new Integer[activeRows.size()];
-			activeRows.toArray(activeRowsArray);
+			Integer activeRowsArray[] = activeRows.toArray(new Integer[activeRows.size()]);
 			Set<Integer> sumRows = new HashSet<Integer>();
 			for (int i = 0; i < trellis.Layers[layer].length; ++i) {
 				int vertexIndex = GrayCode.getWord(i);
@@ -413,7 +429,12 @@ public class ConvCodeAlgs {
 							sumRows.add(row);
 						}
 					}
-					edges[j].Dst = TrellisUtils.getVertexIndex(sumRows, nextActiveRows);
+					long dstLong = TrellisUtils.getVertexIndex(sumRows, nextActiveRows);
+					if (dstLong < 0 || dstLong > Integer.MAX_VALUE) {
+						throw new IllegalArgumentException("Dst index is not in [0, " + Integer.MAX_VALUE + "]: " +
+								layer + ", " + vertexIndex + ", " + j);
+					}
+					edges[j].Dst = (int)dstLong;
 					for (int bit = 0; bit < sections[layer].spanHeads.size(); ++bit) {
 						if ((j & (1 << bit)) != 0) {
 							int row = sections[layer].spanHeads.get(bit).row;

@@ -4,7 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 
 import trellises.ITrellis;
-import trellises.Trellis;
+import trellises.ITrellisEdge;
 
 
 public class IOTrellis { 
@@ -27,16 +27,16 @@ public class IOTrellis {
 				writer.write("  Последующие");
 				writer.newLine();
 				
-				Trellis.Edge accessors[] = trellis.iterator(i, j).getAccessors();
+				ITrellisEdge accessors[] = trellis.iterator(i, j).getAccessors();
 				for(int k = 0;k < accessors.length;k ++)
 				{
-					Trellis.Edge acc = accessors[k];
+					ITrellisEdge acc = accessors[k];
 						
-					writer.write("   " + Integer.toString(acc.Dst+1) + " ");
+					writer.write("   " + (acc.dst()+1) + " ");
 										
-					for(int b = 0;b < acc.Bits.getFixedSize();b ++)
+					for (int b = 0;b < acc.bits().getFixedSize();b ++)
 					{
-						if(acc.Bits.get(b) == true)
+						if (acc.bits().get(b) == true)
 						{
 							writer.write("1");
 						}else
@@ -52,16 +52,16 @@ public class IOTrellis {
 				writer.write("  Предыдущие");
 				writer.newLine();
 				
-				Trellis.Edge predcessors[] = trellis.iterator(i, j).getPredecessors();
+				ITrellisEdge predcessors[] = trellis.iterator(i, j).getPredecessors();
 				for(int k = 0;k < predcessors.length;k ++)
 				{
-					Trellis.Edge pred = predcessors[k];
+					ITrellisEdge pred = predcessors[k];
 						
-					writer.write("   " + Integer.toString(pred.Src+1) + " ");
+					writer.write("   " + (pred.src()+1) + " ");
 										
-					for(int b = 0;b < pred.Bits.getFixedSize();b ++)
+					for(int b = 0;b < pred.bits().getFixedSize();b ++)
 					{
-						if(pred.Bits.get(b) == true)
+						if(pred.bits().get(b) == true)
 						{
 							writer.write("1");
 						}else
@@ -103,18 +103,18 @@ public class IOTrellis {
 			
 			for(int j = 0;j < trellis.layerSize(i);j ++)
 			{					
-				Trellis.Edge accessors[] = trellis.iterator(i, j).getAccessors();
+				ITrellisEdge accessors[] = trellis.iterator(i, j).getAccessors();
 				for(int k = 0;k < accessors.length;k ++)
 				{
-					Trellis.Edge acc = accessors[k];
+					ITrellisEdge acc = accessors[k];
 					
-					writer.write("\"" + Integer.toString(i) + "," + Integer.toString(acc.Src) + "\"" 
-							+ " -> " + "\"" + Integer.toString((i+1) % trellis.layersCount()) + "," + Integer.toString(acc.Dst)+"\"");
+					writer.write("\"" + Integer.toString(i) + "," + acc.src() + "\"" 
+							+ " -> " + "\"" + Integer.toString((i+1) % trellis.layersCount()) + "," + acc.dst()+"\"");
 					writer.write(" [weight = 100, label=\"");
 										
-					for(int b = 0;b < acc.Bits.getFixedSize();b ++)
+					for(int b = 0;b < acc.bits().getFixedSize();b ++)
 					{
-						if(acc.Bits.get(b) == true)
+						if(acc.bits().get(b) == true)
 						{
 							writer.write("1");
 						}else

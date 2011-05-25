@@ -11,7 +11,7 @@ public interface ITrellis {
 	 * @param layer номер яруса
 	 * @return колличество вершин в ярусе <code>layer</code>
 	 */
-	public int layerSize(int layer);
+	public long layerSize(int layer);
 	
 	public ITrellisIterator iterator(int layer, int vertexIndex);
 }

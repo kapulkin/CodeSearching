@@ -33,7 +33,7 @@ public class ConvCodeTrellisIterator implements ITrellisIterator {
 	}
 	
 	@Override
-	public int vertexIndex() {
+	public long vertexIndex() {
 		return vertexIndex;
 	}
 

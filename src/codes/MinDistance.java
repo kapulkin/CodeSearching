@@ -1,15 +1,23 @@
 package codes;
 
 import math.BitArray;
+import math.ConvCodeAlgs;
 import math.GrayCode;
 import math.Matrix;
+import math.PolyMatrix;
 import trellises.BeastAlgorithm;
+import trellises.BlockCodeTrellis;
+import trellises.ITrellis;
 import trellises.ITrellisIterator;
 import trellises.Trellis;
 import trellises.ViterbiAlgorithm;
 
 public class MinDistance {
-
+	/**
+	 * Рассчитывает метрику решетки, где весовой функцией выступает вес кодовых слов на ребрах.
+	 * Метрика помещается в нулевую ячейку метрик на ребрах, ранее рассчитанные метрики смещаются на одну позицию вправо.
+	 * @param trellis
+	 */
 	public static void computeDistanceMetrics(Trellis trellis)
 	{
 		for(int i = 0; i < trellis.Layers.length; i++)
@@ -30,7 +38,18 @@ public class MinDistance {
 			}			
 		}
 	}
-	
+
+	/**
+	 * Вычисляет min/free dist решетки блокового или сверточного кода с помощью алгоритма Витерби.
+	 * Более строго: вычисляет длину кратчайшего ненулевого пути в решетке. Пути
+	 * выходят из нулевой вершины нулевого слоя и имеют проходят по решетке не
+	 * более <code>cycles</code> раз. 
+	 *
+	 * @param trellis решетка блокового или сверточного кода
+	 * @param distanceMetric
+	 * @param cycles ограничение на кол-во циклов, пройденных по решетке. 
+	 * @return вес кратчайшего ненулевого пути в решетке.
+	 */
 	public static int findMinDist(Trellis trellis, int distanceMetric, int cycles)
 	{
 		int minDist = Integer.MAX_VALUE;		
@@ -57,18 +76,54 @@ public class MinDistance {
 		return minDist;
 	}
 
-	public static int findMinDistWithBEAST(Trellis trellis, int distanceMetric, int cycles) {
+	/**
+	 * Вычисляет минимальное расстояние блокового кода.
+	 * @param code блоковый код
+	 * @return
+	 */
+	public static int findMinDist(BlockCode code) {
+		return findMinDistWithBEAST(new BlockCodeTrellis(code.getGeneratorSpanForm()), 0, code.getN());
+	}
+	
+	public static int findFreeDist(ConvCode code) {
+		PolyMatrix minBaseGen = ConvCodeAlgs.getMinimalBaseGenerator(code.generator());
+		Trellis trellis = ConvCodeAlgs.buildTrellis(ConvCodeAlgs.buildSpanForm(minBaseGen));
+		computeDistanceMetrics(trellis);
+		return findMinDistWithBEAST(trellis, 0, code.getN() * (code.getDelay() + 1));
+	}
+	
+	/**
+	 * Вычисляет метрику на ребрах решекти и вычисляет min/free dist кода.
+	 * @param trellis
+	 * @param upperBound
+	 * @return
+	 */
+	public static int findMinDistWithBEAST(Trellis trellis, int upperBound) {
+		computeDistanceMetrics(trellis);
+		return findMinDistWithBEAST(trellis, 0, upperBound);
+	}
+	
+	/**
+	 * Вычисляет min/free dist решетки блокового или сверточного кода с помощью алгоритма BEAST.
+	 * Более строго: вычисляет длину кратчайшего ненулевого пути в решетке.
+	 * 
+	 * Верхняя оценка upperBound используется как страховочный механизм для защиты от 
+	 * бесконечной работы алгоритма в случае ошибки в нем или входной решетке.
+	 *  
+	 * Для работы с блоковым кодом: <code>upperBound</code> достаточно взять равным n.
+	 * Для работы со сверточным кодом: <code>upperBound</code> достаточно взять равным n*(delay+1)  
+	 * 
+	 * @param trellis решетка блокового или сверточного кода 
+	 * @param distanceMetric номер метрики в решетке для рассчета веса путей.
+	 * @param upperBound верхняя оценка min/free dist 
+	 * @return
+	 */
+	public static int findMinDistWithBEAST(ITrellis trellis, int distanceMetric, int upperBound) {
 		int minDist = Integer.MAX_VALUE;
 				
-		int length = Math.max(1, cycles) * trellis.Layers.length;
-		double weights[] = new double[length];
-		for (int i = 0; i < length; ++i) {
-			weights[i] = 1;
-		}
-		
 		ITrellisIterator root = trellis.iterator(0, 0);
-		ITrellisIterator toor = trellis.iterator(trellis.Layers.length - 1, 0);
-		BeastAlgorithm.Path paths[] = BeastAlgorithm.findOptimalPaths(root, toor, distanceMetric, weights);
+		ITrellisIterator toor = trellis.iterator(trellis.layersCount() - 1, 0);
+		BeastAlgorithm.Path paths[] = BeastAlgorithm.findOptimalPaths(root, toor, distanceMetric, upperBound);
 		
 		for (int i = 0; i < paths.length; ++i) {
 			minDist = Math.min(minDist, (int)paths[i].weight());

@@ -9,26 +9,26 @@ import org.slf4j.LoggerFactory;
 import codes.ConvCode;
 import codes.MinDistance;
 
-import search_procedures.HighRateCCSearcher;
+import search_procedures.HighRateCCEnumerator;
 import trellises.Trellis;
 import trellises.Trellises;
 
 
-public class HighRateCCSearcherTest {
+public class HighRateCCEnumeratorTest {
 	@Test
 	public void SearcherTest() {
 		final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-		int v = 4, freeDist = 5;
-		HighRateCCSearcher codeSearcher = new HighRateCCSearcher(v, freeDist);
+		int v = 9, freeDist = 5;
+		HighRateCCEnumerator codeSearcher = new HighRateCCEnumerator(v, freeDist);
 		
 		ConvCode code;
 		while ((code = codeSearcher.next()) != null) {
-			logger.debug("code:\n" + code.checkMatrix());
-			Trellis trellis = Trellises.trellisFromParityCheckHR(code.checkMatrix());
+			logger.debug("code:\n" + code.parityCheck());
+			Trellis trellis = Trellises.trellisFromParityCheckHR(code.parityCheck());
 			MinDistance.computeDistanceMetrics(trellis);
 			
-			int actualFreeDist = MinDistance.findMinDistWithBEAST(trellis, 0, 2 * (code.getDelay() + 1));
+			int actualFreeDist = MinDistance.findMinDistWithBEAST(trellis, 0, code.getN() * (code.getDelay() + 1));
 			logger.debug("free dist = " + actualFreeDist);
 			assertTrue(actualFreeDist >= freeDist);
 		}

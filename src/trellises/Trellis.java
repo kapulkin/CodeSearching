@@ -9,28 +9,49 @@ import math.BitArray;
  */
 public class Trellis implements ITrellis{
 	
-	static public class Edge{
-		
+	static public class Edge implements ITrellisEdge {
 		/**
 		 * Индекс начала ребра в слое 
 		 */
 		public int Src;
-		
 		/**
 		 * Индекс конца ребра в слое
 		 */
 		public int Dst;
-		
 		/**
 		 * Метрики ребра (кол-во единичек, вероятность и т.д.)
 		 */
 		public double[] Metrics;
-		
 		/**
 		 * Кодовые символы на ребре
 		 */
 		public BitArray Bits;
+
+		public Edge() {}
 		
+		public Edge(int src, int dst, BitArray bits, double metrics[]) {
+			this.Src = src;
+			this.Dst = dst;
+			this.Bits = bits;
+			this.Metrics = metrics;
+		}
+		
+		@Override
+		public long src() {
+			return Src;
+		}
+		@Override
+		public long dst() {
+			return Dst;
+		}
+		@Override
+		public BitArray bits() {
+			return Bits;
+		}
+		@Override
+		public double[] metrics() {
+			return Metrics;
+		}
 		@Override
 		public String toString() {
 			return Src + "‒" + Bits + "→" + Dst;
@@ -58,11 +79,15 @@ public class Trellis implements ITrellis{
 
 	@Override
 	public ITrellisIterator iterator(int layer, int vertexIndex) {
+		if (layer >= layersCount() || vertexIndex >= layerSize(layer)) {
+			throw new IndexOutOfBoundsException(layer + ", " + vertexIndex);
+		}
+
 		return new TrellisIterator(this, layer, vertexIndex);
 	}
 
 	@Override
-	public int layerSize(int layer) {
+	public long layerSize(int layer) {
 		return Layers[layer].length;
 	}
 

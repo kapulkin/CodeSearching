@@ -39,7 +39,7 @@ public class BlockCodeTrellisTest {
 	
 	@Test
 	public void layersCountOfSectionalizedTrellisRestriction() {
-		trellis = new BlockCodeTrellis(code);
+		trellis = new BlockCodeTrellis(code.getGeneratorSpanForm());
 
 		assertTrue(trellis.layersCount() <= 2 * code.getK() + 1);
 		// для данного кода ярусов должно быть 6
@@ -48,7 +48,7 @@ public class BlockCodeTrellisTest {
 	
 	@Test
 	public void trellisProfileTest() {
-		trellis = new BlockCodeTrellis(code);
+		trellis = new BlockCodeTrellis(code.getGeneratorSpanForm());
 
 		int trellisProfile[] = {0, 1, 2, 2, 1, 0};
 		
@@ -60,7 +60,7 @@ public class BlockCodeTrellisTest {
 	@Test
 	public void trellisForwardTraversalShouldGiveCodeWord() {
 		BlockCodeAlgs.sortHeads(code.getGeneratorSpanForm());
-		trellis = new BlockCodeTrellis(code);
+		trellis = new BlockCodeTrellis(code.getGeneratorSpanForm());
 
 		TrellisesTest.trellisForwardTraversalShouldGiveCodeWord(code, trellis, 1);
 	}
@@ -68,14 +68,14 @@ public class BlockCodeTrellisTest {
 	@Test
 	public void trellisBackwardTraversalShouldGiveCodeWord() {
 		BlockCodeAlgs.sortTails(code.getGeneratorSpanForm());
-		trellis = new BlockCodeTrellis(code);
+		trellis = new BlockCodeTrellis(code.getGeneratorSpanForm());
 
 		TrellisesTest.trellisBackwardTraversalShouldGiveCodeWord(code, trellis);
 	}
 	
 	@Test
 	public void visualizeTrellis() {
-		trellis = new BlockCodeTrellis(code);
+		trellis = new BlockCodeTrellis(code.getGeneratorSpanForm());
 		
 		try {
 			IOTrellis.writeTrellisInGVZFormat(trellis, new BufferedWriter(new FileWriter(new File("trellis.dot"))));

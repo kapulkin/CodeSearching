@@ -14,7 +14,7 @@ import math.PolyMatrix;
 import codes.ConvCode;
 import codes.MinDistance;
 
-public class HighRateCCSearcher {
+public class HighRateCCEnumerator {
 	Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	int delay;
@@ -27,7 +27,7 @@ public class HighRateCCSearcher {
 	
 	Random randGen = new Random();
 	
-	public HighRateCCSearcher(int delay, int freeDist) {
+	public HighRateCCEnumerator(int delay, int freeDist) {
 		this.delay = delay;
 		this.freeDist = freeDist;
 		
@@ -51,13 +51,16 @@ public class HighRateCCSearcher {
 	public ConvCode next() {
 		int attempts = delay * freeDist;
 		
-		boolean codeFound = false;
-		while (!codeFound && attempts > 0 && lowerRowsEnum.hasNext() && higherRowsEnum.hasNext()) {
+		BitArray lowerRowsArray[];
+		BitArray higherRowsArray[];
+		PolyMatrix checkMatrix;
+		while (attempts > 0 && lowerRowsEnum.hasNext() && higherRowsEnum.hasNext()) {
 			--attempts;
 
-			BitArray lowerRowsArray[] = lowerRows.toArray(new BitArray[] {});
-			BitArray higherRowsArray[] = higherRows.toArray(new BitArray[] {});
-			if (!checkLowEstimation(makeCheckMatrix(lowerRowsArray, higherRowsArray), freeDist)) {
+			lowerRowsArray = lowerRows.toArray(new BitArray[] {});
+			higherRowsArray = higherRows.toArray(new BitArray[] {});
+			checkMatrix = makeCheckMatrix(lowerRowsArray, higherRowsArray);
+			if (!checkLowEstimation(checkMatrix, freeDist)) {
 				// удаляем случайный вектор: или из lowerRows или из higherRows
 				int rowIndex = randGen.nextInt(lowerRows.size() + higherRows.size());
 				if (rowIndex < lowerRows.size()) {
@@ -80,46 +83,34 @@ public class HighRateCCSearcher {
 					}
 				}
 			} else {
-				codeFound = true;
-			}	
-		}
-		
-		if (codeFound) {
-			// нашли подходящий код.
-			BitArray lowerRowsArray[];
-			BitArray higherRowsArray[];
+				// нашли подходящий код.
+				ConvCode code = null;
+				try {
+					do {
+						code = new ConvCode(checkMatrix, false);
 
-			try {
-				boolean added = true;
-				do {
-					// добавляем следующий вектор к матрице
-					if (higherRows.size() == 2) {
-						lowerRows.add(lowerRowsEnum.getNext()[0]);
-					} else {
-						if (randGen.nextBoolean()) {
+						// добавляем следующий вектор к матрице
+						if (higherRows.size() == 2) {
 							lowerRows.add(lowerRowsEnum.getNext()[0]);
 						} else {
-							higherRows.add(higherRowsEnum.getNext()[0]);
-							added = false;
+							if (randGen.nextBoolean()) {
+								lowerRows.add(lowerRowsEnum.getNext()[0]);
+							} else {
+								higherRows.add(higherRowsEnum.getNext()[0]);
+							}
 						}
-					}
-					lowerRowsArray = lowerRows.toArray(new BitArray[] {});
-					higherRowsArray = higherRows.toArray(new BitArray[] {});
-				} while (checkLowEstimation(makeCheckMatrix(lowerRowsArray, higherRowsArray), freeDist));
-				
-				// удаляем последний добавленный: откатываемся на последний рабочий вариант
-				if (added) {
-					lowerRows.remove(lowerRows.size() - 1);
-				} else {
-					higherRows.remove(higherRows.size() - 1);
+						lowerRowsArray = lowerRows.toArray(new BitArray[] {});
+						higherRowsArray = higherRows.toArray(new BitArray[] {});
+						checkMatrix = makeCheckMatrix(lowerRowsArray, higherRowsArray);
+					} while (checkLowEstimation(checkMatrix, freeDist));
+				} catch (NoSuchElementException e) {
+					logger.debug("Enumeration is finished.");
 				}
-			} catch (NoSuchElementException e) {
-				// do nothing
-			}
-			lowerRowsArray = lowerRows.toArray(new BitArray[] {});
-			higherRowsArray = higherRows.toArray(new BitArray[] {});
-			return new ConvCode(makeCheckMatrix(lowerRowsArray, higherRowsArray), false);
+				return code;
+			}	
 		}
+				
+		logger.debug("An appropriate next code was not found.");
 		
 		return null;
 	}
@@ -128,7 +119,7 @@ public class HighRateCCSearcher {
 		Trellis trellis = Trellises.trellisFromParityCheckHR(checkMatrix);
 		MinDistance.computeDistanceMetrics(trellis);
 		
-		int freeDist = MinDistance.findMinDistWithBEAST(trellis, 0, 2 * (delay+1));
+		int freeDist = MinDistance.findMinDistWithBEAST(trellis, 0, checkMatrix.getColumnCount() * (delay+1));
 
 		logger.debug("actual free dist = " + freeDist);
 		

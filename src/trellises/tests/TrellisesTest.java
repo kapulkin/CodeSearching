@@ -22,10 +22,10 @@ import math.PolyMatrix;
 
 import trellises.BlockCodeTrellis;
 import trellises.ITrellis;
+import trellises.ITrellisEdge;
 import trellises.Trellis;
 import trellises.ITrellisIterator;
 import trellises.Trellises;
-import trellises.Trellis.Edge;
 import codes.BlockCode;
 import codes.Code;
 
@@ -48,11 +48,11 @@ public class TrellisesTest {
 	public void explicitTrellisConstructionFromBlockCodeTrellisTest() {
 
 		BlockCodeAlgs.sortHeads(code.getGeneratorSpanForm());
-		Trellis trellis1 = Trellises.buildExplicitTrellis(new BlockCodeTrellis(code));
+		Trellis trellis1 = Trellises.buildExplicitTrellis(new BlockCodeTrellis(code.getGeneratorSpanForm()));
 		trellisForwardTraversalShouldGiveCodeWord(code, trellis1, 1);
 
 		BlockCodeAlgs.sortTails(code.getGeneratorSpanForm());
-		Trellis trellis2 = Trellises.buildExplicitTrellis(new BlockCodeTrellis(code));
+		Trellis trellis2 = Trellises.buildExplicitTrellis(new BlockCodeTrellis(code.getGeneratorSpanForm()));
 		trellisBackwardTraversalShouldGiveCodeWord(code, trellis2);
 	}
 	
@@ -82,10 +82,13 @@ public class TrellisesTest {
 	 * длиной <code>wordsNumber</code> слов и проверяет корректность построенной
 	 * решеткой кодовой последовательнотью.
 	 * 
-	 * Стоит заметить, что стандартная решетка блокового кода позволяет 
+	 * Стоит заметить, что стандартная решетка <strong>блокового</strong> кода позволяет 
 	 * построить кодовую последовательность, состоящую только из одного кодового
 	 * слова. Т.о. для нее корректная работа метода гарантируется только при
-	 * <code>wordsNumber</code>.
+	 * <code>wordsNumber</code> равном 1.
+	 * 
+	 * Данный метод не работает для tailbiting-кода. 
+	 * 
 	 * @param code код
 	 * @param trellis проверяемая решетка
 	 * @param wordsNumber длина информационной последовательности в информационных словах
@@ -94,8 +97,8 @@ public class TrellisesTest {
 		int infLength = code.getK() * wordsNumber;
 		int codeLength = code.getN() * wordsNumber;
 		
-		if (infLength > 31) {
-			throw new IllegalArgumentException("The information sequence length more, then 31 is not supported.");
+		if (infLength > Integer.SIZE - 1) {
+			throw new IllegalArgumentException("The information sequence length more, then " + (Integer.SIZE-1) + " is not supported.");
 		}
 		
 		for (int word = 0; word < (1 << infLength); ++word) {
@@ -114,17 +117,17 @@ public class TrellisesTest {
 			int row = 0;
 			int bits = 0;
 			for (ITrellisIterator iter = trellis.iterator(0, 0); iter.hasForward() && bits < codeSeq.getFixedSize(); ) {
-				Edge edges[] = iter.getAccessors();
+				ITrellisEdge edges[] = iter.getAccessors();
 								
 				if (edges.length == 2) {
 					int index = infSeq.get(row++) ? 1 : 0;
-					for (int i = 0; i < edges[index].Bits.getFixedSize(); ++i) {
-						codeBitSet.set(bits++, edges[index].Bits.get(i));
+					for (int i = 0; i < edges[index].bits().getFixedSize(); ++i) {
+						codeBitSet.set(bits++, edges[index].bits().get(i));
 					}
 					iter.moveForward(index);
 				} else {
-					for (int i = 0; i < edges[0].Bits.getFixedSize(); ++i) {
-						codeBitSet.set(bits++, edges[0].Bits.get(i));
+					for (int i = 0; i < edges[0].bits().getFixedSize(); ++i) {
+						codeBitSet.set(bits++, edges[0].bits().get(i));
 					}
 					iter.moveForward(0);
 				}
@@ -139,7 +142,7 @@ public class TrellisesTest {
 	 * Метод тестирует решетку <code>trellis</code>, построенную для кода
 	 * <code>code</code>. Метод перебирает все информационные последовательности
 	 * длиной <code>wordsNumber</code> слов и проверяет корректность построенной
-	 * решеткой кодовой последовательнотью.
+	 * решеткой кодовой последовательноти.
 	 * @param code код
 	 * @param trellis проверяемая решетка
 	 */
@@ -160,17 +163,17 @@ public class TrellisesTest {
 			int row = code.getK() - 1;
 			int bits = code.getN() - 1;
 			for (ITrellisIterator iter = trellis.iterator(trellis.layersCount() - 1, 0); iter.hasBackward() && bits >= 0; ) {
-				Edge edges[] = iter.getPredecessors();
+				ITrellisEdge edges[] = iter.getPredecessors();
 				
 				if (edges.length == 2) {
 					int index = infWord.get(row--) ? 1 : 0;
-					for (int i = edges[index].Bits.getFixedSize() - 1; i >= 0; --i) {
-						codeBitSet.set(bits--, edges[index].Bits.get(i));
+					for (int i = edges[index].bits().getFixedSize() - 1; i >= 0; --i) {
+						codeBitSet.set(bits--, edges[index].bits().get(i));
 					}
 					iter.moveBackward(index);
 				} else {
-					for (int i = edges[0].Bits.getFixedSize() - 1; i >= 0; --i) {
-						codeBitSet.set(bits--, edges[0].Bits.get(i));
+					for (int i = edges[0].bits().getFixedSize() - 1; i >= 0; --i) {
+						codeBitSet.set(bits--, edges[0].bits().get(i));
 					}
 					iter.moveBackward(0);
 				}

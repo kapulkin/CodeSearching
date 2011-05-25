@@ -1,7 +1,6 @@
 package codes;
 
 import trellises.Trellis;
-import trellises.Trellises;
 import math.BitArray;
 import math.BlockCodeAlgs;
 import math.MathAlgs;
@@ -50,10 +49,7 @@ public class BlockCode implements Code {
 	 */
 	protected Matrix checkMatr;
 	
-	protected BlockCode()
-	{
-		
-	}
+	protected BlockCode() {}
 	
 	/**
 	 * 
@@ -112,6 +108,10 @@ public class BlockCode implements Code {
 		return genMatr;
 	}
 	
+	public boolean isGeneratorNull() {
+		return genMatr == null;
+	}
+	
 	/**
 	 * 
 	 * @return Проверочная матрица
@@ -123,6 +123,9 @@ public class BlockCode implements Code {
 		return checkMatr;
 	}
 	
+	public boolean isParityCheckNull() {
+		return checkMatr == null;
+	}
 	
 	/**
 	 * Метод возвращает спеновую форму порождающей матрицы. При первом вызове 
@@ -143,41 +146,49 @@ public class BlockCode implements Code {
 	}
 	
 	/* TODO: Этот метод, по-хорошему, надо убрать. Взамен создать класс 
-	 * BlockCodeTrellis implemtnts ITellis, возвращающий итератор, позволяющий 
+	 * BlockCodeTrellis implemetnts ITellis, возвращающий итератор, позволяющий 
 	 * ходить по решетке не строя ее.
 	 */
 	/**
 	 * 	
 	 * @return Решетка кода
 	 */
-	public Trellis getTrellis()
-	{
-		if(trellis == null)
-		{
-			trellis = Trellises.trellisFromGenSF(getGeneratorSpanForm());
-		}
-		
-		return trellis;
+//	public Trellis getTrellis()
+//	{
+//		if(trellis == null)
+//		{
+//			trellis = Trellises.trellisFromGenSF(getGeneratorSpanForm());
+//		}
+//		
+//		return trellis;
+//	}
+
+	public int getMinDist() {
+		return minDist;
+	}
+	
+	public void setMinDist(int minDist) {
+		this.minDist = minDist;
 	}
 	
 	/**
 	 * 
 	 * @return Минимальное расстояние кода
 	 */
-	public int getMinDistByTrellis()
-	{
-		if(minDist != -1)
-		{
-			return minDist;
-		}
-		
-		Trellis t = getTrellis();
-		
-		MinDistance.computeDistanceMetrics(t);
-		minDist = MinDistance.findMinDist(t, 0, 0);
-		
-		return minDist;
-	}
+//	public int getMinDistByTrellis()
+//	{
+//		if(minDist != -1)
+//		{
+//			return minDist;
+//		}
+//		
+//		Trellis t = getTrellis();
+//		
+//		MinDistance.computeDistanceMetrics(t);
+//		minDist = MinDistance.findMinDist(t, 0, 0);
+//		
+//		return minDist;
+//	}
 
 	@Override
 	public BitArray encodeSeq(BitArray infSeq) {

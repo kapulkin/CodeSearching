@@ -20,12 +20,10 @@ public class CEnumerator {
 			throw new InvalidParameterException("There is no combinations with n < k.");
 		}
 
-		long combinations = 1; // = n!/k!/(n-k)! = (k+1)*..*n/(n-k)!
+		double combinations = 1; // = n!/k!/(n-k)! = (k+1)*..*n/(n-k)!
 		for (long i = k + 1; i <= n; ++i) {
 			combinations *= i;
-		}
-		for (long i = 2; i <= n - k; ++i) {
-			combinations /= i;
+			combinations /= (n - i + 1);
 		}
 		logger.debug("C(" + n + ", " + k + ") gives " + combinations + " combinations.");
 		

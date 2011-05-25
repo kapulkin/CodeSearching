@@ -162,7 +162,12 @@ public class BlockCodeAlgs {
 		}
 	}
 
+	/**
+	 * Строит решетку блокового кода с заполненной нулевой метрикой. Метрикой ребер выступает их весовая функция.
+	 * @param code блоковый код.
+	 * @return решетка блокового кода с рассчитанной метрикой
+	 */
 	public static Trellis buildTrellis(BlockCode code) {
-		return Trellises.buildExplicitTrellis(new BlockCodeTrellis(code));
+		return Trellises.buildExplicitTrellis(new BlockCodeTrellis(code.getGeneratorSpanForm()));
 	}
 }

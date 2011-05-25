@@ -58,7 +58,7 @@ public class SpanForm implements ISpanForm {
 	 */
 	public boolean isRowActiveBefore(int column, int row) {
 		return spanHeads[row] < column && column <= spanTails[row] || 
-			spanTails[row] < spanHeads[row] && !(spanTails[row] < column && column <= spanHeads[row]);
+			(spanTails[row] < spanHeads[row] && !(spanTails[row] < column && column <= spanHeads[row]));
 	}
 
 	/**
@@ -71,7 +71,7 @@ public class SpanForm implements ISpanForm {
 	 */
 	public boolean isRowActiveAfter(int column, int row) {
 		return spanHeads[row] <= column && column < spanTails[row] || 
-			spanTails[row] < spanHeads[row] && !(spanTails[row] <= column && column < spanHeads[row]);
+			(spanTails[row] < spanHeads[row] && !(spanTails[row] <= column && column < spanHeads[row]));
 	}
 
 	public SortedSet<Integer> getActiveRowsBefore(int column) {
