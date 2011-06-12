@@ -6,4 +6,5 @@ bin/
 .settings/
 *.ps
 .dropbox
+doc/
 

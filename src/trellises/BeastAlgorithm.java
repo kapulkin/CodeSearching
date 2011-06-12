@@ -105,9 +105,10 @@ public class BeastAlgorithm {
 		@Override
 		public String toString() {
 			// По построению путь содержит хотя бы одну вершину.
-			String str = iterator().prev() + " : " + weight;
-			while (iterator().hasPrev()) {
-				str = iterator().prev() + "-" + str;
+			PathIterator iter = iterator();
+			String str = iter.prev() + " : " + weight;
+			while (iter.hasPrev()) {
+				str = iter.prev() + "-" + str;
 			}
 			return str;
 		}
@@ -249,11 +250,13 @@ public class BeastAlgorithm {
 		if (toor.vertexIndex() == 0 && toor.hasBackward()) {
 			// добавляем все вершины нулевого пути/цикла в решетке.
 			PathCollector zeroPath = new PathCollector(toorPath);
-			do {
+			zeroPath.iterator.moveBackward(0);
+			zeroPath.path.addVertex(zeroPath.iterator.vertexIndex(), 0);
+			while (zeroPath.iterator.layer() != toor.layer() && zeroPath.iterator.hasBackward()) {
 				zeroPath.iterator.moveBackward(0);
 				zeroPath.path.addVertex(zeroPath.iterator.vertexIndex(), 0);
 				Backward.add(new PathCollector(zeroPath));
-			} while (zeroPath.iterator.hasBackward() && zeroPath.iterator.layer() != toor.layer());
+			}
 		}
 		
 		ArrayList<Path> paths = new ArrayList<Path>();
@@ -261,7 +264,7 @@ public class BeastAlgorithm {
 		while (tresholdForward + tresholdBackward <= upperBound) {
 			if (Forward.size() < Backward.size()) {
 				++tresholdForward;
-				Forward = findForwardPaths(Forward, tresholdForward, metric);
+				Forward = findForwardPaths(Forward, tresholdForward, root, metric);
 			} else {
 				++tresholdBackward;
 				Backward = findBackwardPaths(Backward, tresholdBackward, metric);
@@ -273,6 +276,7 @@ public class BeastAlgorithm {
 					
 					if (fpath.path.weight() == 0 && bpath.path.weight() == 0) {
 						// нулевой путь, пропускаем
+						continue;
 					}
 					
 					Path newPath = new BeastAlgorithm.Path(fpath.path);
@@ -515,7 +519,7 @@ public class BeastAlgorithm {
 	}
 
 	private static TreeSet<PathCollector> findForwardPaths(TreeSet<PathCollector> Forward,
-			int tresholdForward, int metric) {
+			int tresholdForward, ITrellisIterator root, int metric) {
 		logger.debug("tresholdForward = " + tresholdForward);
 		
 		TreeSet<PathCollector> newForward = new TreeSet<PathCollector>();
@@ -538,7 +542,11 @@ public class BeastAlgorithm {
 				for (int i = 0; i < path.iterator.getAccessors().length; ++i) {
 					ITrellisEdge edge = path.iterator.getAccessors()[i];
 					if (path.iterator.vertexIndex() == 0 && edge.metrics()[metric] == 0) {
+						if (path.iterator == root) {
+							continue;
+						}
 						// проходим по всем вершинам нулевого цикла и сразу переходим из каждой из них по ненулевому пути.
+						logger.debug("i = " + i);
 						PathCollector zeroPath = new PathCollector(path);
 						zeroPath.iterator.moveForward(i);
 						zeroPath.path.addVertex(zeroPath.iterator.vertexIndex(), 0);
@@ -600,7 +608,28 @@ public class BeastAlgorithm {
 				for (int i = 0; i < path.iterator.getPredecessors().length; ++i) {
 					ITrellisEdge edge = path.iterator.getPredecessors()[i];
 					if (path.iterator.vertexIndex() == 0 && edge.metrics()[metric] == 0) {
-						// Запрещаем нулевой путь
+						// проходим по всем вершинам нулевого цикла.
+//						logger.debug("i = " + i);
+//						PathCollector zeroPath = new PathCollector(path);
+//						zeroPath.iterator.moveBackward(i);
+//						zeroPath.path.addVertex(zeroPath.iterator.vertexIndex(), 0);
+//						while (zeroPath.iterator.layer() != path.iterator.layer() && zeroPath.iterator.hasBackward()) {
+//							ITrellisEdge edges[] = zeroPath.iterator.getPredecessors();
+//							for (int e = 1; e < edges.length; ++e) {
+//								PathCollector newPath = new PathCollector(zeroPath);
+//								newPath.iterator.moveBackward(e);
+//								newPath.path.addVertex(newPath.iterator.vertexIndex(), edges[e].metrics()[metric]);
+//
+//								if (newPath.path.weight > tresholdBackward) {
+//									addTheLeastPath(newBackward, new PathCollector(zeroPath));
+//								} else {
+//									addTheLeastPath(oldBackward, newPath);
+//								}
+//							}
+//							zeroPath.iterator.moveBackward(0);
+//							zeroPath.path.addVertex(zeroPath.iterator.vertexIndex(), 0);
+//						}
+						
 						continue;
 					}
 					
@@ -612,6 +641,23 @@ public class BeastAlgorithm {
 						addTheLeastPath(newBackward, path);
 					} else {
 						addTheLeastPath(oldBackward, newPath);
+						
+						if (newPath.iterator.vertexIndex() == 0 && newPath.iterator.hasBackward()) {
+							// пришли в вершину нулевого цикла, пройдемся по нему.
+							PathCollector zeroPath = new PathCollector(newPath);
+							zeroPath.iterator.moveBackward(0);
+							zeroPath.path.addVertex(zeroPath.iterator.vertexIndex(), 0);
+							
+							while (zeroPath.iterator.layer() != newPath.iterator.layer()) {
+								addTheLeastPath(oldBackward, new PathCollector(zeroPath));
+								if (zeroPath.iterator.hasBackward()) {
+									zeroPath.iterator.moveBackward(0);
+									zeroPath.path.addVertex(zeroPath.iterator.vertexIndex(), 0);
+								} else {
+									break;
+								}
+							}
+						}
 					}
 				}
 			}
