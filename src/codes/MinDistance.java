@@ -10,6 +10,7 @@ import trellises.BlockCodeTrellis;
 import trellises.ITrellis;
 import trellises.ITrellisIterator;
 import trellises.Trellis;
+import trellises.TrellisPath;
 import trellises.ViterbiAlgorithm;
 
 public class MinDistance {
@@ -123,7 +124,7 @@ public class MinDistance {
 				
 		ITrellisIterator root = trellis.iterator(0, 0);
 		ITrellisIterator toor = trellis.iterator(trellis.layersCount() - 1, 0);
-		BeastAlgorithm.Path paths[] = BeastAlgorithm.findOptimalPaths(root, toor, distanceMetric, upperBound);
+		TrellisPath paths[] = BeastAlgorithm.findOptimalPaths(root, toor, distanceMetric, upperBound);
 		
 		for (int i = 0; i < paths.length; ++i) {
 			minDist = Math.min(minDist, (int)paths[i].weight());

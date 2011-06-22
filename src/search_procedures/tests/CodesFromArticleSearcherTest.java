@@ -17,7 +17,7 @@ public class CodesFromArticleSearcherTest {
 	public void searchingLaunch() {
 		CodesFromArticleSearcher searcher = new CodesFromArticleSearcher();
 		
-		for (int freeDist = 5; freeDist <= 5; ++freeDist) {
+		for (int freeDist = 3; freeDist <= 3; ++freeDist) {
 			logger.info("free distance: " + freeDist);
 			try {
 				searcher.searchCodes(freeDist);
