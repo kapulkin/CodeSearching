@@ -10,9 +10,10 @@ import org.slf4j.LoggerFactory;
 import trellises.Trellis;
 import trellises.Trellises;
 import math.BitArray;
+import math.MinDistance;
+import math.Poly;
 import math.PolyMatrix;
 import codes.ConvCode;
-import codes.MinDistance;
 
 public class HighRateCCEnumerator {
 	Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -115,6 +116,14 @@ public class HighRateCCEnumerator {
 		return null;
 	}
 
+	/**
+	 * Проверяет нижнюю оценку свободного расстояния кода, заданного 
+	 * <code>checkMatrix</code>. Возвращает <code>true</code>, если свободное 
+	 * расстояние кода больше или равно <code>expectedFreeDist</code>.
+	 * @param checkMatrix проверочная матрица, задающая сверточный код
+	 * @param expectedFreeDist проверяемая нижняя оценка на свободное расстояние кода
+	 * @return <code>true</code>, если свободное расстояние код больше или равно <code>expectedFreeDist</code>.
+	 */
 	private boolean checkLowEstimation(PolyMatrix checkMatrix, int expectedFreeDist) {
 		Trellis trellis = Trellises.trellisFromParityCheckHR(checkMatrix);
 		MinDistance.computeDistanceMetrics(trellis);
@@ -123,12 +132,32 @@ public class HighRateCCEnumerator {
 
 		logger.debug("actual free dist = " + freeDist);
 		
-		return freeDist >= expectedFreeDist;
+		return freeDist >= expectedFreeDist; /**/
 		
 		// TODO: более хитрая проверка: перебираем все слова веса expectedFreeDist-1, длины k+1 и степени v-1
 		// TODO: умножаем их на матрицу - если в какой-то момент получается ноль - возвращаем false, иначе true
-		
 		// TODO: еще более хитрая проверка: вместо тупого перебора хитрые правила и более тонкий перебор.
+
+/*		WeightedCodeWordsEnumerator wordsEnumerator = new WeightedCodeWordsEnumerator(expectedFreeDist-1, delay, checkMatrix.getColumnCount());
+		
+		while (wordsEnumerator.hasNext()) {
+			Poly words[] = wordsEnumerator.next();
+			CEnumerator columnsEnumerator = new CEnumerator(checkMatrix.getColumnCount(), Math.min(expectedFreeDist-1, checkMatrix.getColumnCount()));
+			while (columnsEnumerator.hasNext()) {
+				// TODO: Все перемножить и сравнить с нулем. И если ноль, выходим.
+				Poly sum = new Poly();
+				long columns[] = columnsEnumerator.getNext();
+				for (int i = 0; i < columns.length; ++i) {
+					sum.add(words[i].mul(checkMatrix.get(0, (int)columns[i])));
+				}
+				
+				if (sum.isZero()) {
+					return false;
+				}
+			}
+		}
+		
+		return true;/**/
 	}
 
 	private PolyMatrix makeCheckMatrix(BitArray[] lowerRows, BitArray[] higherRows) {

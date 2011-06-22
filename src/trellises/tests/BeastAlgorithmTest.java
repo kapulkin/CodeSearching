@@ -15,6 +15,7 @@ import in_out_interfaces.IOTrellis;
 import math.BitArray;
 import math.BlockCodeAlgs;
 import math.Matrix;
+import math.MinDistance;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -22,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import codes.BlockCode;
 import codes.ConvCode;
-import codes.MinDistance;
 
 import search_procedures.FreeDist4CCEnumerator;
 import trellises.BeastAlgorithm;

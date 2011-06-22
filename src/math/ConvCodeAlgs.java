@@ -11,7 +11,6 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import smith_decomposition.SmithDecomposition;
 import trellises.Trellis;
 import trellises.TrellisSection;
 import trellises.TrellisUtils;

@@ -19,11 +19,11 @@ import org.slf4j.LoggerFactory;
 import trellises.Trellis;
 import trellises.Trellises;
 
+import math.MinDistance;
 import math.Poly;
 import math.PolyMatrix;
 
 import codes.ConvCode;
-import codes.MinDistance;
 import database.CodesDatabase;
 
 public class CodesFromArticleSearcher {

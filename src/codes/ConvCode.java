@@ -1,11 +1,11 @@
 package codes;
 
-import smith_decomposition.SmithDecomposition;
 import math.BitArray;
 import math.BlockMatrix;
 import math.ConvCodeAlgs;
 import math.Matrix;
 import math.PolyMatrix;
+import math.SmithDecomposition;
 
 /**
  * 
