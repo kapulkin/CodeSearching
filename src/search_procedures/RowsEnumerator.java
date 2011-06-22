@@ -15,7 +15,7 @@ public class RowsEnumerator {
 			throw new IllegalArgumentException("Overflow during shift operation.");
 		}
 		
-		cEnum = new CEnumerator(1 << rowsLength, rowsNumber);
+		cEnum = new CEnumerator(1L << rowsLength, rowsNumber);
 	}
 	
 	public boolean hasNext()

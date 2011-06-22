@@ -1,5 +1,6 @@
 package codes;
 
+import math.MinDistance;
 import trellises.Trellis;
 import trellises.Trellises;
 

@@ -9,11 +9,9 @@ import java.io.OutputStreamWriter;
 
 import codes.BlockCode;
 import codes.ConvCode;
-import codes.MinDistance;
 import codes.TBCode;
 import codes.ZTCode;
 
-import smith_decomposition.SmithDecomposition;
 import trellises.Trellis;
 import trellises.Trellises;
 
@@ -22,8 +20,10 @@ import math.BlockCodeAlgs;
 import math.BlockMatrix;
 import math.ConvCodeAlgs;
 import math.Matrix;
+import math.MinDistance;
 import math.Poly;
 import math.PolyMatrix;
+import math.SmithDecomposition;
 import math.SpanForm;
 import in_out_interfaces.IOConvCode;
 import in_out_interfaces.IOMatrix;

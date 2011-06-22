@@ -27,7 +27,7 @@ public class MatrixEnumerator {
 		if (k >= Long.SIZE - 1) {
 			throw new IllegalArgumentException("Overflow during shift operation.");
 		}
-		cEnum = new CEnumerator((1<<k), n);		
+		cEnum = new CEnumerator((1L<<k), n);		
 	}
 	
 	public boolean hasNext()
@@ -40,9 +40,9 @@ public class MatrixEnumerator {
 		long[] seq = cEnum.getNext();
 		Matrix mat = new Matrix(k, n);
 	    		
-		for(int i = 0;i < n;i ++)
+		for (int i = 0; i < n; ++i)
 		{
-			for(int j = 0;j < k;j ++)
+			for (int j = 0; j < k; ++j)
 			{
 				mat.set(j, i, (seq[i] & (1 << j)) != 0);
 			}

@@ -1,10 +1,7 @@
-package codes;
+package math;
 
-import math.BitArray;
-import math.ConvCodeAlgs;
-import math.GrayCode;
-import math.Matrix;
-import math.PolyMatrix;
+import codes.BlockCode;
+import codes.ConvCode;
 import trellises.BeastAlgorithm;
 import trellises.BlockCodeTrellis;
 import trellises.ITrellis;

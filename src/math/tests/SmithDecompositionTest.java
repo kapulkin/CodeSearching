@@ -4,12 +4,12 @@ import static org.junit.Assert.*;
 
 import math.Poly;
 import math.PolyMatrix;
+import math.SmithDecomposition;
 
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import smith_decomposition.SmithDecomposition;
 
 
 public class SmithDecompositionTest {

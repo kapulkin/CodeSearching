@@ -20,12 +20,14 @@ public class CEnumerator {
 			throw new InvalidParameterException("There is no combinations with n < k.");
 		}
 
-		double combinations = 1; // = n!/k!/(n-k)! = (k+1)*..*n/(n-k)!
-		for (long i = k + 1; i <= n; ++i) {
-			combinations *= i;
-			combinations /= (n - i + 1);
+		if (logger.isDebugEnabled()) {
+			double combinations = 1; // = n!/k!/(n-k)! = (k+1)*..*n/(n-k)!
+			for (long i = k + 1; i <= n; ++i) {
+				combinations *= i;
+				combinations /= (n - i + 1);
+			}
+			logger.debug("C(" + n + ", " + k + ") gives " + combinations + " combinations.");
 		}
-		logger.debug("C(" + n + ", " + k + ") gives " + combinations + " combinations.");
 		
 		this.n = n;
 		this.k = k;			
@@ -37,13 +39,13 @@ public class CEnumerator {
 		
 		for(int i = 0;i < k;i ++)
 		{
-			sequence[i] = i + 1;
+			sequence[i] = i;
 		}
 	}
 	
 	public boolean hasNext()
 	{
-		return sequence == null || sequence[0] != (n-k+1);
+		return sequence == null || (k > 0 && sequence[0] != (n-k));
 	}
 	
 	public long[] getNext()
@@ -58,7 +60,7 @@ public class CEnumerator {
 			return sequence;
 		}
 		
-		if(sequence[k-1] < n)
+		if(sequence[k-1] < n-1)
 		{
 			sequence[k-1] ++;
 			return sequence;
@@ -66,7 +68,7 @@ public class CEnumerator {
 		
 		int indFromEnd = 1;
 		
-		while(sequence[k-1-indFromEnd] == n-indFromEnd)
+		while(sequence[k-1-indFromEnd] == n-1-indFromEnd)
 		{
 			indFromEnd++;
 		}
