@@ -34,6 +34,7 @@ public class ConvCodeAlgs {
 	 */
 	public static void sortHeads(ConvCodeSpanForm sf)
 	{
+		int b = sf.getRowCount();
 		// сортировка выбором
 		for(int i = 0;i < sf.getRowCount();i ++)
 		{
@@ -51,10 +52,10 @@ public class ConvCodeAlgs {
 			
 			if (i != minRow)
 			{
-				for (int degree = 0; degree < sf.matrices.length; ++degree) {
-					BitArray iRow = sf.matrices[degree].getRow(i);
-					sf.matrices[degree].setRow(i, sf.matrices[degree].getRow(minRow));
-					sf.matrices[degree].setRow(minRow, iRow);
+				for (int degree = 0, row = i, mrow = minRow; degree <= sf.delay; ++degree, row += b, mrow += b) {
+					BitArray iRow = sf.matrix.getRow(row);
+					sf.matrix.setRow(row, sf.matrix.getRow(mrow));
+					sf.matrix.setRow(mrow, iRow);
 				}
 
 				int idegree = sf.degrees[i];
@@ -63,21 +64,23 @@ public class ConvCodeAlgs {
 				sf.degrees[i] = sf.degrees[minRow];
 				sf.degrees[minRow] = idegree;
 				
-				sf.setHead(i, sf.getHead(minRow));
-				sf.setHead(minRow, iHead);
+				sf.spanHeads[i] = sf.getHead(minRow);
+				sf.spanHeads[minRow] = iHead;
 				
-				sf.setTail(i, sf.getTail(minRow));
-				sf.setTail(minRow, iTail);
+				sf.spanTails[i] = sf.getTail(minRow);
+				sf.spanTails[minRow] = iTail;
 			}
 		}
 	}
 	
 	public static void sortTails(ConvCodeSpanForm sf)
 	{
+		int b = sf.getRowCount();
+
 		// сортировка выбором
 		for(int i = 0;i < sf.getRowCount();i ++)
 		{
-			int minTail = sf.degrees[i] * sf.matrices[0].getColumnCount() + sf.getTail(i);
+			int minTail = sf.degrees[i] * sf.matrix.getColumnCount() + sf.getTail(i);
 			int minRow = i;
 			
 			for (int j = i + 1; j < sf.getRowCount(); ++j)
@@ -91,10 +94,10 @@ public class ConvCodeAlgs {
 			
 			if (i != minRow)
 			{
-				for (int degree = 0; degree < sf.matrices.length; ++degree) {
-					BitArray iRow = sf.matrices[degree].getRow(i);
-					sf.matrices[degree].setRow(i, sf.matrices[degree].getRow(minRow));
-					sf.matrices[degree].setRow(minRow, iRow);
+				for (int degree = 0, row = i, mrow = minRow; degree <= sf.delay; ++degree, row += b, mrow += b) {
+					BitArray iRow = sf.matrix.getRow(row);
+					sf.matrix.setRow(row, sf.matrix.getRow(mrow));
+					sf.matrix.setRow(mrow, iRow);
 				}
 
 				int idegree = sf.degrees[i];
@@ -103,11 +106,11 @@ public class ConvCodeAlgs {
 				sf.degrees[i] = sf.degrees[minRow];
 				sf.degrees[minRow] = idegree;
 
-				sf.setHead(i, sf.getHead(minRow));
-				sf.setHead(minRow, iHead);
+				sf.spanHeads[i] = sf.getHead(minRow);
+				sf.spanHeads[minRow] = iHead;
 				
-				sf.setTail(i, sf.getTail(minRow));
-				sf.setTail(minRow, iTail);
+				sf.spanTails[i] = sf.getTail(minRow);
+				sf.spanTails[minRow] = iTail;
 			}
 		}
 	}
@@ -271,53 +274,48 @@ public class ConvCodeAlgs {
 		Set<Integer> processedTailRows = new TreeSet<Integer>();
 		
 		// выправляем хвосты только между рядами, имеющими одинаковую степень.
-		Map<Integer, ArrayList<Integer>> degreeMap = new TreeMap<Integer, ArrayList<Integer>>();
+		Map<Integer, SortedSet<Integer>> degreeMap = new TreeMap<Integer, SortedSet<Integer>>();
 		for (int row = matrix.getRowCount() - 1; row >= 0; --row) {
 			if (!degreeMap.containsKey(degrees[row])) {
-				degreeMap.put(degrees[row], new ArrayList<Integer>());
+				degreeMap.put(degrees[row], new TreeSet<Integer>());
 			}
 			degreeMap.get(degrees[row]).add(row);
 		}
 
-		for (int degree : degreeMap.keySet()) {
-			ArrayList<Integer> rows = degreeMap.get(degree);
+		for (Integer degree : degreeMap.keySet()) {
+			SortedSet<Integer> rows = degreeMap.get(degree);
 			
 			if (rows.size() == 1) {
-				int row = rows.get(0);
+				Integer row = rows.first();
 				spanTails[row] = matrices[degree].getRow(row).previousSetBit(matrix.getColumnCount() - 1);
 				processedTailRows.add(row);
 				continue;
 			}
 
 			for (int col = matrices[0].getColumnCount() - 1; col >= 0; --col) {
-				ArrayList<Integer> conflictedRows = new ArrayList<Integer>();
-				// находим ряды, конфликтующие в данном столбце: т.е. ряды еще не использованы, и в них в данном столбце единица;
-				// прибавляем ряд с наибольшим spanHeads[row] ко всем остальным.
-				for (int row : rows) {
+				// находим конфликтующие строки, прибавляем строку с наибольшим spanHead ко всем остальным
+				ArrayList<Integer> conflicted = new ArrayList<Integer>();
+				int maxSpanHeadRow = -1;
+				for (Integer row : rows) {
 					if (processedTailRows.contains(row)) {
 						continue;
 					}
 					
 					if (matrices[degree].get(row, col)) {
-						conflictedRows.add(row);
+						conflicted.add(row);
+						processedTailRows.add(row);
+						if (maxSpanHeadRow == -1) {
+							maxSpanHeadRow = row;
+						} else if (spanHeads[row] > spanHeads[maxSpanHeadRow]){
+							maxSpanHeadRow = row;
+						}
 					}
 				}
-				int maxSpanHead = Integer.MIN_VALUE, maxSpanHeadRow = -1;
-				for (int row : conflictedRows) {
-					if (spanHeads[row] > maxSpanHead) {
-						maxSpanHead = spanHeads[row];
-						maxSpanHeadRow = row;
+				for (Integer row : conflicted) {
+					if (row == maxSpanHeadRow) {
+						continue;
 					}
-				}
-				
-				for (int row : conflictedRows) {
-					if (row != maxSpanHeadRow) {
-						addLongRow(matrices, row, maxSpanHeadRow, degree);
-					}
-				}
-				if (maxSpanHeadRow != -1) {
-					spanTails[maxSpanHeadRow] = col;
-					processedTailRows.add(maxSpanHeadRow);
+					addLongRow(matrices, row, maxSpanHeadRow, degree);
 				}
 			}
 		}		
@@ -333,12 +331,19 @@ public class ConvCodeAlgs {
 			}
 		}
 
-		return new ConvCodeSpanForm(matrices, degrees, spanHeads, spanTails);
+		BitArray rows[] = new BitArray[matrices[0].getRowCount() * matrices.length];
+		for (int degree = 0, row = 0; degree < matrices.length; ++degree) {
+			for (int i = 0; i < matrices[0].getRowCount(); ++i, ++row) {
+				rows[row] = matrices[degree].getRow(i);
+			}
+		}
+		
+		return new ConvCodeSpanForm(new Matrix(rows), degrees, spanHeads, spanTails);
 	}
 
 	public static Trellis buildTrellis(ConvCodeSpanForm spanForm) {
-		int b = spanForm.matrices[0].getRowCount();
-		int c = spanForm.matrices[0].getColumnCount();
+		int b = spanForm.getRowCount();
+		int c = spanForm.matrix.getColumnCount();
 		int v = 0;	// overal constraint length
 		for (int degree : spanForm.degrees) {
 			v += degree;
@@ -354,13 +359,13 @@ public class ConvCodeAlgs {
 		Map<Integer, Integer> tailsRows = new TreeMap<Integer, Integer>();
 
 		int rowIndex = 0;
-		for (int degree = 0; degree < spanForm.matrices.length; ++degree) {
+		for (int degree = 0; degree <= spanForm.delay; ++degree) {
 			for (int row = 0; row < b; ++row) {
 				if (spanForm.degrees[row] >= degree) {
 					if (spanForm.degrees[row] == degree) {
 						tailsRows.put(row, rowIndex);
 					}
-					rows[rowIndex++] = spanForm.matrices[degree].getRow(row);
+					rows[rowIndex++] = spanForm.matrix.getRow(degree * b + row);
 				}
 			}
 		}

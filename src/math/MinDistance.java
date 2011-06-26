@@ -114,22 +114,20 @@ public class MinDistance {
 	 * @param trellis решетка блокового или сверточного кода 
 	 * @param distanceMetric номер метрики в решетке для рассчета веса путей.
 	 * @param upperBound верхняя оценка min/free dist 
-	 * @return
+	 * @return минимальное расстояния кода
 	 */
 	public static int findMinDistWithBEAST(ITrellis trellis, int distanceMetric, int upperBound) {
-		int minDist = Integer.MAX_VALUE;
-				
 		ITrellisIterator root = trellis.iterator(0, 0);
 		ITrellisIterator toor = trellis.iterator(trellis.layersCount() - 1, 0);
-		TrellisPath paths[] = BeastAlgorithm.findOptimalPaths(root, toor, distanceMetric, upperBound);
 		
-		for (int i = 0; i < paths.length; ++i) {
-			minDist = Math.min(minDist, (int)paths[i].weight());
-		}
-		
-		return minDist;
+		return BeastAlgorithm.countMinDist(root, toor, distanceMetric, upperBound);
 	}
 	
+	/**
+	 * Находим мнимальное расстояние блокового кода, перебирая все слова по порождающей матрице.
+	 * @param gen порождающая матрица блокового кода
+	 * @return минимальное расстояние блокового кода
+	 */
 	public static int findMinDist(Matrix gen)
 	{
 		int minDist = Integer.MAX_VALUE;

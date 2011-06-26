@@ -115,12 +115,6 @@ public class BitArray implements Cloneable{
 		return bitSet.get(bitIndex);
 	}
 
-	/**
-	 * Возвращает 
-	 * @param fromIndex
-	 * @param toIndex
-	 * @return
-	 */
     /**
      * Returns a new <tt>BitSet</tt> composed of bits from this <tt>BitSet</tt>
      * from <tt>fromIndex</tt> (inclusive) to <tt>toIndex</tt> (exclusive)

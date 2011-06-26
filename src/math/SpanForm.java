@@ -8,8 +8,8 @@ public class SpanForm implements ISpanForm {
 	public Matrix Matr;
 	public boolean IsTailbiting = false;
 		
-	private int[] spanHeads;
-	private int[] spanTails;		
+	public int[] spanHeads;
+	public int[] spanTails;		
 
 	public SpanForm(Matrix mat, int[] spanHeads, int[] spanTails)
 	{				
@@ -31,16 +31,6 @@ public class SpanForm implements ISpanForm {
 	@Override
 	public int getTail(int row) {
 		return spanTails[row];
-	}
-
-	@Override
-	public void setHead(int row, int column) {
-		spanHeads[row] = column;
-	}
-
-	@Override
-	public void setTail(int row, int column) {
-		spanTails[row] = column;
 	}
 
 	public int getUncycledTail(int spanInd)

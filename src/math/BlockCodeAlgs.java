@@ -119,11 +119,11 @@ public class BlockCodeAlgs {
 				sf.Matr.setRow(i, sf.Matr.getRow(minRow));
 				sf.Matr.setRow(minRow, iRow);
 				
-				sf.setHead(i, sf.getHead(minRow));
-				sf.setHead(minRow, iHead);
+				sf.spanHeads[i] = sf.getHead(minRow);
+				sf.spanHeads[minRow] = iHead;
 				
-				sf.setTail(i, sf.getTail(minRow));
-				sf.setTail(minRow, iTail);
+				sf.spanTails[i] = sf.getTail(minRow);
+				sf.spanTails[minRow] = iTail;
 			}
 		}
 	}
@@ -153,11 +153,11 @@ public class BlockCodeAlgs {
 				sf.Matr.setRow(i, sf.Matr.getRow(minRow));
 				sf.Matr.setRow(minRow, iRow);
 				
-				sf.setHead(i, sf.getHead(minRow));
-				sf.setHead(minRow, iHead);
+				sf.spanHeads[i] = sf.getHead(minRow);
+				sf.spanHeads[minRow] = iHead;
 				
-				sf.setTail(i, sf.getTail(minRow));
-				sf.setTail(minRow, iTail);
+				sf.spanTails[i] = sf.getTail(minRow);
+				sf.spanTails[minRow] = iTail;
 			}
 		}
 	}

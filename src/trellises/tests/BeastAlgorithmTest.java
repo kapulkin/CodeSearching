@@ -46,7 +46,7 @@ public class BeastAlgorithmTest {
 			MinDistance.computeDistanceMetrics(trellis);
 			
 			int VDminDist = MinDistance.findMinDist(trellis, 0, 2 * (code.getDelay() + 1));
-			int BEASTminDist = MinDistance.findMinDistWithBEAST(trellis, 0, code.getN() * (code.getDelay() + 1));
+			int BEASTminDist = MinDistance.findMinDistWithBEAST(trellis, code.getN() * (code.getDelay() + 1));
 			
 			System.out.println("Viterby: " + VDminDist);
 			System.out.println("BEAST: " + BEASTminDist);

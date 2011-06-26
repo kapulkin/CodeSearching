@@ -22,7 +22,6 @@ import trellises.BlockCodeTrellis;
 import trellises.ITrellis;
 import trellises.ITrellisIterator;
 import trellises.TBCodeTrellisIterator;
-import trellises.TrellisPath;
 
 import codes.ConvCode;
 import codes.TBCode;
@@ -52,11 +51,8 @@ public class TBCodeTrellisIteratorTest {
 		for (int vertexIndex = 0; vertexIndex < trellis.layerSize(0); ++vertexIndex) {
 			ITrellisIterator root = new TBCodeTrellisIterator(trellis, 1, 0, vertexIndex);
 			ITrellisIterator toor = new TBCodeTrellisIterator(trellis, 1, trellis.layersCount(), vertexIndex);
-			TrellisPath paths[] = BeastAlgorithm.findOptimalPaths(root, toor, 0, 5);
-			
-			for (int i = 0; i < paths.length; ++i) {
-				minDist = Math.min(minDist, (int)paths[i].weight());
-			}
+
+			minDist = Math.min(minDist, BeastAlgorithm.countMinDist(root, toor, 0, 5));
 		}
 		
 		logger.debug("min dist = " + minDist);
@@ -84,11 +80,8 @@ public class TBCodeTrellisIteratorTest {
 		for (int vertexIndex = 0; vertexIndex < trellis.layerSize(0); ++vertexIndex) {
 			ITrellisIterator root = new TBCodeTrellisIterator(trellis, 1, 0, vertexIndex);
 			ITrellisIterator toor = new TBCodeTrellisIterator(trellis, 1, trellis.layersCount(), vertexIndex);
-			TrellisPath paths[] = BeastAlgorithm.findOptimalPaths(root, toor, 0, 5);
 			
-			for (int i = 0; i < paths.length; ++i) {
-				minDist = Math.min(minDist, (int)paths[i].weight());
-			}
+			minDist = Math.min(minDist, BeastAlgorithm.countMinDist(root, toor, 0, 7));
 		}
 		
 		logger.debug("min dist = " + minDist);

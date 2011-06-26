@@ -3,6 +3,7 @@ package codes;
 import math.BitArray;
 import math.BlockMatrix;
 import math.ConvCodeAlgs;
+import math.ConvCodeSpanForm;
 import math.Matrix;
 import math.PolyMatrix;
 import math.SmithDecomposition;
@@ -79,6 +80,21 @@ public class ConvCode implements Code{
 		regCount = genBlocks[0].getRowCount();
 		adderCount = genBlocks[0].getColumnCount();
 		delay = genBlocks.length - 1;
+	}
+	
+	public ConvCode(ConvCodeSpanForm spanForm) {
+		delay = spanForm.delay;
+		regCount = spanForm.getRowCount();
+		adderCount = spanForm.matrix.getColumnCount();
+
+		genBlocks = new Matrix[delay + 1];
+		for (int degree = 0; degree < genBlocks.length; ++degree) {
+			BitArray data[] = new BitArray[regCount]; 
+			for (int i = 0; i < regCount; ++i) {
+				data[i] = spanForm.matrix.getRow(degree * regCount + i);
+			}
+			genBlocks[degree] = new Matrix(data);
+		}
 	}
 	
 	/**

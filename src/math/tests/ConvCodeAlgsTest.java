@@ -55,7 +55,7 @@ public class ConvCodeAlgsTest {
 	}
 
 	@Test
-	public void testBuildTrellis() {
+	public void trellisShouldCorresponfToCodeWords() {
 		PolyMatrix minBaseG = ConvCodeAlgs.getMinimalBaseGenerator(G);
 		ConvCodeSpanForm spanForm = ConvCodeAlgs.buildSpanForm(minBaseG); // should be done without exceptions
 
@@ -69,11 +69,7 @@ public class ConvCodeAlgsTest {
 			fail("Unexpected exception");
 		}
 
-		int delay = spanForm.matrices.length - 1;
-		TrellisesTest.trellisForwardTraversalShouldGiveCodeWord(new ConvCode(spanForm.matrices), trellis1, delay + 1);
-
-		ConvCodeAlgs.sortHeads(spanForm);
-		Trellis trellis2 = ConvCodeAlgs.buildTrellis(spanForm);
-		TrellisesTest.trellisBackwardTraversalShouldGiveCodeWord(new ConvCode(spanForm.matrices), trellis2);
+		int delay = spanForm.delay;
+		TrellisesTest.trellisForwardTraversalShouldGiveCodeWord(new ConvCode(spanForm), trellis1, delay + 1);
 	}
 }

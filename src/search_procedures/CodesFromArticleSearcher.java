@@ -30,89 +30,169 @@ public class CodesFromArticleSearcher {
 	Map<Integer, ArrayList<ConvCode>> codesFound = new HashMap<Integer, ArrayList<ConvCode>>();
 	
 	Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	public static void main(String args[]) {
+		Logger logger = LoggerFactory.getLogger(CodesFromArticleSearcher.class);
+		
+		if (args.length == 0) {
+			System.out.println("Free dist as the only parameter is needed.");
+			return ;
+		}
+		int free_dist = Integer.parseInt(args[0]);
+		
+		CodesFromArticleSearcher searcher = new CodesFromArticleSearcher();
+		try {
+			searcher.searchCodes(free_dist);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		if (searcher.getCodesFound().containsKey(free_dist)) {
+			logger.debug("Codes with free distance " + free_dist + " found:");
+			for (ConvCode code : searcher.getCodesFound().get(free_dist)) {
+				logger.debug("v = " + code.getDelay() + ", k = " + code.getK() + "\n" + code.parityCheck());
+			}
+		}
+		
+		logger.info("Codes from article found:");
+		for (int freeDist : searcher.getCodesFound().keySet()) {
+			logger.info("free distance: " + freeDist);
+			for (ConvCode code : searcher.getCodesFound().get(freeDist)) {
+				logger.info("v = " + code.getDelay() + ", k = " + code.getK() + "\n" + code.parityCheck());
+			}
+		}
+	}
 	
 	public void searchCodes(int lowerFreeDist) throws IOException, SQLException {
 		logger.info("free distance = " + lowerFreeDist);
 		
-		codesFound.put(lowerFreeDist, new ArrayList<ConvCode>());
-		
 		if (lowerFreeDist == 3) {
 			for (ConvCode code : CodesDatabase.getConvCodes(-1, -1, -1, lowerFreeDist, CodesDatabase.articleConvCodesTable)) {
-				logger.debug("v = " + code.getDelay() + ", k = " + code.getK());
-
-				FreeDist3CCEnumerator enumerator = new FreeDist3CCEnumerator(code.getDelay(), code.getK());
-				while (enumerator.hasNext()) {
-					ConvCode newCode = enumerator.next();
-					sortColumnsLexicographical(newCode.parityCheck());
-
-					Trellis trellis = Trellises.trellisFromParityCheckHR(newCode.parityCheck());
-					MinDistance.computeDistanceMetrics(trellis);
-					int freeDist = MinDistance.findMinDistWithBEAST(trellis, 0, code.getN() * (code.getDelay() + 1));
-					newCode.setFreeDist(freeDist);
-					
-					CodesDatabase.addConvCode(newCode, CodesDatabase.convCodesTable);
-					if (code.parityCheck().equals(newCode.parityCheck())) {
-						logger.info("Code from article is found:\n" + code.parityCheck());
-						codesFound.get(lowerFreeDist).add(newCode);
-					}
-				}
+				freeDist3Search(code);
 			}
 		} else if (lowerFreeDist == 4) {
 			for (ConvCode code : CodesDatabase.getConvCodes(-1, -1, -1, lowerFreeDist, CodesDatabase.articleConvCodesTable)) {
-				logger.debug("v = " + code.getDelay() + ", k = " + code.getK());
-
-				FreeDist4CCEnumerator enumerator = new FreeDist4CCEnumerator(code.getDelay(), code.getK());
-				while (enumerator.hasNext()) {
-					ConvCode newCode = enumerator.next();
-					sortColumnsLexicographical(newCode.parityCheck());
-
-					Trellis trellis = Trellises.trellisFromParityCheckHR(newCode.parityCheck());
-					MinDistance.computeDistanceMetrics(trellis);
-					int freeDist = MinDistance.findMinDistWithBEAST(trellis, 0, code.getN());
-					newCode.setFreeDist(freeDist);
-					
-					CodesDatabase.addConvCode(newCode, CodesDatabase.convCodesTable);
-					if (code.parityCheck().equals(newCode.parityCheck())) {
-						logger.info("Code from article is found:\n" + code.parityCheck());
-						codesFound.get(lowerFreeDist).add(newCode);
-					}
-				}
+				freeDist4Search(code);
 			}
 		} else {
 			ArrayList<ConvCode> codes = CodesDatabase.getConvCodes(-1, -1, -1, lowerFreeDist, CodesDatabase.articleConvCodesTable);
-			Map<Integer, ArrayList<ConvCode>> codesMap = new TreeMap<Integer, ArrayList<ConvCode>>();
-			
-			for (ConvCode code : codes) {
-				if (codesMap.get(code.getDelay()) == null) {
-					codesMap.put(code.getDelay(), new ArrayList<ConvCode>());
-				}
-				codesMap.get(code.getDelay()).add(code);				
-			}
-			
-			for (int delay : codesMap.keySet()) {
-				logger.debug("v = " + delay);
-				HighRateCCEnumerator enumerator = new HighRateCCEnumerator(delay, lowerFreeDist);
-				
-				ConvCode newCode;
-				while ((newCode = enumerator.next()) != null) {
-					sortColumnsLexicographical(newCode.parityCheck());
+			longFreeDistSearch(lowerFreeDist, codes);
+		}
 
-					Trellis trellis = Trellises.trellisFromParityCheckHR(newCode.parityCheck());
-					MinDistance.computeDistanceMetrics(trellis);
-					int freeDist = MinDistance.findMinDistWithBEAST(trellis, 0, newCode.getN() * (newCode.getDelay() + 1));
-					newCode.setFreeDist(freeDist);
-					
+	}
+
+	/**
+	 * Метод производит поиск кодов с расстоянием не меньше 5.
+	 * 
+	 * @param lowerFreeDist ограничение снизу на свободное расстояние искомых кодов
+	 * @param codes коды из статьи
+	 * @throws IOException
+	 */
+	public void longFreeDistSearch(int lowerFreeDist, ArrayList<ConvCode> codes)
+			throws IOException {
+		Map<Integer, ArrayList<ConvCode>> codesMap = new TreeMap<Integer, ArrayList<ConvCode>>();
+		
+		for (ConvCode code : codes) {
+			if (!codesMap.containsKey(code.getDelay())) {
+				codesMap.put(code.getDelay(), new ArrayList<ConvCode>());
+			}
+			codesMap.get(code.getDelay()).add(code);				
+		}
+		
+		for (int delay : codesMap.keySet()) {
+			logger.debug("v = " + delay);
+			HighRateCCEnumerator enumerator = new HighRateCCEnumerator(delay, lowerFreeDist);
+			
+			ConvCode newCode;
+			while ((newCode = enumerator.next()) != null) {
+				sortColumnsLexicographical(newCode.parityCheck());
+
+				Trellis trellis = Trellises.trellisFromParityCheckHR(newCode.parityCheck());
+				MinDistance.computeDistanceMetrics(trellis);
+				int freeDist = MinDistance.findMinDistWithBEAST(trellis, 0, newCode.getN() * (newCode.getDelay() + 1));
+				newCode.setFreeDist(freeDist);
+				
+				try {
 					CodesDatabase.addConvCode(newCode, CodesDatabase.convCodesTable);
-					for (ConvCode code : codesMap.get(delay)) {
-						if (code.parityCheck().equals(newCode.parityCheck())) {
-							logger.info("Code from article is found:\n" + code.parityCheck());
-							codesFound.get(lowerFreeDist).add(newCode);
-						}
+				} catch (SQLException e) {
+					logger.error("Failed to save found code in database.");
+					e.printStackTrace();
+				}
+				for (ConvCode code : codesMap.get(delay)) {
+					if (code.parityCheck().equals(newCode.parityCheck())) {
+						logger.info("Code from article is found:\n" + code.parityCheck());
+						codesFound.get(lowerFreeDist).add(newCode);
 					}
 				}
 			}
 		}
+	}
 
+	/**
+	 * @param code код из статьи.
+	 * @throws IOException
+	 */
+	public void freeDist4Search(ConvCode code) throws IOException {
+		logger.debug("v = " + code.getDelay() + ", k = " + code.getK());
+
+		if (!codesFound.containsKey(4)) {
+			codesFound.put(4, new ArrayList<ConvCode>());
+		}
+
+		FreeDist4CCEnumerator enumerator = new FreeDist4CCEnumerator(code.getDelay(), code.getK());
+		while (enumerator.hasNext()) {
+			ConvCode newCode = enumerator.next();
+			sortColumnsLexicographical(newCode.parityCheck());
+
+			Trellis trellis = Trellises.trellisFromParityCheckHR(newCode.parityCheck());
+			MinDistance.computeDistanceMetrics(trellis);
+			int freeDist = MinDistance.findMinDistWithBEAST(trellis, 0, code.getN());
+			newCode.setFreeDist(freeDist);
+			
+			try {
+				CodesDatabase.addConvCode(newCode, CodesDatabase.convCodesTable);
+			} catch (SQLException e) {
+				logger.error("Failed to save found code in database.");
+				e.printStackTrace();
+			}
+			if (code.parityCheck().equals(newCode.parityCheck())) {
+				logger.info("Code from article is found:\n" + code.parityCheck());
+				codesFound.get(4).add(newCode);
+			}
+		}
+	}
+
+	/**
+	 * @param code код из статьи.
+	 * @throws IOException
+	 */
+	public void freeDist3Search(ConvCode code) throws IOException {
+		logger.debug("v = " + code.getDelay() + ", k = " + code.getK());
+
+		if (!codesFound.containsKey(3)) {
+			codesFound.put(3, new ArrayList<ConvCode>());
+		}
+		
+		FreeDist3CCEnumerator enumerator = new FreeDist3CCEnumerator(code.getDelay(), code.getK());
+		while (enumerator.hasNext()) {
+			ConvCode newCode = enumerator.next();
+			sortColumnsLexicographical(newCode.parityCheck());
+
+			Trellis trellis = Trellises.trellisFromParityCheckHR(newCode.parityCheck());
+			int freeDist = MinDistance.findMinDistWithBEAST(trellis, code.getN() * (code.getDelay() + 1));
+			newCode.setFreeDist(freeDist);
+			
+			try {
+				CodesDatabase.addConvCode(newCode, CodesDatabase.convCodesTable);
+			} catch (SQLException e) {
+				logger.error("Failed to save found code in database.");
+				e.printStackTrace();
+			}
+			if (code.parityCheck().equals(newCode.parityCheck())) {
+				logger.info("Code from article is found:\n" + code.parityCheck());
+				codesFound.get(3).add(newCode);
+			}
+		}
 	}
 	
 	public Map<Integer, ArrayList<ConvCode>> getCodesFound() {

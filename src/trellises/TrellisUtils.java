@@ -9,8 +9,10 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 
 import trellises.Trellis.Edge;
+import trellises.TrellisSection.Boundary;
 
 import math.BitArray;
+import math.GrayCode;
 import math.ISpanForm;
 import math.Matrix;
 
@@ -86,6 +88,107 @@ public class TrellisUtils {
 
 	public static BitArray getEdgeBits(BitArray rows[], Iterable<Integer> sumRows, int fromIndex, int toIndex) {
 		return getEdgeBits(new Matrix(rows), sumRows, fromIndex, toIndex);
+	}	
+	
+	/**
+	 * Метод строит ребра, исходящие из вершины <code>vertexIndex</code> с 
+	 * использованием избыточных данных ради оптимизации.
+	 *  
+	 * @param matrix матрица, строки которой образуют метки на ребрах
+	 * @param vertexIndex индекс вершины в решетке
+	 * @param sum сумма активных рядов, соотвествующих <code>vertexIndex</code>
+	 * @param sumRows активные ряды, участвующие в сумме, соотвествуют <code>vertexIndex</code>   
+	 * @param activeRows активные ряды яруса
+	 * @param spanHeads границы начинающихся в секции строк
+	 * @param fromIndex начальная граница секции
+	 * @param toIndex конечная граница секции
+	 * @return ребра, идущие из
+	 */
+	public static ITrellisEdge[] buildAccessorsEdges(Matrix matrix, long vertexIndex,
+			BitArray sum, Set<Integer> sumRows, SortedSet<Integer> activeRows, 
+			ArrayList<Boundary> spanHeads, int fromIndex, int toIndex) {
+		LongEdge edges[] = new LongEdge[1 << spanHeads.size()];
+		BitArray bits;
+		
+		// ребро нулевого пути.
+		bits = sum.get(fromIndex, toIndex);
+		edges[0] = new LongEdge(vertexIndex, TrellisUtils.getVertexIndex(sumRows, activeRows), bits);
+
+		for (int e = 1; e < edges.length; ++e) {
+			int edgeIndex = GrayCode.getWord(e);
+			int bitPos = GrayCode.getChangedPosition(e);
+			int newRow = spanHeads.get(bitPos).row;
+			
+			if (GrayCode.getChangedBit(e)) {
+				sumRows.add(newRow);
+			} else {
+				sumRows.remove(newRow);
+			}
+			sum.xor(matrix.getRow(newRow));
+			
+			bits = sum.get(fromIndex, toIndex);
+			// ребро единичного пути.
+			edges[edgeIndex] = new LongEdge(vertexIndex, TrellisUtils.getVertexIndex(sumRows, activeRows), bits);
+		}
+		if (edges.length > 1) {
+			// восстанавливаем значение текущей суммы и текущих суммируемых рядов
+			int lastRow = spanHeads.get(spanHeads.size()-1).row;
+			sumRows.remove(lastRow);
+			sum.xor(matrix.getRow(lastRow));
+		}
+		
+		return edges;
+	}
+	
+
+	/**
+	 * Метод строит ребра, приходящие в вершину <code>vertexIndex</code> с 
+	 * использованием избыточных данных ради оптимизации.
+	 *  
+	 * @param matrix матрица, строки которой образуют метки на ребрах
+	 * @param vertexIndex индекс вершины в решетке
+	 * @param sum сумма активных рядов, соотвествующих <code>vertexIndex</code>
+	 * @param sumRows активные ряды, участвующие в сумме, соотвествуют <code>vertexIndex</code>   
+	 * @param activeRows активные ряды яруса
+	 * @param spanHeads границы начинающихся в секции строк
+	 * @param fromIndex начальная граница секции
+	 * @param toIndex конечная граница секции
+	 * @return ребра, идущие из
+	 */
+	public static ITrellisEdge[] buildPredcessorsEdges(Matrix matrix, long vertexIndex,
+			BitArray sum, Set<Integer> sumRows, SortedSet<Integer> activeRows, 
+			ArrayList<Boundary> spanTails, int fromIndex, int toIndex) {
+		LongEdge edges[] = new LongEdge[1 << spanTails.size()];
+		BitArray bits;
+
+		// ребро нулевого пути.
+		bits = sum.get(fromIndex, toIndex);
+		edges[0] = new LongEdge(TrellisUtils.getVertexIndex(sumRows, activeRows), vertexIndex, bits);
+
+		for (int e = 1; e < edges.length; ++e) {
+			int edgeIndex = GrayCode.getWord(e);
+			int bitPos = GrayCode.getChangedPosition(e);
+			int delRow = spanTails.get(bitPos).row;
+
+			if (GrayCode.getChangedBit(e)) {
+				sumRows.add(delRow);
+			} else {
+				sumRows.remove(delRow);
+			}
+			sum.xor(matrix.getRow(delRow));
+			
+			// ребро единичного пути.
+			bits = sum.get(fromIndex, toIndex);
+			edges[edgeIndex] = new LongEdge(TrellisUtils.getVertexIndex(sumRows, activeRows), vertexIndex, bits);
+		}
+		if (edges.length > 1) {
+			// восстанавливаем значение текущей суммы и текущих суммируемых рядов
+			int lastRow = spanTails.get(spanTails.size()-1).row;
+			sumRows.remove(lastRow);
+			sum.xor(matrix.getRow(lastRow));
+		}
+		
+		return edges;
 	}	
 	
 	public static ArrayList<TrellisSection> buildSections(ISpanForm spanForm) {
