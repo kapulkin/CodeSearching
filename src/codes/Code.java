@@ -2,7 +2,6 @@ package codes;
 
 import math.BitArray;
 
-
 public interface Code {
 	/**
 	 * Here <em>k</em> is an input length.

@@ -7,7 +7,6 @@ import trellises.BlockCodeTrellis;
 import trellises.ITrellis;
 import trellises.ITrellisIterator;
 import trellises.Trellis;
-import trellises.TrellisPath;
 import trellises.ViterbiAlgorithm;
 
 public class MinDistance {

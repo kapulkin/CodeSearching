@@ -373,6 +373,7 @@ public class ConvCodeAlgs {
 
 		TrellisSection[] sections = TrellisUtils.buildSections(spanForm).toArray(new TrellisSection[0]);
 
+		logger.debug("sections:");
 		for (TrellisSection section : sections) {
 			logger.debug(section.toString());
 		}
@@ -399,7 +400,7 @@ public class ConvCodeAlgs {
 
 			logger.debug("next active rows: " + nextActiveRows);
 
-			// [from, to) - полинтервал, соответствующий текущему сегменту.
+			// [from, to) - полуинтервал, соответствующий текущему сегменту.
 			int from = sections[layer].beginColumn();
 			int to = (layer == sections.length - 1) ? c : sections[layer + 1].beginColumn();
 			BitArray sum = new BitArray(to - from);
@@ -424,6 +425,8 @@ public class ConvCodeAlgs {
 				Edge edges[] = new Edge[1 << sections[layer].spanHeads.size()];
 				for (int j = 0; j < edges.length; ++j) {
 					edges[j] = new Edge();
+					edges[j].Metrics = new double[0];
+
 					edges[j].Src = vertexIndex;
 					edges[j].Bits = (BitArray) sum.clone();
 					for (int bit = 0; bit < sections[layer].spanHeads.size(); ++bit) {
