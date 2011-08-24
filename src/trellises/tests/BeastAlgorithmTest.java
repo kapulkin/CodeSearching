@@ -7,8 +7,10 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.StringReader;
 
+import in_out_interfaces.IOBlockMatrix;
 import in_out_interfaces.IOPolyMatrix;
 import in_out_interfaces.IOTrellis;
 
@@ -27,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import codes.BlockCode;
 import codes.ConvCode;
+import codes.TBCode;
 import codes.ZTCode;
 
 import search_procedures.FreeDist4CCEnumerator;
@@ -50,7 +53,7 @@ public class BeastAlgorithmTest {
 			Trellis trellis = Trellises.trellisFromParityCheckHR(code.parityCheck());
 			MinDistance.computeDistanceMetrics(trellis);
 			
-			int VDminDist = MinDistance.findMinDist(trellis, 0, 2 * (code.getDelay() + 1));
+			int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 2 * (code.getDelay() + 1));
 			int BEASTminDist = MinDistance.findMinDistWithBEAST(trellis, code.getN() * (code.getDelay() + 1));
 			
 			System.out.println("Viterby: " + VDminDist);
@@ -100,7 +103,7 @@ public class BeastAlgorithmTest {
 			fail("Unexpected exception");
 		}
 		
-		int VDminDist = MinDistance.findMinDist(trellis, 0, 2 * (code.getDelay() + 1));
+		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 2 * (code.getDelay() + 1));
 		int BEASTminDist = MinDistance.findMinDistWithBEAST(trellis, code.getN() * (code.getDelay() + 1));
 		int TrivialMinDist = MinDistance.findMinDist(new ZTCode(code, code.getDelay()).generator());
 
@@ -122,12 +125,55 @@ public class BeastAlgorithmTest {
 		BlockCode code = new BlockCode(generator, true);
 		Trellis trellis = BlockCodeAlgs.buildTrellis(code);
 		
-		int VDminDist = MinDistance.findMinDist(trellis, 0, 0);
+		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 0);
 		int BEASTminDist = MinDistance.findMinDistWithBEAST(trellis, 0, code.getN());
 		
 		System.out.println("Viterby: " + VDminDist);
 		System.out.println("BEAST: " + BEASTminDist);
 		
+		assertEquals(VDminDist, BEASTminDist);
+	}
+	
+	@Test
+	public void testTailbitingCodeDistanceSearch() {
+		String strCode = "131, 117";
+		
+		PolyMatrix G = null;
+		try {
+			G = IOPolyMatrix.readMatrixOct(new BufferedReader(new StringReader(strCode)));
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail("Unexpected exception.");
+		}
+		
+		ConvCode code = new ConvCode(G, true);
+		TBCode tbCode = new TBCode(code, 0);
+		Trellis trellis = BlockCodeAlgs.buildTrellis((BlockCode)tbCode);
+		
+		try {
+			logger.debug("Tailbiting code:");
+			IOBlockMatrix.writeMatrix(tbCode.blockGenMatrix(), new BufferedWriter(new OutputStreamWriter(System.out)));
+			IOTrellis.writeTrellisInGVZFormat(trellis, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		int TrivialMinDist = MinDistance.findMinDist(tbCode.generator());
+		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 1);
+		int BEASTminDist = Integer.MAX_VALUE;
+		for (int vertexIndex = 0; vertexIndex < trellis.layerSize(0); ++vertexIndex) {
+			ITrellisIterator root = trellis.iterator(0, vertexIndex);
+			ITrellisIterator toor = trellis.iterator(0, vertexIndex);
+			
+			BEASTminDist = Math.min(BEASTminDist, BeastAlgorithm.countMinDist(root, toor, 0, tbCode.getN()));
+		}
+		
+		System.out.println("Viterby: " + VDminDist);
+		System.out.println("BEAST: " + BEASTminDist);
+		System.out.println("Trivial: " + TrivialMinDist);
+		
+		assertEquals(TrivialMinDist, BEASTminDist);
 		assertEquals(VDminDist, BEASTminDist);
 	}
 	

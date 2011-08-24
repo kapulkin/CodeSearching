@@ -1,5 +1,8 @@
 package trellises;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 
 /**
  * 
@@ -13,7 +16,7 @@ public class ViterbiAlgorithm {
 	 * @author fedor
 	 *
 	 */
-	public class Vertex{
+	public static class Vertex{
 		/**
 		 * Лучшие пути до вершины
 		 */
@@ -105,7 +108,7 @@ public class ViterbiAlgorithm {
 		
 		for(int v = 0;v < lastLayer.length;v ++)
 		{			
-			lastLayer[v] = new ViterbiAlgorithm().new Vertex();
+			lastLayer[v] = new ViterbiAlgorithm.Vertex();
 			lastLayer[v].Paths = new int[1][1];
 			lastLayer[v].Metrics = new double[1];
 			lastLayer[v].Index = v;			
@@ -125,7 +128,7 @@ public class ViterbiAlgorithm {
 			
 			for(int v = 0;v < currentLayer.length;v ++)
 			{
-				currentLayer[v] = new ViterbiAlgorithm().new Vertex();
+				currentLayer[v] = new ViterbiAlgorithm.Vertex();
 				currentLayer[v].Index = v;
 				
 				Trellis.Edge[] predEdges = trellis.Layers[layerInd][v].Predecessors;
@@ -143,5 +146,75 @@ public class ViterbiAlgorithm {
 		}
 		
 		return lastLayer;
+	}
+
+	/**
+	 * Ищет вес кратчайшего ненулевого пути из вершины root до toor.
+	 * 
+	 * @param root
+	 * @param toor
+	 * @param metric номер метрики в решетке для рассчета веса путей
+	 * @param stepCount ограничение на максимальное колличество шаго алгоритма. Не используется, если меньше 0 
+	 * @return вес кратчайшего ненулевого пути из вершины root до toor
+	 */
+	public static int findMinDist(ITrellisIterator root, ITrellisIterator toor, int metric, int stepCount) {
+		class WeightedIterator {
+			public WeightedIterator(ITrellisIterator iterator, double weight) {
+				this.iterator = iterator;
+				this.weight = weight;
+			}
+
+			ITrellisIterator iterator;
+			double weight;
+		}
+		
+		if (root.vertexIndex() == toor.vertexIndex() &&  root.layer() == toor.layer()) {
+			return 0;
+		}
+		
+		Map<Long, WeightedIterator> layer = new TreeMap<Long, WeightedIterator>();
+		ITrellisEdge edges[] = root.getAccessors();
+		// выполняем переход по всем ребрам, кроме ребра нулевого пути
+		for (int i = (root.vertexIndex() == 0 ? 1 : 0); i < edges.length; ++i) {
+			ITrellisIterator iterator = root.clone();
+			iterator.moveForward(i);
+			WeightedIterator next = new WeightedIterator(iterator, edges[i].metrics()[metric]);
+			
+			long vertexIndex = next.iterator.vertexIndex();
+			if (!layer.containsKey(next.iterator.vertexIndex()) || layer.get(vertexIndex).weight > next.weight) {
+				layer.put(vertexIndex, next);
+			}
+		}
+		
+		int step = 1;
+		while (!(layer.containsKey(toor.vertexIndex()) 
+				&& layer.get(toor.vertexIndex()).iterator.layer() == toor.layer())
+				&& (step < stepCount || stepCount < 0)) {
+			Map<Long, WeightedIterator> nextLayer = new TreeMap<Long, WeightedIterator>();
+			
+			for (WeightedIterator current : layer.values()) {
+				ITrellisEdge edges2[] = current.iterator.getAccessors();
+				for (int i = 1; i < edges2.length; ++i) {
+					ITrellisIterator iterator = current.iterator.clone();
+					iterator.moveForward(i);
+					WeightedIterator next = new WeightedIterator(iterator, current.weight + edges2[i].metrics()[metric]);
+					
+					long vertexIndex = next.iterator.vertexIndex();
+					if (!nextLayer.containsKey(next.iterator.vertexIndex()) || nextLayer.get(vertexIndex).weight > next.weight) {
+						nextLayer.put(vertexIndex, next);
+					}
+				}
+			}
+			layer = nextLayer;
+			++step;
+		}
+		
+		if (!(layer.containsKey(toor.vertexIndex()) 
+				&& layer.get(toor.vertexIndex()).iterator.layer() == toor.layer())) {
+			// вышли по ограничению на количество шагов.
+			return -1;
+		}
+		
+		return (int)layer.get(toor.vertexIndex()).weight;
 	}
 }

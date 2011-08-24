@@ -361,7 +361,7 @@ public class ConvCodeAlgs {
 		int rowIndex = 0;
 		for (int degree = 0; degree <= spanForm.delay; ++degree) {
 			for (int row = 0; row < b; ++row) {
-				if (spanForm.degrees[row] >= degree) {
+				if (degree <= spanForm.degrees[row]) {
 					if (spanForm.degrees[row] == degree) {
 						tailsRows.put(row, rowIndex);
 					}
@@ -428,7 +428,7 @@ public class ConvCodeAlgs {
 					edges[j].Metrics = new double[0];
 
 					edges[j].Src = vertexIndex;
-					edges[j].Bits = (BitArray) sum.clone();
+					edges[j].Bits = sum.clone();
 					for (int bit = 0; bit < sections[layer].spanHeads.size(); ++bit) {
 						if ((j & (1 << bit)) != 0) {
 							int row = sections[layer].spanHeads.get(bit).row;

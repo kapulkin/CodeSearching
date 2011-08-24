@@ -64,7 +64,7 @@ public class TBCode extends TruncatedCode {
 		Trellis t = getTrellis();
 		
 		MinDistance.computeDistanceMetrics(t);
-		minDist = MinDistance.findMinDist(t, 0, blockGenMatr.getColumnCount());
+		minDist = MinDistance.findMinDistWithViterby(t, 0, blockGenMatr.getColumnCount());
 		
 		return minDist;
 	}

@@ -1,6 +1,7 @@
 package trellises;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -20,25 +21,123 @@ import trellises.TrellisPath.PathIterator;
 public class BeastAlgorithm {
 	private static Logger logger = LoggerFactory.getLogger(BeastAlgorithm.class);
 
-	public static interface BeastTraversalPicker {
-		public void pickForward(PathTracker tracker);
-		public void pickBackward(PathTracker tracker);
+	/**
+	 * Стратегия продвижения по вершинам при обходе в BEAST 
+	 * @author Stas
+	 *
+	 */
+	public static interface BeastPropagationStrategy {
+		/**
+		 * Метод возвращает вершины, полученные продвижением из входной <code>pathTracker</code> при проходе вперед.
+		 * @param pathTracker вершина, из которой выполняется продвижение.
+		 * @return вершины, полученные продвижением из входной <code>pathTracker</code>.
+		 */
+		Iterable<PathTracker> propagateForward(PathTracker pathTracker);
+		/**
+		 * Метод возврщает вершины, полученные продвижением из входной <code>pathTracker</code> при проходе назад.
+		 * @param pathTracker вершина, из которой выполняется продвижение.
+		 * @return вершины, полученные продвижением из входной <code>pathTracker</code>.
+		 */
+		Iterable<PathTracker> propagateBackward(PathTracker pathTracker);
 	}
+	
+	/**
+	 * Универсальная стратегия продвижения вершин, которая подходит для блокового, сверточного и усеченного кода.
+	 * @author Stas
+	 *
+	 */
+	public static class UniversalPropagationStrategy implements BeastPropagationStrategy {
+		private PathTracker root;
+		private double tresholdBackward;
+		
+		public UniversalPropagationStrategy(PathTracker root, int metric, double tresholdBackward) {
+			this.root = root;
+			this.tresholdBackward = tresholdBackward;
+		}
+		
+		@Override
+		public Iterable<PathTracker> propagateForward(PathTracker tracker) {
+			if (!tracker.hasForward()) {
+				return new ArrayList<PathTracker>();
+			}
+			
+			Collection<PathTracker> trackers = new ArrayList<PathTracker>(2);
+			
+			Iterator<PathTracker> forwardTrackers = tracker.forwardIterator();
 
-	public static class SimpleBeastPeaker implements BeastTraversalPicker {
+			if (forwardTrackers.hasNext()) {
+				if (tracker.vertexIndex() == 0 && tracker != root) {
+					// tracker - вершина нулевого пути, обрабатываем переход по нулевому ребру отдельно
+					PathTracker zeroPathTracker = forwardTrackers.next();	// переход по нулевому ребру
+					
+					Iterator<PathTracker> zeroPathForward = zeroPathTracker.forwardIterator();
+					while (zeroPathTracker.layer() != tracker.layer() && zeroPathForward.hasNext()) {
+						zeroPathTracker = zeroPathForward.next();			// переход по нулевому ребру
+
+						for (; zeroPathForward.hasNext(); ) {
+							trackers.add(zeroPathForward.next());			// переход по ненулевым ребрам
+						}
+						
+						zeroPathForward = zeroPathTracker.forwardIterator();
+					}
+				}
+			}
+			
+			for (; forwardTrackers.hasNext(); ) {
+				trackers.add(forwardTrackers.next());
+			}
+			
+			return trackers;
+		}
+
+		@Override
+		public Iterable<PathTracker> propagateBackward(PathTracker tracker) {
+			Collection<PathTracker> trackers = new ArrayList<PathTracker>(2);
+
+			Iterator<PathTracker> backwardTrackers = tracker.backwardIterator();
+			
+			if (backwardTrackers.hasNext()) {
+				if (tracker.vertexIndex() == 0) {
+					backwardTrackers.next();		// пропускаем переход по нулевому ребру
+				}
+				
+				for (; backwardTrackers.hasNext(); ) {
+					PathTracker newTracker = backwardTrackers.next();
+					trackers.add(newTracker);
+					
+					if (newTracker.weight() <= tresholdBackward && newTracker.vertexIndex() == 0) {
+						// пришли в вершину нулевого цикла, пройдемся по нему.
+						
+						Iterator<PathTracker> zeroPathBackward = newTracker.backwardIterator();
+						
+						while (zeroPathBackward.hasNext()) {
+							PathTracker zeroPathTracker = zeroPathBackward.next();
+							if (zeroPathTracker.layer() == newTracker.layer()) {
+								break;
+							}
+							trackers.add(zeroPathTracker);
+							zeroPathBackward = zeroPathTracker.backwardIterator();
+						}
+					}
+				}
+			}
+			
+			return trackers;
+		}
+	}
+	
+	public static class SimpleFrontBuilder {
 		private Logger logger2 = LoggerFactory.getLogger(this.getClass());
 
 		private TreeSet<PathTracker> Forward, Backward;
-		private TreeSet<PathTracker> oldForward, oldBackward;
-		private TreeSet<PathTracker> newForward, newBackward;
 		double tresholdForward, tresholdBackward;
-		double metric;
-		ITrellisIterator root, toor;
+		int metric;
 
-		PathTracker tracker;
+		PathTracker root;
+		PathTracker toor;
 		
-		public SimpleBeastPeaker(TreeSet<PathTracker> Forward, TreeSet<PathTracker> Backward,
-				ITrellisIterator root, ITrellisIterator toor, int metric) {
+		public SimpleFrontBuilder(TreeSet<PathTracker> Forward, TreeSet<PathTracker> Backward,
+				PathTracker root, PathTracker toor, int metric) {
 			this.Forward = Forward;
 			this.Backward = Backward;
 			this.metric = metric;
@@ -54,28 +153,37 @@ public class BeastAlgorithm {
 			return Backward;
 		}
 
-		public void builtForwardFront(int tresholdForward, ITrellisIterator root, int metric) {
+		public void builtForwardFront(int tresholdForward, PathTracker root) {
 			this.tresholdForward = tresholdForward;
 			logger2.debug("tresholdForward = " + tresholdForward);
 			
-			newForward = new TreeSet<PathTracker>();
+			TreeSet<PathTracker> newForward = new TreeSet<PathTracker>();
+
+			BeastPropagationStrategy strategy = new UniversalPropagationStrategy(root, metric, tresholdBackward);
 
 			while (!Forward.isEmpty()) {
-				oldForward = new TreeSet<PathTracker>();
+				TreeSet<PathTracker> oldForward = new TreeSet<PathTracker>();
 				
 				for (Iterator<PathTracker> iterator = Forward.iterator(); iterator.hasNext();) {
-					tracker = iterator.next();
+					PathTracker tracker = iterator.next();
 					iterator.remove();
 					
 					if (tracker.weight() >= tresholdForward) {
 						addTheLeastPath(newForward, tracker);
 						continue;
 					}
-					if (!tracker.iterator().hasForward()) {
+					if (!tracker.hasForward()) {
 						continue;
 					}
-					
-					buildNextPaths(tracker, this, root, metric);
+
+					Iterable<PathTracker> trackers = strategy.propagateForward(tracker);
+					for (PathTracker newTracker : trackers) {
+						if (newTracker.weight() >= tresholdForward) {
+							addTheLeastPath(newForward, newTracker);
+						} else {
+							addTheLeastPath(oldForward, newTracker);
+						}
+					}
 				}
 				
 				Forward.addAll(oldForward);
@@ -83,28 +191,35 @@ public class BeastAlgorithm {
 			
 			logger2.debug("newForward: "  + newForward);
 			Forward = newForward;
-			
-			oldForward = newForward = null;
 		}
 
-		public void builtBackwardFront(int tresholdBackward, int metric) {
+		public void builtBackwardFront(int tresholdBackward) {
 			this.tresholdBackward = tresholdBackward;
 			logger2.debug("tresholdBackward = " + tresholdBackward);
 			
-			newBackward = new TreeSet<PathTracker>();
+			TreeSet<PathTracker> newBackward = new TreeSet<PathTracker>();
+
+			BeastPropagationStrategy strategy = new UniversalPropagationStrategy(root, metric, tresholdBackward);
 
 			while (!Backward.isEmpty()) {
-				oldBackward = new TreeSet<PathTracker>();
+				TreeSet<PathTracker> oldBackward = new TreeSet<PathTracker>();
 				
 				for (Iterator<PathTracker> iterator = Backward.iterator(); iterator.hasNext();) {
-					tracker = iterator.next();
+					PathTracker tracker = iterator.next();
 					iterator.remove();
 					
-					if (!tracker.iterator().hasBackward()) {
+					if (!tracker.hasBackward()) {
 						continue;
 					}
-					
-					buildPrevPaths(tracker, this, tresholdBackward, metric);
+			
+					Iterable<PathTracker> trackers = strategy.propagateBackward(tracker);
+					for (PathTracker newTracker : trackers) {
+						if (newTracker.weight() > tresholdForward) {
+							addTheLeastPath(newBackward, tracker);
+						} else {
+							addTheLeastPath(oldBackward, newTracker);
+						}
+					}
 				}
 				
 				Backward.addAll(oldBackward);
@@ -112,186 +227,10 @@ public class BeastAlgorithm {
 			
 			logger2.debug("newBackward: "  + newBackward);
 			Backward = newBackward;
-			
-			oldBackward = newBackward = null;
-		}
-
-		@Override
-		public void pickForward(PathTracker newTracker) {
-			if (newTracker.weight() >= tresholdForward) {
-				addTheLeastPath(newForward, newTracker);
-			} else {
-				addTheLeastPath(oldForward, newTracker);
-			}
-		}
-
-		@Override
-		public void pickBackward(PathTracker newTracker) {
-			if (newTracker.weight() > tresholdForward) {
-				addTheLeastPath(newBackward, tracker);
-			} else {
-				addTheLeastPath(oldBackward, newTracker);
-			}
 		}
 	}
 	
-	/**
-	 * Собирает путь, который отслеживает
-	 * @author stas
-	 *
-	 */
-	public static class PathPicker implements PathTracker {
-		/**
-		 * Итератор, указывающий на последнюю вершину в пути
-		 */
-		private ITrellisIterator iterator;
-		/**
-		 * Собираемый путь
-		 */
-		private TrellisPath path;
-		
-		public PathPicker(ITrellisIterator iterator) {
-			this.iterator = iterator;
-			this.path = new TrellisPath(iterator.vertexIndex());
-		}
-		
-		public PathPicker(final PathPicker tracker) {
-			iterator = tracker.iterator.clone();
-			path = new TrellisPath(tracker.path);
-		}
-
-		public void moveForward(int edgeIndex, double edgeWeight) {
-			iterator.moveForward(edgeIndex);
-			path.addVertex(iterator.vertexIndex(), edgeWeight);
-		}
-
-		public void moveBackward(int edgeIndex, double edgeWeight) {
-			iterator.moveBackward(edgeIndex);
-			path.addVertex(iterator.vertexIndex(), edgeWeight);
-		}
-
-		public ITrellisIterator iterator() {
-			return iterator; 
-		}
-
-		public double weight() {
-			return path.weight();
-		}
-		
-		public TrellisPath path() {
-			return path;
-		}
-		
-		@Override
-		public PathPicker clone() {
-			return new PathPicker(this);
-		}
-		
-		/**
-		 * Пути равны, если идут к одной вершине
-		 */
-		@Override
-		public boolean equals(Object obj) {
-			if (!(obj instanceof PathPicker)) {
-				return false;
-			}
-			if (obj == this) {
-				return true;
-			}
-			
-			PathPicker picker = (PathPicker) obj;
-			
-			return iterator.layer() == picker.iterator.layer() &&
-				iterator.vertexIndex() == picker.iterator.vertexIndex();
-		}
-
-		public int compareTo(PathTracker tracker) {
-			if (!(tracker instanceof PathPicker)) {
-				throw new IllegalArgumentException("Can compare only with " + this.getClass());
-			}
-			PathPicker pathPicker = (PathPicker) tracker;
-			
-			return compareTrellisIterators(iterator, pathPicker.iterator);
-		}
-		
-		@Override
-		public String toString() {
-			return "(" + iterator.layer() + ", " + iterator.vertexIndex() + ", w: " + path.weight() + ")";
-		}
-	}
-		
-	static class Vertex implements PathTracker {
-		private ITrellisIterator iterator;
-		private int weight;
-		long pathNumber;
-		
-		public Vertex(ITrellisIterator iterator) {
-			this.iterator = iterator;
-			this.weight = 0;
-			this.pathNumber = 1;
-		}
-		
-		public Vertex(Vertex vertex) {
-			iterator = vertex.iterator.clone();
-			weight = vertex.weight;
-			pathNumber = vertex.pathNumber;
-		}
-		
-		@Override
-		public void moveForward(int edgeIndex, double edgeWeight) {
-			iterator.moveForward(edgeIndex);
-			weight += edgeWeight;
-		}
-
-		@Override
-		public void moveBackward(int edgeIndex, double edgeWeight) {
-			iterator.moveBackward(edgeIndex);
-			weight += edgeWeight;
-		}
-
-		public ITrellisIterator iterator() {
-			return iterator;
-		}
-		
-		public double weight() {
-			return (double) weight;
-		}
-
-		public Vertex clone() {
-			return new Vertex(this);
-		}
-		
-		@Override
-		public boolean equals(Object obj) {
-			if (obj == this) {
-				return true;
-			}
-			Vertex vertex = (Vertex) obj;
-			if (vertex == null) {
-				return false;
-			}
-
-			return iterator.layer() == vertex.iterator.layer() &&
-				iterator.vertexIndex() == vertex.iterator.vertexIndex();
-		}
-
-		@Override
-		public int compareTo(PathTracker tracker) {
-			if (!(tracker instanceof Vertex)) {
-				throw new IllegalArgumentException("Can compare only with " + this.getClass());
-			}
-
-			Vertex vertex = (Vertex) tracker;
-			return compareTrellisIterators(iterator, vertex.iterator);
-		}
-
-		@Override
-		public String toString() {
-			return "(" + iterator.layer() + ", " + iterator.vertexIndex() + ", w: " + weight + ")";
-		}
-	}
-
-	static private int compareTrellisIterators(ITrellisIterator a, ITrellisIterator b) {
+	static int compareTrellisIterators(ITrellisIterator a, ITrellisIterator b) {
 		if (a.layer() == b.layer()) {
 			return (int) (a.vertexIndex() - b.vertexIndex());
 		}
@@ -301,7 +240,7 @@ public class BeastAlgorithm {
 	/**
 	 * Алгоритм BEAST для поиска минимального/свободного расстояния кода в решетке.
 	 * 
-	 * Метод ищет кратчайшие ненулевые пути в заданной метрике от между вершинами 
+	 * Метод ищет кратчайшие ненулевые пути в заданной метрике между вершинами 
 	 * решетки <code>root</code> и <code>toor</code>. Метрики путей хранятся в 
 	 * решетке, конкретная метрика выбирается агрументом <code>metric</code>.
 	 * 
@@ -322,23 +261,25 @@ public class BeastAlgorithm {
 		TreeSet<PathTracker> Forward = new TreeSet<PathTracker>(), Backward = new TreeSet<PathTracker>();
  		int tresholdForward = 0, tresholdBackward = 0;
 	
-		PathPicker rootPath = new PathPicker(root);
+		PathPicker rootPath = new PathPicker(root, metric);
 		Forward.add(rootPath);
 
-		PathPicker toorPath = new BeastAlgorithm.PathPicker(toor);
+		PathPicker toorPath = new PathPicker(toor, metric);
 		Backward.add(toorPath);
 
 		if (toor.vertexIndex() == 0 && toor.hasBackward()) {
 			// добавляем все вершины нулевого пути/цикла в решетке.
 			PathPicker zeroPath = toorPath.clone();
-			zeroPath.moveBackward(0, 0);
-			while (zeroPath.iterator().layer() != toor.layer() && zeroPath.iterator().hasBackward()) {
-				zeroPath.moveBackward(0, 0);
+			zeroPath.iterator.moveBackward(0);
+			zeroPath.path.addVertex(zeroPath.iterator.vertexIndex(), 0);
+			while (zeroPath.iterator.layer() != toor.layer() && zeroPath.iterator.hasBackward()) {
+				zeroPath.iterator.moveBackward(0);
+				zeroPath.path.addVertex(zeroPath.iterator.vertexIndex(), 0);
 				Backward.add((PathTracker) zeroPath.clone());
 			}
 		}
 
-		SimpleBeastPeaker peaker = new SimpleBeastPeaker(Forward, Backward, root, toor, metric);
+		SimpleFrontBuilder frontBuilder = new SimpleFrontBuilder(Forward, Backward, rootPath, toorPath, metric);
 		
 		ArrayList<TrellisPath> paths = new ArrayList<TrellisPath>();
 		
@@ -346,16 +287,16 @@ public class BeastAlgorithm {
 			
 			if (Forward.size() < Backward.size()) {
 				++tresholdForward;
-				peaker.builtForwardFront(tresholdForward, root, metric);
+				frontBuilder.builtForwardFront(tresholdForward, rootPath);
 //TODO:				Forward = findForwardPaths(Forward, tresholdForward, root, metric);
 			} else {
 				++tresholdBackward;
-				peaker.builtBackwardFront(tresholdBackward, metric);
+				frontBuilder.builtBackwardFront(tresholdBackward);
 //TODO:				Backward = findBackwardPaths(Backward, tresholdBackward, metric);
 			}
 
-			Forward = peaker.getForwardFront();
-			Backward = peaker.getBackwardFront();
+			Forward = frontBuilder.getForwardFront();
+			Backward = frontBuilder.getBackwardFront();
 			
 			for (PathTracker tracker : Forward) {
 				if (Backward.contains(tracker)) {
@@ -386,12 +327,12 @@ public class BeastAlgorithm {
 		}
 
 		return paths.toArray(new TrellisPath[0]);
-	}/**/
+	}
 	
 	/**
 	 * Алгоритм BEAST для поиска минимального/свободного расстояния кода в решетке.
 	 * 
-	 * Метод ищет кратчайшие ненулевые пути в заданной метрике от между вершинами 
+	 * Метод ищет кратчайшие ненулевые пути в заданной метрике между вершинами 
 	 * решетки <code>root</code> и <code>toor</code>. Метрики путей хранятся в 
 	 * решетке, конкретная метрика выбирается агрументом <code>metric</code>.
 	 * 
@@ -405,23 +346,25 @@ public class BeastAlgorithm {
 		TreeSet<PathTracker> Forward = new TreeSet<PathTracker>(), Backward = new TreeSet<PathTracker>();
 		int tresholdForward = 0, tresholdBackward = 0;
 	
-		Vertex rootPath = new Vertex(root);
+		PathCounter rootPath = new PathCounter(root, metric);
 		Forward.add(rootPath);
 
-		Vertex toorPath = new Vertex(toor);
+		PathCounter toorPath = new PathCounter(toor, metric);
 		Backward.add(toorPath);
 
 		if (toor.vertexIndex() == 0 && toor.hasBackward()) {
 			// добавляем все вершины нулевого пути/цикла в решетке.
-			Vertex zeroPath = new Vertex(toorPath);
+			PathCounter zeroPath = new PathCounter(toorPath);
 			zeroPath.iterator.moveBackward(0);
 			while (zeroPath.iterator.layer() != toor.layer() && zeroPath.iterator.hasBackward()) {
 				zeroPath.iterator.moveBackward(0);
-				Backward.add(new Vertex(zeroPath));
+				Backward.add(new PathCounter(zeroPath));
 			}
 		}
 		
 		int minDist = -1;
+		int minLayer = -1;
+		long minVertexIndex = -1;
 		
 		while (tresholdForward + tresholdBackward <= upperBound) {
 			if (Forward.size() < Backward.size()) {
@@ -443,6 +386,8 @@ public class BeastAlgorithm {
 		
 					if (minDist > fpath.weight() + bpath.weight() || minDist < 0) {
 						minDist = (int) (fpath.weight() + bpath.weight());
+						minLayer = fpath.layer();
+						minVertexIndex = fpath.vertexIndex();
 					}
 				}
 			}
@@ -452,27 +397,29 @@ public class BeastAlgorithm {
 			}
 		}
 
+		logger.debug("dist = " + minDist + ", layer = " + minLayer + ", vertexIndex = " + minVertexIndex);
+		
 		return minDist;
 	}
 	
 	public static long[] findSpectrum(ITrellisIterator root, ITrellisIterator toor, int maxWeight, int metric) {
-		TreeMap<Integer, TreeSet<Vertex>> forwards = new TreeMap<Integer, TreeSet<Vertex>>();
-		TreeMap<Integer, TreeSet<Vertex>> backwards = new TreeMap<Integer, TreeSet<Vertex>>();
+		TreeMap<Integer, TreeSet<PathCounter>> forwards = new TreeMap<Integer, TreeSet<PathCounter>>();
+		TreeMap<Integer, TreeSet<PathCounter>> backwards = new TreeMap<Integer, TreeSet<PathCounter>>();
 		
-		Vertex rootVertex = new Vertex(root);
-		forwards.put(0, new TreeSet<Vertex>());
+		PathCounter rootVertex = new PathCounter(root, metric);
+		forwards.put(0, new TreeSet<PathCounter>());
 		forwards.get(0).add(rootVertex);
 		
-		Vertex toorVertex = new Vertex(toor);
-		backwards.put(0, new TreeSet<Vertex>());
+		PathCounter toorVertex = new PathCounter(toor, metric);
+		backwards.put(0, new TreeSet<PathCounter>());
 		backwards.get(0).add(toorVertex);
 
 		if (toor.vertexIndex() == 0 && toor.hasBackward()) {
 			// добавляем все вершины нулевого пути/цикла в решетке.
-			Vertex zeroVertex = new Vertex(toorVertex);
+			PathCounter zeroVertex = new PathCounter(toorVertex);
 			do {
 				zeroVertex.iterator.moveBackward(0);
-				backwards.get(0).add(new Vertex(zeroVertex));
+				backwards.get(0).add(new PathCounter(zeroVertex));
 			} while (zeroVertex.iterator.hasBackward() && zeroVertex.iterator.layer() != toor.layer());
 		}
 		
@@ -502,16 +449,16 @@ public class BeastAlgorithm {
 			}
 
 			for (int wi = 0; wi <= tresholdBackward; ++wi) {
-				TreeSet<Vertex> forward = forwards.get(tresholdForward + wi);
-				TreeSet<Vertex> backward = backwards.get(tresholdBackward - wi);
+				TreeSet<PathCounter> forward = forwards.get(tresholdForward + wi);
+				TreeSet<PathCounter> backward = backwards.get(tresholdBackward - wi);
 	
 				if (forward == null || backward == null) {
 					continue;
 				}
 				
-				for (Vertex fvertex : forward) {
+				for (PathCounter fvertex : forward) {
 					if (backward.contains(fvertex)) {
-						Vertex bvertex = backward.floor(fvertex);
+						PathCounter bvertex = backward.floor(fvertex);
 	
 						if (fvertex.weight + bvertex.weight == 0) {
 							continue;
@@ -526,35 +473,35 @@ public class BeastAlgorithm {
 		return spectrum;
 	}
 	
-	private static TreeMap<Integer,TreeSet<Vertex>> countForwardPath(TreeMap<Integer,TreeSet<Vertex>> forwards, int weight, int metric) {
+	private static TreeMap<Integer,TreeSet<PathCounter>> countForwardPath(TreeMap<Integer,TreeSet<PathCounter>> forwards, int weight, int metric) {
 		logger.debug("forward = " + forwards);
 		
 		/**
 		 * Сюда пойдут все вершины веса >= weight
 		 */
-		TreeMap<Integer,TreeSet<Vertex>> newForwards = new TreeMap<Integer, TreeSet<Vertex>>();
+		TreeMap<Integer,TreeSet<PathCounter>> newForwards = new TreeMap<Integer, TreeSet<PathCounter>>();
 		while (!forwards.isEmpty()) {
 			/**
 			 * Сюда будут идти все вершины веса < weight, пока мы от них наконец не дойдем до вершин большего веса. 
 			 */
-			TreeMap<Integer,TreeSet<Vertex>> oldForwards = new TreeMap<Integer, TreeSet<Vertex>>();
+			TreeMap<Integer,TreeSet<PathCounter>> oldForwards = new TreeMap<Integer, TreeSet<PathCounter>>();
 
-			for (Map.Entry<Integer,TreeSet<Vertex>> entry = forwards.pollFirstEntry(); entry != null; entry = forwards.pollFirstEntry()) {
+			for (Map.Entry<Integer,TreeSet<PathCounter>> entry = forwards.pollFirstEntry(); entry != null; entry = forwards.pollFirstEntry()) {
 				if (entry.getKey() >= weight) {
 					// быстро перекидываем все вершины веса >= weight в newForwards
 					if (newForwards.get(entry.getKey()) == null) {
 						newForwards.put(entry.getKey(), entry.getValue());
 					} else {
-						for (Vertex vertex : entry.getValue()) {
+						for (PathCounter vertex : entry.getValue()) {
 							addVertex(newForwards.get(entry.getKey()), vertex);
 						}
 					}
 					continue;
 				}
 				
-				TreeSet<Vertex> forward = entry.getValue();
-				for (Iterator<Vertex> iterator = forward.iterator(); iterator.hasNext();) {
-					Vertex vertex = iterator.next();
+				TreeSet<PathCounter> forward = entry.getValue();
+				for (Iterator<PathCounter> iterator = forward.iterator(); iterator.hasNext();) {
+					PathCounter vertex = iterator.next();
 					iterator.remove();
 					
 					if (!vertex.iterator.hasForward()) {
@@ -568,18 +515,18 @@ public class BeastAlgorithm {
 							continue;
 						}
 
-						Vertex newVertex = new Vertex(vertex);
+						PathCounter newVertex = new PathCounter(vertex);
 						newVertex.iterator.moveForward(i);
 						newVertex.weight += edge.metrics()[metric];
 
 						if (newVertex.weight >= weight) {
 							if (newForwards.get(newVertex.weight) == null) {
-								newForwards.put(newVertex.weight, new TreeSet<Vertex>());
+								newForwards.put(newVertex.weight, new TreeSet<PathCounter>());
 							}
 							addVertex(newForwards.get(newVertex.weight), newVertex);
 						} else {
 							if (oldForwards.get(newVertex.weight) == null) {
-								oldForwards.put(newVertex.weight, new TreeSet<Vertex>());
+								oldForwards.put(newVertex.weight, new TreeSet<PathCounter>());
 							}
 							addVertex(oldForwards.get(newVertex.weight), newVertex);
 						}
@@ -592,7 +539,7 @@ public class BeastAlgorithm {
 				if (forwards.get(wi) == null) {
 					forwards.put(wi, oldForwards.get(wi));
 				} else {
-					for (Vertex vertex : oldForwards.get(wi)) {
+					for (PathCounter vertex : oldForwards.get(wi)) {
 						addVertex(forwards.get(wi), vertex);
 					}
 				}
@@ -603,28 +550,28 @@ public class BeastAlgorithm {
 		return newForwards;
 	}
 
-	private static TreeMap<Integer,TreeSet<Vertex>> countBackwardPath(TreeMap<Integer,TreeSet<Vertex>> backwards, int weight, int metric) {
+	private static TreeMap<Integer,TreeSet<PathCounter>> countBackwardPath(TreeMap<Integer,TreeSet<PathCounter>> backwards, int weight, int metric) {
 		logger.debug("backward = " + backwards);
 		
 		/**
 		 * Сюда пойдут все вершины веса <= weight, имеющие соседа > weight
 		 */
-		TreeMap<Integer,TreeSet<Vertex>> newBackwards = new TreeMap<Integer, TreeSet<Vertex>>();
+		TreeMap<Integer,TreeSet<PathCounter>> newBackwards = new TreeMap<Integer, TreeSet<PathCounter>>();
 		while (!backwards.isEmpty()) {
 			/**
 			 * Сюда будут идти все вершины веса <= weight с такими же соседями, пока мы от них наконец не дойдем до вершин с соседями большего веса. 
 			 */
-			TreeMap<Integer,TreeSet<Vertex>> oldBackwards= new TreeMap<Integer, TreeSet<Vertex>>();
+			TreeMap<Integer,TreeSet<PathCounter>> oldBackwards= new TreeMap<Integer, TreeSet<PathCounter>>();
 
-			for (Map.Entry<Integer,TreeSet<Vertex>> entry = backwards.pollFirstEntry(); entry != null; entry = backwards.pollFirstEntry()) {
+			for (Map.Entry<Integer,TreeSet<PathCounter>> entry = backwards.pollFirstEntry(); entry != null; entry = backwards.pollFirstEntry()) {
 				if (entry.getKey() > weight) {
 					// странно, выкидываем эти вершины
 					continue;
 				}
 				
-				TreeSet<Vertex> backward = entry.getValue();
-				for (Iterator<Vertex> iterator = backward.iterator(); iterator.hasNext();) {
-					Vertex vertex = iterator.next();
+				TreeSet<PathCounter> backward = entry.getValue();
+				for (Iterator<PathCounter> iterator = backward.iterator(); iterator.hasNext();) {
+					PathCounter vertex = iterator.next();
 					iterator.remove();
 					
 					if (!vertex.iterator.hasBackward()) {
@@ -638,18 +585,18 @@ public class BeastAlgorithm {
 							continue;
 						}
 
-						Vertex newVertex = new Vertex(vertex);
+						PathCounter newVertex = new PathCounter(vertex);
 						newVertex.iterator.moveBackward(i);
 						newVertex.weight += edge.metrics()[metric];
 
 						if (newVertex.weight > weight) {
 							if (newBackwards.get(vertex.weight) == null) {
-								newBackwards.put(vertex.weight, new TreeSet<Vertex>());
+								newBackwards.put(vertex.weight, new TreeSet<PathCounter>());
 							}
 							addVertex(newBackwards.get(vertex.weight), vertex);
 						} else {
 							if (oldBackwards.get(newVertex.weight) == null) {
-								oldBackwards.put(newVertex.weight, new TreeSet<Vertex>());
+								oldBackwards.put(newVertex.weight, new TreeSet<PathCounter>());
 							}
 							addVertex(oldBackwards.get(newVertex.weight), newVertex);
 						}
@@ -662,7 +609,7 @@ public class BeastAlgorithm {
 				if (backwards.get(wi) == null) {
 					backwards.put(wi, oldBackwards.get(wi));
 				} else {
-					for (Vertex vertex : oldBackwards.get(wi)) {
+					for (PathCounter vertex : oldBackwards.get(wi)) {
 						addVertex(backwards.get(wi), vertex);
 					}
 				}
@@ -671,83 +618,6 @@ public class BeastAlgorithm {
 		
 		logger.debug("newBackwards: "  + newBackwards);
 		return newBackwards;
-	}
-
-	/**
-	 * Продвигает по решетке вперед на минимальный шаг 
-	 * @param tracker объект, который продвигается по решетке  
-	 * @param picker 
-	 * @param root
-	 * @param metric
-	 */
-	public static void buildNextPaths(PathTracker tracker, BeastTraversalPicker picker, ITrellisIterator root, int metric) {
-		ITrellisEdge edges[] = tracker.iterator().getAccessors();
-		for (int i = 0; i < edges.length; ++i) {
-			if (tracker.iterator().vertexIndex() == 0 && i == 0) {
-				if (tracker.iterator() == root) {
-					continue;
-				}
-				// проходим по всем вершинам нулевого цикла и сразу переходим из каждой из них по ненулевому пути.
-				PathTracker zeroPathTracker = (PathTracker) tracker.clone();
-				zeroPathTracker.moveForward(i, 0);
-				
-				while (zeroPathTracker.iterator().layer() != tracker.iterator().layer() && zeroPathTracker.iterator().hasForward()) {
-					ITrellisEdge zeroEdges[] = zeroPathTracker.iterator().getAccessors();
-					for (int edgeIndex = 1; edgeIndex < zeroEdges.length; ++edgeIndex) {
-						PathTracker newTracker = (PathTracker) zeroPathTracker.clone();
-						newTracker.moveForward(edgeIndex, zeroEdges[edgeIndex].metrics()[metric]);
-
-						picker.pickForward(newTracker);
-					}
-					zeroPathTracker.moveForward(0, 0);
-				}
-				continue;
-			}
-
-			PathTracker newTracker = (PathTracker) tracker.clone();				// копируем путь
-			newTracker.moveForward(i, edges[i].metrics()[metric]);					// двигаемся вперед
-
-			picker.pickForward(newTracker);
-		}
-	}
-	
-	
-	/**
-	 * Продвигает по решетке назад на минимальный шаг 
-	 * @param tracker объект, который продвигается по решетке  
-	 * @param picker 
-	 * @param root
-	 * @param metric
-	 */
-	public static void buildPrevPaths(PathTracker tracker, BeastTraversalPicker picker, double tresholdBackward, int metric) {
-		ITrellisEdge edges[] = tracker.iterator().getPredecessors();
-		for (int i = 0; i < edges.length; ++i) {
-			if (tracker.iterator().vertexIndex() == 0 && i == 0) {
-				continue;
-			}
-			
-			PathTracker newTracker = (PathTracker) tracker.clone();		// копируем путь
-			newTracker.moveBackward(i, edges[i].metrics()[metric]);		// двигаемся назад
-
-			picker.pickBackward(newTracker);
-			
-			if (newTracker.weight() <= tresholdBackward) {
-				if (newTracker.iterator().vertexIndex() == 0 && newTracker.iterator().hasBackward()) {
-					// пришли в вершину нулевого цикла, пройдемся по нему.
-					PathTracker zeroPathTracker = (PathTracker) newTracker.clone();
-					zeroPathTracker.moveBackward(0, 0);
-					
-					while (zeroPathTracker.iterator().layer() != newTracker.iterator().layer()) {
-						picker.pickBackward((PathTracker) zeroPathTracker.clone());
-						if (zeroPathTracker.iterator().hasBackward()) {
-							zeroPathTracker.moveBackward(0, 0);
-						} else {
-							break;
-						}
-					}
-				}
-			}
-		}
 	}
 	
 	private static TreeSet<PathTracker> findForwardFront(TreeSet<PathTracker> Forward,
@@ -760,7 +630,7 @@ public class BeastAlgorithm {
 			TreeSet<PathTracker> oldForward = new TreeSet<PathTracker>();
 			
 			for (Iterator<PathTracker> iterator = Forward.iterator(); iterator.hasNext();) {
-				Vertex vertex = (Vertex) iterator.next();
+				PathCounter vertex = (PathCounter) iterator.next();
 				iterator.remove();
 				
 				if (vertex.weight >= tresholdForward) {
@@ -779,13 +649,13 @@ public class BeastAlgorithm {
 						}
 						// проходим по всем вершинам нулевого цикла и сразу переходим из каждой из них по ненулевому пути.
 						logger.debug("i = " + i);
-						Vertex zeroPath = new Vertex(vertex);
+						PathCounter zeroPath = new PathCounter(vertex);
 						zeroPath.iterator.moveForward(i);
 						
 						while (zeroPath.iterator.layer() != vertex.iterator.layer() && zeroPath.iterator.hasForward()) {
 							ITrellisEdge edges[] = zeroPath.iterator.getAccessors();
 							for (int e = 1; e < edges.length; ++e) {
-								Vertex nextVertex = new Vertex(zeroPath);
+								PathCounter nextVertex = new PathCounter(zeroPath);
 								nextVertex.iterator.moveForward(e);
 								nextVertex.weight += edges[e].metrics()[metric];
 								if (nextVertex.weight >= tresholdForward) {
@@ -799,7 +669,7 @@ public class BeastAlgorithm {
 						continue;
 					}
 
-					Vertex nextVertex = new Vertex(vertex);				// копируем путь
+					PathCounter nextVertex = new PathCounter(vertex);				// копируем путь
 					nextVertex.iterator.moveForward(i);					// двигаемся вперед
 					nextVertex.weight += edge.metrics()[metric];
 										
@@ -828,7 +698,7 @@ public class BeastAlgorithm {
 			TreeSet<PathTracker> oldBackward = new TreeSet<PathTracker>();
 			
 			for (Iterator<PathTracker> iterator = Backward.iterator(); iterator.hasNext();) {
-				Vertex path = (Vertex) iterator.next();
+				PathCounter path = (PathCounter) iterator.next();
 				iterator.remove();
 				
 				if (!path.iterator.hasBackward()) {
@@ -841,7 +711,7 @@ public class BeastAlgorithm {
 						continue;
 					}
 					
-					Vertex nextVertex = new Vertex(path);				// копируем путь
+					PathCounter nextVertex = new PathCounter(path);				// копируем путь
 					nextVertex.iterator.moveBackward(i);				// двигаемся назад
 					nextVertex.weight += edge.metrics()[metric];
 					
@@ -852,11 +722,11 @@ public class BeastAlgorithm {
 						
 						if (nextVertex.iterator.vertexIndex() == 0 && nextVertex.iterator.hasBackward()) {
 							// пришли в вершину нулевого цикла, пройдемся по нему.
-							Vertex zeroPath = new Vertex(nextVertex);
+							PathCounter zeroPath = new PathCounter(nextVertex);
 							zeroPath.iterator.moveBackward(0);
 							
 							while (zeroPath.iterator.layer() != nextVertex.iterator.layer()) {
-								addTheLeastPath(oldBackward, new Vertex(zeroPath));
+								addTheLeastPath(oldBackward, new PathCounter(zeroPath));
 								if (zeroPath.iterator.hasBackward()) {
 									zeroPath.iterator.moveBackward(0);
 								} else {
@@ -894,9 +764,9 @@ public class BeastAlgorithm {
 		trackers.add(tracker); // если в pathes был путь с меньшей метрикой, то path не добавится.
 	}
 
-	private static void addVertex(TreeSet<Vertex> vertices, Vertex vertex) {
+	private static void addVertex(TreeSet<PathCounter> vertices, PathCounter vertex) {
 		if (vertices.contains(vertex)) {
-			Vertex vertex2 = vertices.floor(vertex);
+			PathCounter vertex2 = vertices.floor(vertex);
 			if (vertex2 == vertex) {
 				return ;
 			}

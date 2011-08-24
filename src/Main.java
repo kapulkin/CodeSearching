@@ -40,7 +40,7 @@ public class Main {
 		SpanForm sf = blockCode.getGeneratorSpanForm();		
 		Matrix ort = blockCode.parityCheck();		
 		Trellis trellis = BlockCodeAlgs.buildTrellis(blockCode);		
-		int minDist = MinDistance.findMinDist(trellis, 0, 0);
+		int minDist = MinDistance.findMinDistWithViterby(trellis, 0, 0);
 		
 		IOMatrix.writeMatrix(sf.Matr, new BufferedWriter(new OutputStreamWriter(System.out)));
 		
@@ -77,7 +77,7 @@ public class Main {
 		System.out.println(tbCode.getMinDistByTrellis());
 		System.out.println(MinDistance.findMinDist(tbCode.generator()));
 //		System.out.println(convCode.getFreeDistanceByVA());
-		System.out.println(MinDistance.findMinDist(BlockCodeAlgs.buildTrellis(ztCode), 0, 0));
+		System.out.println(MinDistance.findMinDistWithViterby(BlockCodeAlgs.buildTrellis(ztCode), 0, 0));
 	}
 	
 	private static void smithDecompositionTest() throws FileNotFoundException, IOException

@@ -1,7 +1,11 @@
 package math;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import codes.BlockCode;
 import codes.ConvCode;
+import codes.TruncatedCode;
 import trellises.BeastAlgorithm;
 import trellises.BlockCodeTrellis;
 import trellises.ITrellis;
@@ -10,6 +14,8 @@ import trellises.Trellis;
 import trellises.ViterbiAlgorithm;
 
 public class MinDistance {
+	static Logger logger = LoggerFactory.getLogger(MinDistance.class);
+	
 	/**
 	 * Рассчитывает метрику решетки, где весовой функцией выступает вес кодовых слов на ребрах.
 	 * Метрика помещается в нулевую ячейку метрик на ребрах, ранее рассчитанные метрики смещаются на одну позицию вправо.
@@ -39,7 +45,7 @@ public class MinDistance {
 	/**
 	 * Вычисляет min/free dist решетки блокового или сверточного кода с помощью алгоритма Витерби.
 	 * Более строго: вычисляет длину кратчайшего ненулевого пути в решетке. Пути
-	 * выходят из нулевой вершины нулевого слоя и имеют проходят по решетке не
+	 * выходят из нулевой вершины нулевого слоя и проходят по решетке не
 	 * более <code>cycles</code> раз. 
 	 *
 	 * @param trellis решетка блокового или сверточного кода
@@ -47,10 +53,10 @@ public class MinDistance {
 	 * @param cycles ограничение на кол-во циклов, пройденных по решетке. 
 	 * @return вес кратчайшего ненулевого пути в решетке.
 	 */
-	public static int findMinDist(Trellis trellis, int distanceMetric, int cycles)
+	public static int findMinDistWithViterby(Trellis trellis, int distanceMetric, int cycles)
 	{
 		int minDist = Integer.MAX_VALUE;		
-		
+		                        
 		for(int v = 0;v < trellis.Layers[0].length;v ++)
 		{
 			ViterbiAlgorithm.Vertex[] lastLayer;
@@ -69,19 +75,24 @@ public class MinDistance {
 				minDist = pathWeight;
 			}
 		}
-		
+
 		return minDist;
 	}
 
 	/**
 	 * Вычисляет минимальное расстояние блокового кода.
 	 * @param code блоковый код
-	 * @return
+	 * @return минимальное расстояние блокового кода
 	 */
 	public static int findMinDist(BlockCode code) {
 		return findMinDistWithBEAST(new BlockCodeTrellis(code.getGeneratorSpanForm()), 0, code.getN());
 	}
 	
+	/**
+	 * Вычисляет свободное расстояние сверточного кода.
+	 * @param code сверточный код
+	 * @return свободное расстояние сверточного кода
+	 */
 	public static int findFreeDist(ConvCode code) {
 		PolyMatrix minBaseGen = ConvCodeAlgs.getMinimalBaseGenerator(code.generator());
 		Trellis trellis = ConvCodeAlgs.buildTrellis(ConvCodeAlgs.buildSpanForm(minBaseGen));
@@ -90,7 +101,26 @@ public class MinDistance {
 	}
 	
 	/**
-	 * Вычисляет метрику на ребрах решекти и вычисляет min/free dist кода.
+	 * Вычисляет минимальное расстояние усеченного блокового кода.
+	 * @param code усеченного блоковый код
+	 * @return минимальное расстояние усеченного блокового кода
+	 */
+	public static int findMinDist(TruncatedCode code) {
+		ITrellis trellis = new BlockCodeTrellis(code.getGeneratorSpanForm());
+		
+		int minDist = Integer.MAX_VALUE;
+		for (int vertexIndex = 0; vertexIndex < trellis.layerSize(0); ++vertexIndex) {
+			ITrellisIterator root = trellis.iterator(0, vertexIndex);
+			ITrellisIterator toor = trellis.iterator(0, vertexIndex);
+			
+			minDist = Math.min(minDist, BeastAlgorithm.countMinDist(root, toor, 0, code.getN()));
+		}
+
+		return minDist;
+	}
+
+	/**
+	 * Вычисляет метрику на ребрах решетки и вычисляет min/free dist кода.
 	 * @param trellis
 	 * @param upperBound
 	 * @return
@@ -111,7 +141,7 @@ public class MinDistance {
 	 * Для работы со сверточным кодом: <code>upperBound</code> достаточно взять равным n*(delay+1)  
 	 * 
 	 * @param trellis решетка блокового или сверточного кода 
-	 * @param distanceMetric номер метрики в решетке для рассчета веса путей.
+	 * @param distanceMetric номер метрики в решетке для рассчета веса путей
 	 * @param upperBound верхняя оценка min/free dist 
 	 * @return минимальное расстояния кода
 	 */
@@ -129,23 +159,23 @@ public class MinDistance {
 	 */
 	public static int findMinDist(Matrix gen)
 	{
+		if (gen.getRowCount() > Integer.SIZE - 2) {
+			throw new IllegalArgumentException("Code with input word length more, then " + (Integer.SIZE - 2) + ", is not supported.");
+		}
+		
 		int minDist = Integer.MAX_VALUE;
 		BitArray codeWord = new BitArray(gen.getColumnCount());
 
-		for(int w = 1;w < (1<<(gen.getRowCount()));w ++)
-		{			
+		for(int w = 1; w < (1<<gen.getRowCount()); w++) {			
 			int changedBit = GrayCode.getChangedPosition(w);
-			int weight;
 			
 			codeWord.xor(gen.getRow(changedBit));
-			weight = codeWord.cardinality();
-			if(weight < minDist && weight != 0)
-			{
+			int weight = codeWord.cardinality();
+			if (weight < minDist && weight != 0) {
 				minDist = weight;
 			}
 		}
 		
 		return minDist;
 	}
-		
 }
