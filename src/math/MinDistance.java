@@ -25,10 +25,11 @@ public class MinDistance {
 				for(int k = 0; k < trellis.Layers[i][j].Accessors.length; k++)
 				{
 					double[] oldMetrics = trellis.Layers[i][j].Accessors[k].Metrics;
+					int newMetricsCnt = oldMetrics == null ? 1 : oldMetrics.length + 1;
 					
-					trellis.Layers[i][j].Accessors[k].Metrics = new double[oldMetrics.length + 1];
+					trellis.Layers[i][j].Accessors[k].Metrics = new double[newMetricsCnt];
 					trellis.Layers[i][j].Accessors[k].Metrics[0] = trellis.Layers[i][j].Accessors[k].Bits.cardinality(); 
-					for(int m = 1; m < oldMetrics.length + 1; m++)
+					for(int m = 1; m < newMetricsCnt; m++)
 					{
 						trellis.Layers[i][j].Accessors[k].Metrics[m] = oldMetrics[m - 1];
 					}
@@ -43,16 +44,18 @@ public class MinDistance {
 	 * выходят из нулевой вершины нулевого слоя и имеют проходят по решетке не
 	 * более <code>cycles</code> раз. 
 	 *
-	 * @param trellis решетка блокового или сверточного кода
-	 * @param distanceMetric
+	 * @param trellis решетка блокового или сверточного кода.
+	 * @param distanceMetric номер метрики с длинами.
 	 * @param cycles ограничение на кол-во циклов, пройденных по решетке. 
+	 * @param fromZeroVertex стартовать только с нулевой вершины.
 	 * @return вес кратчайшего ненулевого пути в решетке.
 	 */
-	public static int findMinDist(Trellis trellis, int distanceMetric, int cycles)
+	public static int findMinDistWithVA(Trellis trellis, int distanceMetric, int cycles, boolean fromZeroVertex)
 	{
-		int minDist = Integer.MAX_VALUE;		
-		
-		for(int v = 0;v < trellis.Layers[0].length;v ++)
+		int minDist = Integer.MAX_VALUE;
+		int lookForPathsFromCnt = fromZeroVertex ? 1 : trellis.Layers[0].length; 
+				
+		for(int v = 0;v < lookForPathsFromCnt;v ++)
 		{
 			ViterbiAlgorithm.Vertex[] lastLayer;
 			
@@ -80,14 +83,16 @@ public class MinDistance {
 	 * @return
 	 */
 	public static int findMinDist(BlockCode code) {
-		return findMinDistWithBEAST(new BlockCodeTrellis(code.getGeneratorSpanForm()), 0, code.getN());
+		code.setMinDist(findMinDistWithBEAST(new BlockCodeTrellis(code.getGeneratorSpanForm()), 0, code.getN()));
+		return code.getMinDist();
 	}
 	
 	public static int findFreeDist(ConvCode code) {
 		PolyMatrix minBaseGen = ConvCodeAlgs.getMinimalBaseGenerator(code.generator());
 		Trellis trellis = ConvCodeAlgs.buildTrellis(ConvCodeAlgs.buildSpanForm(minBaseGen));
 		computeDistanceMetrics(trellis);
-		return findMinDistWithBEAST(trellis, 0, code.getN() * (code.getDelay() + 1));
+		code.setFreeDist(findMinDistWithBEAST(trellis, 0, code.getN() * (code.getDelay() + 1)));
+		return code.getFreeDist();
 	}
 	
 	/**

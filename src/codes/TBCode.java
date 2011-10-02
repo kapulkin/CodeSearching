@@ -1,8 +1,9 @@
 package codes;
 
+import math.ConvCodeAlgs;
 import math.MinDistance;
+import math.PolyMatrix;
 import trellises.Trellis;
-import trellises.Trellises;
 
 /**
  * Tailbiting код. Усеченый код при L0 = 0.
@@ -30,7 +31,10 @@ public class TBCode extends TruncatedCode {
 			return trellis;
 		}
 		
-		Trellis segment = Trellises.trellisSegmentFromGenSF(getGeneratorSpanForm(), 0, parentCode.getK());
+		PolyMatrix minBaseGen = ConvCodeAlgs.getMinimalBaseGenerator(parentCode.generator());
+		Trellis trellis = ConvCodeAlgs.buildTrellis(ConvCodeAlgs.buildSpanForm(minBaseGen));
+		
+		/*Trellis segment = Trellises.trellisSegmentFromGenSF(getGeneratorSpanForm(), 0, parentCode.getK());
 		
 		Trellis.Vertex[] firstLayer = segment.Layers[0];
 		Trellis.Vertex[] lastLayer = segment.Layers[segment.Layers.length-1];
@@ -45,9 +49,17 @@ public class TBCode extends TruncatedCode {
 		for(int i = 0;i < trellis.Layers.length;i ++)
 		{
 			trellis.Layers[i] = segment.Layers[i]; 
-		}		
+		}/**/		
 		
 		return trellis;
+	}
+	
+	public int getMinDist()
+	{
+		if(minDist != -1)
+			return minDist;
+		
+		return getMinDistByTrellis();
 	}
 	
 	/**
@@ -64,7 +76,7 @@ public class TBCode extends TruncatedCode {
 		Trellis t = getTrellis();
 		
 		MinDistance.computeDistanceMetrics(t);
-		minDist = MinDistance.findMinDist(t, 0, blockGenMatr.getColumnCount());
+		minDist = MinDistance.findMinDistWithVA(t, 0, blockGenMatr.getColumnCount(), false);
 		
 		return minDist;
 	}

@@ -1,9 +1,9 @@
 package in_out_interfaces;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,31 +12,24 @@ import math.Matrix;
 
 public class IOBlockMatrix {
 	
-	public static BlockMatrix readMatrix(BufferedReader reader) throws IOException
+	public static BlockMatrix readMatrix(Scanner scanner) throws IOException
 	{
 		ArrayList<Matrix[]> data = new ArrayList<Matrix[]>();
 		int blocksCnt;
 		Matrix[] blocks;
-		String line;
 		
-		while((line = reader.readLine()).equals("")) {}
-		
-		blocksCnt = Integer.parseInt(line);
+		blocksCnt = scanner.nextInt();
 		blocks = new Matrix[blocksCnt];
 		
 		for(int i = 0;i < blocksCnt;i ++)
 		{
 			int rows;
 			
-			while((line = reader.readLine()).equals("")) {}
-			
-			rows = Integer.parseInt(line);
-			
-			blocks[i] = IOMatrix.readMatrix(reader, rows);
+			rows = scanner.nextInt();			
+			blocks[i] = IOMatrix.readMatrix(scanner, rows);
 		}
 		
-		while((line = reader.readLine()).equals("")) {}
-		
+		String line = scanner.next();
 		do
 		{			
 			Pattern patt = Pattern.compile("0|A|B|C|D|E");
@@ -62,7 +55,8 @@ public class IOBlockMatrix {
 			}
 						
 			data.add(comprRow);
-		}while((line=reader.readLine()) != null && !line.trim().equals(""));
+			line = scanner.next();
+		}while(scanner.hasNextLine());
 		
 		BlockMatrix matr = new BlockMatrix(data.size(), data.get(0).length,
 				data.get(0)[0].getRowCount(), data.get(0)[0].getColumnCount());

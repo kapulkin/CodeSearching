@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.Scanner;
 
 import math.Matrix;
 import math.PolyMatrix;
@@ -199,14 +200,14 @@ public class CodesDatabase {
 				String str;
 				str = rs.getString("generator");
 				if (str != null) {
-					Matrix generator = IOMatrix.readMatrix(new BufferedReader(new StringReader(str)));
+					Matrix generator = IOMatrix.readMatrix(new Scanner(new StringReader(str)));
 					code = new BlockCode(generator, true);
 				}
 				
 				if (code == null) {
 					str = rs.getString("parity_check");
 					if (str != null) {
-						Matrix parityCheck = IOMatrix.readMatrix(new BufferedReader(new StringReader(str)));
+						Matrix parityCheck = IOMatrix.readMatrix(new Scanner(new StringReader(str)));
 						code = new BlockCode(parityCheck, false);
 					}
 				}

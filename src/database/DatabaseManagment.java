@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 import codes.ConvCode;
 
-import search_procedures.CodesFromArticleSearcher;
+import search_procedures.conv_codes.CodesFromArticleSearcher;
 
 public class DatabaseManagment {
 	public static void fillArticleCodesTable(int freeDist) throws IOException, SQLException {

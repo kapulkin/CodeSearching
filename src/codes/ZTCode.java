@@ -1,5 +1,8 @@
 package codes;
 
+import math.MinDistance;
+import trellises.Trellis;
+
 /**
  * Zero-tail код. Усеченый код при L0 = delay.
  * @author fedor
@@ -16,5 +19,32 @@ public class ZTCode extends TruncatedCode {
 	public ZTCode(ConvCode code, int scaleDelta)
 	{
 		super(code, code.getDelay(), scaleDelta);
+	}
+	
+	public int getMinDist()
+	{
+		if(minDist != -1)
+			return minDist;
+		
+		return getMinDistByTrellis();
+	}
+	
+	/**
+	 * 
+	 * @return Минимальное расстояние кода
+	 */
+	public int getMinDistByTrellis()
+	{
+		if(minDist != -1)
+		{
+			return minDist;
+		}
+		
+		Trellis t = getTrellis();
+		
+		MinDistance.computeDistanceMetrics(t);
+		minDist = MinDistance.findMinDistWithVA(t, 0, 1, false);
+		
+		return minDist;
 	}
 }

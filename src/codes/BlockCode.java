@@ -1,6 +1,7 @@
 package codes;
 
 import trellises.Trellis;
+import trellises.Trellises;
 import math.BitArray;
 import math.BlockCodeAlgs;
 import math.MathAlgs;
@@ -153,15 +154,15 @@ public class BlockCode implements Code {
 	 * 	
 	 * @return Решетка кода
 	 */
-//	public Trellis getTrellis()
-//	{
-//		if(trellis == null)
-//		{
-//			trellis = Trellises.trellisFromGenSF(getGeneratorSpanForm());
-//		}
-//		
-//		return trellis;
-//	}
+	public Trellis getTrellis()
+	{
+		if(trellis == null)
+		{
+			trellis = Trellises.trellisFromGenSF(getGeneratorSpanForm());
+		}
+		
+		return trellis;
+	}
 
 	public int getMinDist() {
 		return minDist;

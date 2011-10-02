@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import codes.BlockCode;
 import codes.ConvCode;
 
-import search_procedures.FreeDist4CCEnumerator;
+import search_procedures.conv_codes.FreeDist4CCEnumerator;
 import trellises.BeastAlgorithm;
 import trellises.ITrellisIterator;
 import trellises.Trellis;
@@ -45,7 +45,7 @@ public class BeastAlgorithmTest {
 			Trellis trellis = Trellises.trellisFromParityCheckHR(code.parityCheck());
 			MinDistance.computeDistanceMetrics(trellis);
 			
-			int VDminDist = MinDistance.findMinDist(trellis, 0, 2 * (code.getDelay() + 1));
+			int VDminDist = MinDistance.findMinDistWithVA(trellis, 0, 2 * (code.getDelay() + 1), false);
 			int BEASTminDist = MinDistance.findMinDistWithBEAST(trellis, code.getN() * (code.getDelay() + 1));
 			
 			System.out.println("Viterby: " + VDminDist);
@@ -65,7 +65,7 @@ public class BeastAlgorithmTest {
 		BlockCode code = new BlockCode(generator, true);
 		Trellis trellis = BlockCodeAlgs.buildTrellis(code);
 		
-		int VDminDist = MinDistance.findMinDist(trellis, 0, 0);
+		int VDminDist = MinDistance.findMinDistWithVA(trellis, 0, 0, false);
 		int BEASTminDist = MinDistance.findMinDistWithBEAST(trellis, 0, code.getN());
 		
 		System.out.println("Viterby: " + VDminDist);

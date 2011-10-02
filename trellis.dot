@@ -1,0 +1,17 @@
+digraph G {
+ranksep=4;rotate=90;
+
+subgraph cluster0 {"0,0";}
+"0,0" -> "1,0" [weight = 100, label="0"];
+"0,0" -> "1,1" [weight = 100, label="1"];
+
+subgraph cluster1 {"1,0";"1,1";}
+"1,0" -> "2,0" [weight = 100, label="0000000"];
+"1,0" -> "2,1" [weight = 100, label="1100101"];
+"1,1" -> "2,0" [weight = 100, label="1010110"];
+"1,1" -> "2,1" [weight = 100, label="0110011"];
+
+subgraph cluster2 {"2,0";"2,1";}
+"2,0" -> "0,0" [weight = 100, label="0"];
+"2,1" -> "0,0" [weight = 100, label="1"];
+}

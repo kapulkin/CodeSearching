@@ -8,7 +8,7 @@ import static org.junit.Assert.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import search_procedures.WeightedCodeWordsEnumerator;
+import search_tools.WeightedCodeWordsEnumerator;
 
 
 public class WeightedCodeWordsEnumeratorTest {

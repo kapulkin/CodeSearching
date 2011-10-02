@@ -19,13 +19,13 @@ import in_out_interfaces.IOBlockMatrix;
 import in_out_interfaces.IOConvCode;
 import in_out_interfaces.IOTrellis;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.Scanner;
 
 
 public class TruncatedCodeTest {
@@ -34,7 +34,7 @@ public class TruncatedCodeTest {
 	@Test
 	public void printTBCodeMatrix() {
 		try {
-			ConvCode code = IOConvCode.readConvCode(new BufferedReader(new FileReader(new File("conv_code2.txt"))));
+			ConvCode code = IOConvCode.readConvCode(new Scanner(new FileReader(new File("conv_code2.txt"))));
 			logger.debug("Conv code:");
 			IOBlockMatrix.writeMatrix(new BlockMatrix(code.getGenBlocks()), new BufferedWriter(new OutputStreamWriter(System.out)));
 			TBCode tbCode = new TBCode(code, 0);
@@ -54,7 +54,7 @@ public class TruncatedCodeTest {
 		ZTCode ztCode = null;
 		int scaleDelta = 0;
 		try {
-			convCode = IOConvCode.readConvCode(new BufferedReader(new FileReader(new File("conv_code2.txt"))));
+			convCode = IOConvCode.readConvCode(new Scanner(new FileReader(new File("conv_code2.txt"))));
 			logger.debug("Conv code:");
 			IOBlockMatrix.writeMatrix(new BlockMatrix(convCode.getGenBlocks()), new BufferedWriter(new OutputStreamWriter(System.out)));
 			scaleDelta = convCode.getDelay();

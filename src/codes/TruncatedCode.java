@@ -89,10 +89,8 @@ public class TruncatedCode extends BlockCode {
 		int[] spanHeads = new int[blockGenMatr.getTotalRowCount()];
 		int[] spanTails = new int[blockGenMatr.getTotalRowCount()];
 				
-		for(int rowBlock = 0;rowBlock < blockGenMatr.getRowCount();rowBlock ++)
-		{			
-			for(int i = 0;i < parentCode.getK();i ++)
-			{
+		for (int rowBlock = 0;rowBlock < blockGenMatr.getRowCount();rowBlock ++) {			
+			for (int i = 0;i < parentCode.getK();i ++) {
 				spanHeads[rowBlock * parentCode.getK() + i] = (pattSpanForm.getHead(i) + rowBlock * parentCode.getN()) % (blockGenMatr.getTotalColumnCount());
 				spanTails[rowBlock * parentCode.getK() + i] = (pattSpanForm.getTail(i) + rowBlock * parentCode.getN()) % (blockGenMatr.getTotalColumnCount());
 			}

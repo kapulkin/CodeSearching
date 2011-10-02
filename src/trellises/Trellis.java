@@ -95,4 +95,18 @@ public class Trellis implements ITrellis{
 	public int layersCount() {
 		return Layers.length;
 	}
+	
+	public int stateComplexity(){
+		int max_s = 0;
+		
+		for(int l = 0;l < layersCount();++ l){
+			int s = (int)Long.numberOfTrailingZeros(layerSize(l));
+			
+			if(s > max_s){
+				max_s = s;
+			}
+		}
+		
+		return max_s;
+	}
 }
