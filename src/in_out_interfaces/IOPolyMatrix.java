@@ -145,7 +145,15 @@ public class IOPolyMatrix {
 	}
 	
 	public static PolyMatrix readMatrix(int radix, BufferedReader reader) throws IOException {
+		if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX) {
+			throw new IllegalArgumentException("Radix " + radix + " is not supported.");
+		}
+		
 		ArrayList<ArrayList<Poly>> polyArrays = new ArrayList<ArrayList<Poly>>();
+		
+		// TODO: протестировать закомменированные ниже 2 строчки и заменить ими следующую незакоментированную
+//		String digits = (radix <= 10 ? "[0-" + (radix-1) + "]" : "[0-9A-" + Character.forDigit(radix - 1, radix));
+//		Pattern pattern = Pattern.compile(digits + "+ (\\s* , \\s* " + digits + "+)+ \\s*", Pattern.COMMENTS);
 		
 		Pattern pattern = Pattern.compile("[0-7]+ (\\s* , \\s* [0-7]+)+ \\s*", Pattern.COMMENTS);
 		

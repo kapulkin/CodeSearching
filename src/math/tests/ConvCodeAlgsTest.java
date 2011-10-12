@@ -60,16 +60,16 @@ public class ConvCodeAlgsTest {
 		ConvCodeSpanForm spanForm = ConvCodeAlgs.buildSpanForm(minBaseG); // should be done without exceptions
 
 		ConvCodeAlgs.sortHeads(spanForm);
-		Trellis trellis1 = ConvCodeAlgs.buildTrellis(spanForm);
+		Trellis trellis = ConvCodeAlgs.buildTrellis(spanForm);
 		
 		try {
-			IOTrellis.writeTrellisInGVZFormat(trellis1, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
+			IOTrellis.writeTrellisInGVZFormat(trellis, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
 		} catch (IOException e) {
 			e.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		int delay = spanForm.delay;
-		TrellisesTest.trellisForwardTraversalShouldGiveCodeWord(new ConvCode(spanForm), trellis1, delay + 1);
+		TrellisesTest.trellisForwardTraversalShouldGiveCodeWord(new ConvCode(spanForm), trellis, delay + 1);
 	}
 }

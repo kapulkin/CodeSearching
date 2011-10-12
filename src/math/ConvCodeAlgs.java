@@ -361,7 +361,7 @@ public class ConvCodeAlgs {
 		int rowIndex = 0;
 		for (int degree = 0; degree <= spanForm.delay; ++degree) {
 			for (int row = 0; row < b; ++row) {
-				if (spanForm.degrees[row] >= degree) {
+				if (degree <= spanForm.degrees[row]) {
 					if (spanForm.degrees[row] == degree) {
 						tailsRows.put(row, rowIndex);
 					}
@@ -373,6 +373,7 @@ public class ConvCodeAlgs {
 
 		TrellisSection[] sections = TrellisUtils.buildSections(spanForm).toArray(new TrellisSection[0]);
 
+		logger.debug("sections:");
 		for (TrellisSection section : sections) {
 			logger.debug(section.toString());
 		}
@@ -399,7 +400,7 @@ public class ConvCodeAlgs {
 
 			logger.debug("next active rows: " + nextActiveRows);
 
-			// [from, to) - полинтервал, соответствующий текущему сегменту.
+			// [from, to) - полуинтервал, соответствующий текущему сегменту.
 			int from = sections[layer].beginColumn();
 			int to = (layer == sections.length - 1) ? c : sections[layer + 1].beginColumn();
 			BitArray sum = new BitArray(to - from);
@@ -424,8 +425,10 @@ public class ConvCodeAlgs {
 				Edge edges[] = new Edge[1 << sections[layer].spanHeads.size()];
 				for (int j = 0; j < edges.length; ++j) {
 					edges[j] = new Edge();
+					edges[j].Metrics = new double[0];
+
 					edges[j].Src = vertexIndex;
-					edges[j].Bits = (BitArray) sum.clone();
+					edges[j].Bits = sum.clone();
 					for (int bit = 0; bit < sections[layer].spanHeads.size(); ++bit) {
 						if ((j & (1 << bit)) != 0) {
 							int row = sections[layer].spanHeads.get(bit).row;
@@ -521,33 +524,27 @@ public class ConvCodeAlgs {
 		return ort;
 	}
 
-	static private boolean decreaseConstraint(PolyMatrix matr)
-	{
+	static private boolean decreaseConstraint(PolyMatrix matr) {
 		Matrix highestDegreesMatr = new Matrix(matr.getRowCount(), matr.getColumnCount());
 		int[] highestDegrees = new int[matr.getRowCount()];
 		
-		for(int i = 0;i < matr.getRowCount();i ++)
-		{			
+		for (int i = 0;i < matr.getRowCount(); ++i) {			
 			int maxDeg = Integer.MIN_VALUE;
 			
-			for(int j = 0;j < matr.getColumnCount();j ++)
-			{
+			for (int j = 0;j < matr.getColumnCount(); ++j) {
 				int deg = matr.get(i, j).getDegree();
 				
-				if(deg > maxDeg)
-				{
+				if (deg > maxDeg) {
 					maxDeg = deg;
 				}
 			}
 			
 			highestDegrees[i] = maxDeg;
 			
-			for(int j = 0;j < matr.getColumnCount();j ++)
-			{
+			for (int j = 0;j < matr.getColumnCount(); ++j) {
 				int deg = matr.get(i, j).getDegree();
 				
-				if(deg == maxDeg)
-				{
+				if (deg == maxDeg) {
 					highestDegreesMatr.set(i, j, true);
 				}else{
 					highestDegreesMatr.set(i, j, false);
@@ -557,32 +554,26 @@ public class ConvCodeAlgs {
 		
 		int[] dependentRows = MathAlgs.findDependentRows(highestDegreesMatr);
 		
-		if(dependentRows.length < 2)
-		{
+		if(dependentRows.length < 2) {
 			return false;
 		}
 		
 		int maxDegInd = -1;
 		int maxDeg = Integer.MIN_VALUE;
 		
-		for(int i = 0;i < dependentRows.length;i ++)
-		{
-			if(highestDegrees[dependentRows[i]] > maxDeg)
-			{
+		for (int i = 0;i < dependentRows.length; ++i) {
+			if (highestDegrees[dependentRows[i]] > maxDeg) {
 				maxDeg = highestDegrees[dependentRows[i]];
 				maxDegInd = i;
 			}
 		}
 		
-		for(int i = 0;i < dependentRows.length;i ++)
-		{
-			if(i == maxDegInd)
-			{
+		for (int i = 0;i < dependentRows.length; ++i) {
+			if (i == maxDegInd) {
 				continue;
 			}
 			
-			for(int j = 0;j < matr.getColumnCount();j ++)
-			{
+			for (int j = 0;j < matr.getColumnCount(); ++j) {
 				Poly summand = matr.get(i, j).mulPow(maxDeg - highestDegrees[dependentRows[i]]);
 				matr.set(maxDegInd, j, matr.get(maxDegInd, j).sum(summand));
 			}

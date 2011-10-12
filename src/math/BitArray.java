@@ -1,16 +1,16 @@
 package math;
 
-import math.BitSet;
-
 /**
  * Массив из фиксированного колличества битов. 
  * @author stas
  *
  */
 public class BitArray implements Cloneable{
-	private BitSet bitSet;
+	protected BitSet bitSet;
+	int fixedSize;
 
 	protected BitArray() {
+		bitSet = null;
 	}
 	
     /**
@@ -23,14 +23,16 @@ public class BitArray implements Cloneable{
      */
 	public BitArray(int fixedSize) {
 		this.bitSet = new BitSet(fixedSize);
+		this.fixedSize = fixedSize;
 	}
 	
-	public BitArray(BitSet bitSet) {
-		this.bitSet = bitSet;
+	public BitArray(BitArray array) {
+		this.bitSet = array.bitSet;
+		this.fixedSize = array.fixedSize;
 	}
 	
 	public int getFixedSize() {
-		return bitSet.getFixedSize();
+		return fixedSize;
 	}
 	
 	public BitSet getBitSet() {
@@ -76,9 +78,10 @@ public class BitArray implements Cloneable{
 		bitSet.clear(fromIndex, toIndex);
 	}
 
-	public Object clone() {
+	public BitArray clone() {
 		BitArray array = new BitArray();
 		array.bitSet = (BitSet) bitSet.clone();
+		array.fixedSize = fixedSize;
 		
 		return array;
 	}
@@ -109,7 +112,7 @@ public class BitArray implements Cloneable{
 
 	public boolean get(int bitIndex) {
 		if (bitIndex >= getFixedSize()) {
-			throw new IndexOutOfBoundsException("" + bitIndex);
+			throw new IndexOutOfBoundsException("bitIndex > fixedSize: " + bitIndex + " > " + getFixedSize());
 		}
 		
 		return bitSet.get(bitIndex);
@@ -240,7 +243,15 @@ public class BitArray implements Cloneable{
 		bitSet.xor(array.bitSet);
 	}
 	
-	public Boolean[] toArray() {
-		return bitSet.toArray();
-	}
+    public Boolean[] toArray()
+    {
+    	Boolean[] array = new Boolean[fixedSize];
+    	
+    	for (int i = 0; i < fixedSize; i++)
+    	{
+    		array[i] = bitSet.get(i);
+    	}
+    	
+    	return array;
+    }
 }

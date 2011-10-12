@@ -263,4 +263,18 @@ public class TrellisUtils {
 			}
 		}
 	}
+	
+	public static int stateComplexity(ITrellis trellis) {
+		int max_s = 0;
+		
+		for(int l = 0;l < trellis.layersCount();++ l){
+			int s = (int)Long.numberOfTrailingZeros(trellis.layerSize(l));
+			
+			if(s > max_s){
+				max_s = s;
+			}
+		}
+		
+		return max_s;
+	}
 }

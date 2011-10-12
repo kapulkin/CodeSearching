@@ -1,33 +1,41 @@
 package trellises;
 
+import java.util.Iterator;
+
 /**
- * Объект следует вдоль пути решетки при обходе в алгоритме Beast.
+ * Позволяет двигаться по решетке, отслеживая необходимую информацию о пройденном в решетке пути.
+ * 
+ * Используется в алгоритме BEAST.
  * @author stas
  *
  */
-public interface PathTracker extends Cloneable, Comparable<PathTracker> {
-	/**
-	 * @return итератор, движение которого отслеживается
-	 */
-	public ITrellisIterator iterator();
+public interface PathTracker {
+	public int layer();
+	public long vertexIndex();
 	/**
 	 * @return вес пути, пройденного итератором
 	 */
 	public double weight();
 	/**
-	 * Продвижение по пути вперед.  
-	 * @param edgeIndex индекс ребра, по которому происходит движение.
-	 * @param edgeWeight вес ребра
+	 * @return <code>true</code>, если возможно движение вперед
 	 */
-	public void moveForward(int edgeIndex, double edgeWeight);
+	boolean hasForward();
 	/**
-	 * Продвижение по пути назад.  
-	 * @param edgeIndex индекс ребра, по которому происходит движение.
-	 * @param edgeWeight вес ребра
+	 * @return <code>true</code>, если возможно движение назад
 	 */
-	public void moveBackward(int edgeIndex, double edgeWeight);
-	
-	public Object clone();
-	public boolean equals(Object obj);
-	public int compareTo(PathTracker tracker);
+	boolean hasBackward();
+	/**
+	 * Метод возвращает итератор на множество следующих вершин в решетке. Первой
+	 * вершиной, возвращаемой итератором, должна быть вершина, полученная при 
+	 * переходе по ребру нулевого веса.
+	 * @return итератор на следующие вершины в решетке 
+	 */
+	Iterator<PathTracker> forwardIterator();
+	/**
+	 * Метод возвращает итератор на множество предыдущих вершин в решетке. Первой
+	 * вершиной, возвращаемой итератором, должна быть вершина, полученная при 
+	 * переходе по ребру нулевого веса.
+	 * @return итератор на предыдущие вершины в решетке
+	 */
+	Iterator<PathTracker> backwardIterator();
 }

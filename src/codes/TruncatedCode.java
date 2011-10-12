@@ -3,6 +3,7 @@ package codes;
 import math.BlockCodeAlgs;
 import math.BlockMatrix;
 import math.Matrix;
+import math.MinDistance;
 import math.SpanForm;
 
 public class TruncatedCode extends BlockCode {
@@ -66,9 +67,16 @@ public class TruncatedCode extends BlockCode {
 	 * Возвращает сверточный код, по которому был построен данный. 
 	 * @return сверточный код, по которому был построен данный
 	 */
-	public ConvCode getParentCode()
-	{
+	public ConvCode getParentCode() {
 		return parentCode;
+	}
+	
+	public int getMinDist() {
+		if (minDist == -1) {
+			minDist = MinDistance.findMinDist(this);
+		}
+		
+		return minDist;
 	}
 
 	@Override

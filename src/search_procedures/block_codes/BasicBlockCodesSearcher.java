@@ -1,7 +1,8 @@
 package search_procedures.block_codes;
 
 import search_heuristics.IHeuristic;
-import trellises.Trellis;
+import trellises.ITrellis;
+import trellises.TrellisUtils;
 
 import codes.BlockCode;
 
@@ -25,9 +26,15 @@ public class BasicBlockCodesSearcher extends BlockCodesBaseSearchScheme {
 			return null;
 		}
 		
-		Trellis trellis = candidate.getTrellis();
+		try {
+			candidate.getGeneratorSpanForm();
+		}catch(Exception e) {
+			return null;
+		}
 		
-		if (trellis.stateComplexity() > requiredStateComplexity) {
+		ITrellis trellis = candidate.getTrellis();
+		
+		if (TrellisUtils.stateComplexity(trellis) > requiredStateComplexity) {
 			return null;
 		}
 		

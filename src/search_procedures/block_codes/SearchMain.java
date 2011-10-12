@@ -15,10 +15,9 @@ import search_heuristics.CCWeightsDistHeur;
 import search_heuristics.CombinedHeuristic;
 import search_heuristics.LRCCGreismerDistHeur;
 import search_heuristics.TBWeightDistHeur;
-
+import trellises.TrellisUtils;
 import math.MinDistance;
 import codes.BlockCode;
-import codes.ZTCode;
 
 public class SearchMain {
 	private static int[][] complexityLowerBounds;
@@ -69,7 +68,7 @@ public class SearchMain {
 				if(codes[i].getN() < distanceUpperBounds[codes[i].getK()].length){
 					writer.write("(" + distanceUpperBounds[codes[i].getK()][codes[i].getN()] + "," + distancesInPaper[codes[i].getK()][codes[i].getN()] + ")");
 				}
-					writer.write(", s = " + codes[i].getTrellis().stateComplexity());
+					writer.write(", s = " + TrellisUtils.stateComplexity(codes[i].getTrellis()));
 				if(codes[i].getN() < distanceUpperBounds[codes[i].getK()].length){
 					writer.write("(" + complexityLowerBounds[codes[i].getK()][codes[i].getN()] + "," + complexitiesInPaper[codes[i].getK()][codes[i].getN()] + ")");
 				}

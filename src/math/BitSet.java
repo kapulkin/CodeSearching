@@ -94,8 +94,6 @@ public class BitSet implements Cloneable, java.io.Serializable {
      */
     private transient int wordsInUse = 0;
     
-    private int fixedSize = 0;
-
     /**
      * Whether the size of "words" is user-specified.  If so, we assume
      * the user knows what he's doing and try harder to preserve it.
@@ -158,7 +156,6 @@ public class BitSet implements Cloneable, java.io.Serializable {
 	if (nbits < 0)
 	    throw new NegativeArraySizeException("nbits < 0: " + nbits);
 
-	fixedSize = nbits;
 	initWords(nbits);
 	sizeIsSticky = true;
     }
@@ -526,18 +523,6 @@ public class BitSet implements Cloneable, java.io.Serializable {
 	return result;
     }
 
-    public Boolean[] toArray()
-    {
-    	Boolean[] array = new Boolean[fixedSize];
-    	
-    	for(int i = 0;i < fixedSize;i ++)
-    	{
-    		array[i] = get(i);
-    	}
-    	
-    	return array;
-    }
-    
     /**
      * Returns the index of the first bit that is set to <code>true</code>
      * that occurs on or after the specified starting index. If no such
@@ -682,11 +667,6 @@ public class BitSet implements Cloneable, java.io.Serializable {
 		return -1;
 	    word = ~words[u];
 	}
-    }
-    
-    public int getFixedSize()
-    {
-    	return fixedSize;
     }
 
     /**

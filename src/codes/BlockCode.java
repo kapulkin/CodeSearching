@@ -1,7 +1,7 @@
 package codes;
 
-import trellises.Trellis;
-import trellises.Trellises;
+import trellises.BlockCodeTrellis;
+import trellises.ITrellis;
 import math.BitArray;
 import math.BlockCodeAlgs;
 import math.MathAlgs;
@@ -28,7 +28,7 @@ public class BlockCode implements Code {
 	/**
 	 * Решетка кода 
 	 */
-	protected Trellis trellis;
+	protected ITrellis trellis;
 	
 	/**
 	 * Количество информационных символов
@@ -154,7 +154,7 @@ public class BlockCode implements Code {
 	 * 	
 	 * @return Решетка кода
 	 */
-	public Trellis getTrellis()
+	/*public Trellis getTrellis()
 	{
 		if(trellis == null)
 		{
@@ -162,6 +162,14 @@ public class BlockCode implements Code {
 		}
 		
 		return trellis;
+	}/**/
+	
+	public ITrellis getTrellis() {
+		if (trellis == null) {
+			trellis = new BlockCodeTrellis(getGeneratorSpanForm());
+		}
+		
+		return trellis; 
 	}
 
 	public int getMinDist() {

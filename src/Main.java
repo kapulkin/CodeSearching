@@ -1,4 +1,4 @@
-
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.Scanner;
 
 import codes.BlockCode;
 import codes.ConvCode;
@@ -34,14 +33,14 @@ import in_out_interfaces.IOTrellis;
 
 public class Main {
 
-	private static void blockCodeTest() throws IOException
+/*	private static void blockCodeTest() throws IOException
 	{
-		Matrix mat = IOMatrix.readMatrix(new Scanner(new FileReader(new File("matr1.txt"))));				
+		Matrix mat = IOMatrix.readMatrix(new BufferedReader(new FileReader(new File("matr1.txt"))));				
 		BlockCode blockCode = new BlockCode(mat, true);		
 		SpanForm sf = blockCode.getGeneratorSpanForm();		
 		Matrix ort = blockCode.parityCheck();		
 		Trellis trellis = BlockCodeAlgs.buildTrellis(blockCode);		
-		int minDist = MinDistance.findMinDistWithVA(trellis, 0, 0, false);
+		int minDist = MinDistance.findMinDistWithViterby(trellis, 0, 0);
 		
 		IOMatrix.writeMatrix(sf.Matr, new BufferedWriter(new OutputStreamWriter(System.out)));
 		
@@ -59,9 +58,9 @@ public class Main {
 	
 	private static void convCodeTest() throws FileNotFoundException, IOException
 	{
-		ConvCode convCode = IOConvCode.readConvCode(new Scanner(new FileReader(new File("conv_code2.txt"))));
+		ConvCode convCode = IOConvCode.readConvCode(new BufferedReader(new FileReader(new File("conv_code2.txt"))));
 		TBCode tbCode = new TBCode(convCode, 2);
-		ZTCode ztCode = new ZTCode(convCode, 0);//convCode.getDelay());
+		ZTCode ztCode = new ZTCode(convCode, convCode.getDelay());
 		
 		IOMatrix.writeMatrix(tbCode.generator(), new BufferedWriter(new OutputStreamWriter(System.out)));
 		
@@ -78,12 +77,12 @@ public class Main {
 		System.out.println(tbCode.getMinDistByTrellis());
 		System.out.println(MinDistance.findMinDist(tbCode.generator()));
 //		System.out.println(convCode.getFreeDistanceByVA());
-		System.out.println(MinDistance.findMinDistWithVA(BlockCodeAlgs.buildTrellis(ztCode), 0, 0, false));
+		System.out.println(MinDistance.findMinDistWithViterby(BlockCodeAlgs.buildTrellis(ztCode), 0, 0));
 	}
 	
 	private static void smithDecompositionTest() throws FileNotFoundException, IOException
 	{
-		BlockMatrix mat = new BlockMatrix((IOMatrix.readMatrix(new Scanner(new FileReader(new File("matr1.txt"))))), 1, 3);
+		BlockMatrix mat = new BlockMatrix((IOMatrix.readMatrix(new BufferedReader(new FileReader(new File("matr1.txt"))))), 1, 3);
 		PolyMatrix polyMat = new PolyMatrix(mat.getRowCount(), mat.getColumnCount()); 
 		
 		for(int i = 0;i < mat.getRowCount();i ++)
@@ -121,7 +120,7 @@ public class Main {
 		ConvCodeAlgs.toMinimalForm(polyMat);
 		IOPolyMatrix.writeMatrix(polyMat, System.out);
 		System.out.println();
-	}
+	}/**/
 	
 	/**
 	 * @param args
@@ -129,7 +128,43 @@ public class Main {
 	 */
 	public static void main(String[] args) throws IOException 
 	{
-		convCodeTest();
+		//smithDecompositionTest();
+		//convCodeTest();
+		
+		/*HighRateCCSearcher searcher = new HighRateCCSearcher();
+		ConvCode code = searcher.search(4, 5, 2);
+		
+		if(code != null)
+		{
+			IOMatrix.writeMatrix(code.generator().breakBlockStructure(), new BufferedWriter(new OutputStreamWriter(System.out)));
+			System.out.println();
+			
+			IOMatrix.writeMatrix(new BlockMatrix(code.getGenBlocks()).breakBlockStructure(), new BufferedWriter(new OutputStreamWriter(System.out)));
+			System.out.println();
+		}/**/
+		
+//		PolyMatrix parityCheck = new PolyMatrix(1, 4);
+//		
+//		parityCheck.set(0, 0, new Poly(new Boolean[]{true}));
+//		parityCheck.set(0, 1, new Poly(new Boolean[]{true, true}));
+//		parityCheck.set(0, 2, new Poly(new Boolean[]{true, false, true}));
+//		parityCheck.set(0, 3, new Poly(new Boolean[]{true, true, true}));
+		
+		PolyMatrix parityCheck = new PolyMatrix(1, 4);
+		parityCheck.set(0, 0, new Poly(new Boolean[]{true, false}));
+		parityCheck.set(0, 1, new Poly(new Boolean[]{true, true, true}));
+		parityCheck.set(0, 2, new Poly(new Boolean[]{true, true, false, true}));
+		parityCheck.set(0, 3, new Poly(new Boolean[]{true, true, true, true}));
+		
+		Trellis trellis = Trellises.trellisFromParityCheckHR(parityCheck);
+		
+		IOTrellis.writeTrellisInGVZFormat(trellis, new BufferedWriter(new FileWriter(new File("trellis.dot"))));/**/
+		
+		MinDistance.computeDistanceMetrics(trellis);
+		
+		int minDist = MinDistance.findMinDistWithBEAST(trellis, 0, 6);
+		
+		System.out.println(minDist);
 	}
 
 }
