@@ -1,10 +1,12 @@
+.gitignore
 *.jar
 *.txt
+*.dot
 *.class
 bin/
 .metadata/
 .settings/
+.classpath
 *.ps
 .dropbox
 doc/
-
