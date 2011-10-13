@@ -106,7 +106,7 @@ public class MinDistance {
 	 * @return минимальное расстояние усеченного блокового кода
 	 */
 	public static int findMinDist(TruncatedCode code) {
-		ITrellis trellis = new BlockCodeTrellis(code.getGeneratorSpanForm());
+		ITrellis trellis = code.getTrellis();//new BlockCodeTrellis(code.getGeneratorSpanForm());
 		
 		int minDist = Integer.MAX_VALUE;
 		for (int vertexIndex = 0; vertexIndex < trellis.layerSize(0); ++vertexIndex) {
@@ -157,8 +157,7 @@ public class MinDistance {
 	 * @param gen порождающая матрица блокового кода
 	 * @return минимальное расстояние блокового кода
 	 */
-	public static int findMinDist(Matrix gen)
-	{
+	public static int findMinDist(Matrix gen) {
 		if (gen.getRowCount() > Integer.SIZE - 2) {
 			throw new IllegalArgumentException("Code with input word length more, then " + (Integer.SIZE - 2) + ", is not supported.");
 		}
@@ -166,7 +165,7 @@ public class MinDistance {
 		int minDist = Integer.MAX_VALUE;
 		BitArray codeWord = new BitArray(gen.getColumnCount());
 
-		for(int w = 1; w < (1<<gen.getRowCount()); w++) {			
+		for (int w = 1; w < (1<<gen.getRowCount()); w++) {			
 			int changedBit = GrayCode.getChangedPosition(w);
 			
 			codeWord.xor(gen.getRow(changedBit));

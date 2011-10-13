@@ -1,4 +1,4 @@
-package search_procedures;
+package search_procedures.conv_codes;
 
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
@@ -7,6 +7,9 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import search_procedures.AEnumerator;
+import search_tools.RowsEnumerator;
+import search_tools.WeightedCodeWordsEnumerator;
 import trellises.Trellis;
 import trellises.Trellises;
 import math.BitArray;

@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.*;
 
-import search_procedures.SumDecomposition;
+import search_tools.SumDecomposition;
 
 
 public class SumDecompositionTest {

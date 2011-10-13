@@ -95,4 +95,5 @@ public class Trellis implements ITrellis{
 	public int layersCount() {
 		return Layers.length;
 	}
+	
 }

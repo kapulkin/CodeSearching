@@ -252,7 +252,7 @@ public class Trellises {
 		}
 		
 		Trellis trellis = new Trellis();
-		
+				
 		trellis.Layers = new Trellis.Vertex[layers.size()][];
 		layers.toArray(trellis.Layers);
 		

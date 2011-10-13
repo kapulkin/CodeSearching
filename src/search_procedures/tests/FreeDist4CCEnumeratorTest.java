@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import codes.ConvCode;
 
-import search_procedures.FreeDist4CCEnumerator;
+import search_procedures.conv_codes.FreeDist4CCEnumerator;
 import trellises.Trellis;
 import trellises.Trellises;
 

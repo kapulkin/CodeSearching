@@ -524,33 +524,27 @@ public class ConvCodeAlgs {
 		return ort;
 	}
 
-	static private boolean decreaseConstraint(PolyMatrix matr)
-	{
+	static private boolean decreaseConstraint(PolyMatrix matr) {
 		Matrix highestDegreesMatr = new Matrix(matr.getRowCount(), matr.getColumnCount());
 		int[] highestDegrees = new int[matr.getRowCount()];
 		
-		for(int i = 0;i < matr.getRowCount();i ++)
-		{			
+		for (int i = 0;i < matr.getRowCount(); ++i) {			
 			int maxDeg = Integer.MIN_VALUE;
 			
-			for(int j = 0;j < matr.getColumnCount();j ++)
-			{
+			for (int j = 0;j < matr.getColumnCount(); ++j) {
 				int deg = matr.get(i, j).getDegree();
 				
-				if(deg > maxDeg)
-				{
+				if (deg > maxDeg) {
 					maxDeg = deg;
 				}
 			}
 			
 			highestDegrees[i] = maxDeg;
 			
-			for(int j = 0;j < matr.getColumnCount();j ++)
-			{
+			for (int j = 0;j < matr.getColumnCount(); ++j) {
 				int deg = matr.get(i, j).getDegree();
 				
-				if(deg == maxDeg)
-				{
+				if (deg == maxDeg) {
 					highestDegreesMatr.set(i, j, true);
 				}else{
 					highestDegreesMatr.set(i, j, false);
@@ -560,32 +554,26 @@ public class ConvCodeAlgs {
 		
 		int[] dependentRows = MathAlgs.findDependentRows(highestDegreesMatr);
 		
-		if(dependentRows.length < 2)
-		{
+		if(dependentRows.length < 2) {
 			return false;
 		}
 		
 		int maxDegInd = -1;
 		int maxDeg = Integer.MIN_VALUE;
 		
-		for(int i = 0;i < dependentRows.length;i ++)
-		{
-			if(highestDegrees[dependentRows[i]] > maxDeg)
-			{
+		for (int i = 0;i < dependentRows.length; ++i) {
+			if (highestDegrees[dependentRows[i]] > maxDeg) {
 				maxDeg = highestDegrees[dependentRows[i]];
 				maxDegInd = i;
 			}
 		}
 		
-		for(int i = 0;i < dependentRows.length;i ++)
-		{
-			if(i == maxDegInd)
-			{
+		for (int i = 0;i < dependentRows.length; ++i) {
+			if (i == maxDegInd) {
 				continue;
 			}
 			
-			for(int j = 0;j < matr.getColumnCount();j ++)
-			{
+			for (int j = 0;j < matr.getColumnCount(); ++j) {
 				Poly summand = matr.get(i, j).mulPow(maxDeg - highestDegrees[dependentRows[i]]);
 				matr.set(maxDegInd, j, matr.get(maxDegInd, j).sum(summand));
 			}

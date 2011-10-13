@@ -32,7 +32,7 @@ import codes.ConvCode;
 import codes.TBCode;
 import codes.ZTCode;
 
-import search_procedures.FreeDist4CCEnumerator;
+import search_procedures.conv_codes.FreeDist4CCEnumerator;
 import trellises.BeastAlgorithm;
 import trellises.ITrellisIterator;
 import trellises.Trellis;

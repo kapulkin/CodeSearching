@@ -1,4 +1,4 @@
-package search_procedures;
+package search_procedures.conv_codes;
 
 import java.io.BufferedReader;
 import java.io.IOException;

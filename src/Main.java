@@ -33,7 +33,7 @@ import in_out_interfaces.IOTrellis;
 
 public class Main {
 
-	private static void blockCodeTest() throws IOException
+/*	private static void blockCodeTest() throws IOException
 	{
 		Matrix mat = IOMatrix.readMatrix(new BufferedReader(new FileReader(new File("matr1.txt"))));				
 		BlockCode blockCode = new BlockCode(mat, true);		
@@ -120,7 +120,7 @@ public class Main {
 		ConvCodeAlgs.toMinimalForm(polyMat);
 		IOPolyMatrix.writeMatrix(polyMat, System.out);
 		System.out.println();
-	}
+	}/**/
 	
 	/**
 	 * @param args

@@ -1,7 +1,7 @@
 package in_out_interfaces;
 
-import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Scanner;
 
 import codes.ConvCode;
 
@@ -10,16 +10,13 @@ import math.Matrix;
 
 public class IOConvCode {
 
-	public static ConvCode readConvCode(BufferedReader reader) throws IOException
+	public static ConvCode readConvCode(Scanner scanner) throws IOException
 	{
-		int delay;		
-		String line;
+		int delay;				
+	
+		delay = scanner.nextInt();
 		
-		while((line = reader.readLine()).equals("")) {}
-		
-		delay = Integer.parseInt(line);		
-		
-		Matrix polyGen = IOMatrix.readMatrix(reader);
+		Matrix polyGen = IOMatrix.readMatrix(scanner);
 		BlockMatrix dividedPolyGen = new BlockMatrix(polyGen, 1, delay+1);
 		
 		return new ConvCode(dividedPolyGen, true);

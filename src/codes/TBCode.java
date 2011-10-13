@@ -1,6 +1,10 @@
 package codes;
 
+import math.ConvCodeAlgs;
 import math.MinDistance;
+import math.PolyMatrix;
+import trellises.BlockCodeTrellis;
+import trellises.ITrellis;
 import trellises.Trellis;
 import trellises.Trellises;
 
@@ -24,7 +28,17 @@ public class TBCode extends TruncatedCode {
 	 * 
 	 * @return Тайлбитинговая решетка кода
 	 */
-	public Trellis getTrellis()
+	public ITrellis getTrellis() {
+		if (trellis == null) {
+			PolyMatrix minBaseGen = ConvCodeAlgs.getMinimalBaseGenerator(parentCode.generator());
+			
+			trellis = ConvCodeAlgs.buildTrellis(ConvCodeAlgs.buildSpanForm(minBaseGen)); 
+		}
+		
+		return trellis;
+	}
+	
+	/*public Trellis getTrellis()
 	{	
 		if(trellis != null) {
 			return trellis;
@@ -48,23 +62,18 @@ public class TBCode extends TruncatedCode {
 		}		
 		
 		return trellis;
-	}
+	}/**/
 	
 	/**
 	 * 
 	 * @return Минимальное расстояние кода
 	 */
-	public int getMinDistByTrellis()
-	{
-		if(minDist != -1)
-		{
+	public int getMinDistByTrellis() {
+		if (minDist != -1) {
 			return minDist;
 		}
 		
-		Trellis t = getTrellis();
-		
-		MinDistance.computeDistanceMetrics(t);
-		minDist = MinDistance.findMinDistWithViterby(t, 0, blockGenMatr.getColumnCount());
+		minDist = MinDistance.findMinDist(this);
 		
 		return minDist;
 	}

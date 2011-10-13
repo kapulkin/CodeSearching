@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import codes.ConvCode;
 
-import search_procedures.HighRateCCEnumerator;
+import search_procedures.conv_codes.HighRateCCEnumerator;
 import trellises.Trellis;
 import trellises.Trellises;
 

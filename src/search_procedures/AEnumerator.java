@@ -2,6 +2,8 @@ package search_procedures;
 
 import java.util.NoSuchElementException;
 
+import search_tools.CEnumerator;
+
 /**
  * Arrangements enumerator
  * @author Stas
