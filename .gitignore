@@ -1,6 +1,5 @@
 .gitignore
 *.jar
-*.txt
 *.class
 bin/
 .metadata/
