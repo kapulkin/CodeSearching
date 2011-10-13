@@ -21,7 +21,14 @@ public class WeightedCodeWordsEnumeratorTest {
 		while (wordsEnumerator.hasNext()) {
 			Poly polies[] = wordsEnumerator.next();
 			++counter;
-			logger.debug(counter + ": " + polies);
+			if (logger.isDebugEnabled()) {
+				String str = counter + " ";
+				for (Poly poly : polies) {
+					str += poly + " ";
+				}
+				//logger.debug(counter + ": " + polies);
+				logger.debug(str);
+			}
 		}
 	}
 }

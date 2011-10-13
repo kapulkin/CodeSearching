@@ -10,29 +10,35 @@ import math.Poly;
  *
  */
 public class WeightedCodeWordsEnumerator {
-	private int itemNumber;
+	private int sumCount;
 	private int degree;
 	private SumDecomposition decomposition;
-	private int items[];	// распределяет вес по полиномам
+	private int summands[];	// распределяет вес по полиномам
 	private CEnumerator enumerators[];	// расставляет вес по коэффициентам полинома
 	private Poly polies[];	// полиномы
 	
+	/**
+	 * 
+	 * @param weight вес кодового слова
+	 * @param degree максимальная степень кодового слова
+	 * @param length длина кодового слова
+	 */
 	public WeightedCodeWordsEnumerator(int weight, int degree, int length) {
-		itemNumber = Math.min(weight, length);
+		sumCount = Math.min(weight, length);
 		this.degree = degree;
 		
-		decomposition = new SumDecomposition(itemNumber, weight);
+		decomposition = new SumDecomposition(weight, sumCount, degree + 1, 0);
 	}
 
 	private void initPolies() {
-		enumerators = new CEnumerator[itemNumber];
-		polies = new Poly[itemNumber];
+		enumerators = new CEnumerator[sumCount];
+		polies = new Poly[sumCount];
 
-		items = decomposition.next();
-		for (int i = 0; i < itemNumber; ++i) {
-			int coeffsNumber = Math.min(degree, items[i]);
-			enumerators[i] = new CEnumerator(degree, coeffsNumber);
-			polies[i] = makePoly(enumerators[i].getNext());
+		summands = decomposition.next();
+		for (int i = 0; i < sumCount; ++i) {
+			int coeffsNumber = Math.min(degree + 1, summands[i]);
+			enumerators[i] = new CEnumerator(degree + 1, coeffsNumber);
+			polies[i] = makePoly(enumerators[i].next());
 		}
 	}
 
@@ -53,7 +59,7 @@ public class WeightedCodeWordsEnumerator {
 			return true;
 		}
 		
-		for (int i = 0; i < itemNumber; ++i) {
+		for (int i = 0; i < sumCount; ++i) {
 			if (enumerators[i].hasNext()) {
 				return true;
 			}
@@ -72,21 +78,21 @@ public class WeightedCodeWordsEnumerator {
 			return polies;
 		}
 		
-		for (int i = 0; i < itemNumber; ++i) {
+		for (int i = 0; i < sumCount; ++i) {
 			if (enumerators[i].hasNext()) {
-				polies[i] = makePoly(enumerators[i].getNext());
+				polies[i] = makePoly(enumerators[i].next());
 				for (int j = i - 1; j >= 0; --j) {
-					enumerators[j] = new CEnumerator(degree, items[j]);
-					polies[j] = makePoly(enumerators[j].getNext());
+					enumerators[j] = new CEnumerator(degree + 1, summands[j]);
+					polies[j] = makePoly(enumerators[j].next());
 				}
 				return polies;
 			}
 		}
 		
-		items = decomposition.next();
-		for (int i = 0; i < itemNumber; ++i) {
-			enumerators[i] = new CEnumerator(degree, items[i]);
-			polies[i] = makePoly(enumerators[i].getNext());
+		summands = decomposition.next();
+		for (int i = 0; i < sumCount; ++i) {
+			enumerators[i] = new CEnumerator(degree + 1, summands[i]);
+			polies[i] = makePoly(enumerators[i].next());
 		}
 
 		return polies;

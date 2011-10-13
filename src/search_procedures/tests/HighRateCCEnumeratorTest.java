@@ -24,15 +24,18 @@ public class HighRateCCEnumeratorTest {
 		HighRateCCEnumerator codeSearcher = new HighRateCCEnumerator(v, freeDist);
 		
 		ConvCode code;
+		int counter = 0;
 		while ((code = codeSearcher.next()) != null) {
-			logger.debug("code:\n" + code.parityCheck());
+			++counter;
+			logger.debug("code:\n{}",  code.parityCheck());
 			Trellis trellis = Trellises.trellisFromParityCheckHR(code.parityCheck());
 			MinDistance.computeDistanceMetrics(trellis);
 			
 			int actualFreeDist = MinDistance.findMinDistWithBEAST(trellis, 0, code.getN() * (code.getDelay() + 1));
-			logger.debug("free dist = " + actualFreeDist);
+			logger.debug("free dist = {}", actualFreeDist);
 			assertTrue(actualFreeDist >= freeDist);
 		}
+		logger.debug("Codes found: {}", counter);
 	}
 
 }

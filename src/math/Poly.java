@@ -282,32 +282,21 @@ public class Poly implements Cloneable, Comparable<Poly> {
 		
 		String str = new String();
 
-		boolean firstCoeffPrinted = false;
-		if (getCoeff(0)) {
+		int power = polyCoeffs.nextSetBit(0);
+		switch (power) {
+		case 0:
 			str += "1";
-			firstCoeffPrinted = true;
-		}
-		
-		if (getCoeff(1)) {
-			str += (firstCoeffPrinted ? "+D" : "D");
-			firstCoeffPrinted = true;
+			break;
+		case 1:
+			str += "D";
+			break;
+		default:
+			str += "D" + power;
+			break;
 		}
 
-		int power = 2;
-		if (!firstCoeffPrinted) {
-			// print first non-zero coeff
-			for (; power <= getDegree(); ++power) {
-				if (getCoeff(power)) {
-					str += "D" + power;
-					firstCoeffPrinted = true;
-					break;
-				}
-			}
-		}
-		for (; power <= getDegree(); ++power) {
-			if (getCoeff(power)) {
-				str += "+D" + power;
-			}
+		for (power = polyCoeffs.nextSetBit(power + 1); power >= 0; power = polyCoeffs.nextSetBit(power + 1)) {
+			str += "+D" + ((power > 1) ? power : "");
 		}
 		
 		return str;

@@ -2,7 +2,7 @@ package search_procedures;
 
 import math.Matrix;
 
-public class MatrixEnumerator {
+public class MatrixEnumerator implements Enumerator<Matrix> {
 
 	/**
 	 * Количество строк
@@ -35,9 +35,9 @@ public class MatrixEnumerator {
 		return cEnum.hasNext();
 	}
 	
-	public Matrix getNext()
+	public Matrix next()
 	{
-		long[] seq = cEnum.getNext();
+		long[] seq = cEnum.next();
 		Matrix mat = new Matrix(k, n);
 	    		
 		for (int i = 0; i < n; ++i)

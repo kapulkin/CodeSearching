@@ -1,11 +1,16 @@
 package search_procedures;
 
-import java.security.InvalidParameterException;
 import java.util.NoSuchElementException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Combinations enumerator
+ * 
+ * @author Stas
+ *
+ */
 public class CEnumerator {
 	
 	private long n;
@@ -17,7 +22,7 @@ public class CEnumerator {
 	public CEnumerator(long n, int k)
 	{
 		if (n < k) {
-			throw new InvalidParameterException("There is no combinations with n < k.");
+			throw new IllegalArgumentException("There is no combinations with n < k.");
 		}
 
 		if (logger.isDebugEnabled()) {
@@ -26,7 +31,6 @@ public class CEnumerator {
 				combinations *= i;
 				combinations /= (n - i + 1);
 			}
-			logger.debug("C(" + n + ", " + k + ") gives " + combinations + " combinations.");
 		}
 		
 		this.n = n;
@@ -43,12 +47,20 @@ public class CEnumerator {
 		}
 	}
 	
+	public int getK() {
+		return k;
+	}
+	
+	public long getN() {
+		return n;
+	}
+	
 	public boolean hasNext()
 	{
 		return sequence == null || (k > 0 && sequence[0] != (n-k));
 	}
 	
-	public long[] getNext()
+	public long[] next()
 	{
 		if (!hasNext()) {
 			throw new NoSuchElementException("There is no next combination.");

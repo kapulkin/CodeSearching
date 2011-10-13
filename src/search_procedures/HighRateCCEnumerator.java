@@ -50,7 +50,8 @@ public class HighRateCCEnumerator {
 	}
 	
 	public ConvCode next() {
-		int attempts = delay * freeDist;
+		final int attemptCount = delay * freeDist;
+		int attempts = attemptCount;
 		
 		BitArray lowerRowsArray[];
 		BitArray higherRowsArray[];
@@ -84,7 +85,7 @@ public class HighRateCCEnumerator {
 					}
 				}
 			} else {
-				// нашли подходящий код.
+				// нашли подходящий код, будем увеличивать его длину.
 				ConvCode code = null;
 				try {
 					do {
@@ -107,6 +108,7 @@ public class HighRateCCEnumerator {
 				} catch (NoSuchElementException e) {
 					logger.debug("Enumeration is finished.");
 				}
+				logger.debug("Attemts: {}.", attemptCount - attempts);
 				return code;
 			}	
 		}
@@ -125,7 +127,7 @@ public class HighRateCCEnumerator {
 	 * @return <code>true</code>, если свободное расстояние код больше или равно <code>expectedFreeDist</code>.
 	 */
 	private boolean checkLowEstimation(PolyMatrix checkMatrix, int expectedFreeDist) {
-		Trellis trellis = Trellises.trellisFromParityCheckHR(checkMatrix);
+/*		Trellis trellis = Trellises.trellisFromParityCheckHR(checkMatrix);
 		MinDistance.computeDistanceMetrics(trellis);
 		
 		int freeDist = MinDistance.findMinDistWithBEAST(trellis, 0, checkMatrix.getColumnCount() * (delay+1));
@@ -138,21 +140,23 @@ public class HighRateCCEnumerator {
 		// TODO: умножаем их на матрицу - если в какой-то момент получается ноль - возвращаем false, иначе true
 		// TODO: еще более хитрая проверка: вместо тупого перебора хитрые правила и более тонкий перебор.
 
-/*		WeightedCodeWordsEnumerator wordsEnumerator = new WeightedCodeWordsEnumerator(expectedFreeDist-1, delay, checkMatrix.getColumnCount());
-		
-		while (wordsEnumerator.hasNext()) {
-			Poly words[] = wordsEnumerator.next();
-			CEnumerator columnsEnumerator = new CEnumerator(checkMatrix.getColumnCount(), Math.min(expectedFreeDist-1, checkMatrix.getColumnCount()));
-			while (columnsEnumerator.hasNext()) {
-				// TODO: Все перемножить и сравнить с нулем. И если ноль, выходим.
-				Poly sum = new Poly();
-				long columns[] = columnsEnumerator.getNext();
-				for (int i = 0; i < columns.length; ++i) {
-					sum.add(words[i].mul(checkMatrix.get(0, (int)columns[i])));
-				}
-				
-				if (sum.isZero()) {
-					return false;
+		for (int weight = 1; weight <= expectedFreeDist-1; ++weight) {
+			WeightedCodeWordsEnumerator wordsEnumerator = new WeightedCodeWordsEnumerator(weight, delay, checkMatrix.getColumnCount());
+			
+			while (wordsEnumerator.hasNext()) {
+				Poly word[] = wordsEnumerator.next(); // в word первые не более, чем min(weight, k+1) полиномы ненулевые 
+				AEnumerator columnsEnumerator = new AEnumerator(checkMatrix.getColumnCount(), Math.min(weight, checkMatrix.getColumnCount()));
+				while (columnsEnumerator.hasNext()) {
+					// TODO: Все перемножить и сравнить с нулем. И если ноль, выходим.
+					Poly sum = new Poly();
+					long columns[] = columnsEnumerator.next();
+					for (int i = 0; i < columns.length; ++i) {
+						sum.add(word[i].mul(checkMatrix.get(0, (int)columns[i])));
+					}
+					
+					if (sum.isZero()) {
+						return false;
+					}
 				}
 			}
 		}

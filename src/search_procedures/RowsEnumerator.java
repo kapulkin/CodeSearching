@@ -25,7 +25,7 @@ public class RowsEnumerator {
 	
 	public BitArray[] getNext()
 	{
-		long combination[] = cEnum.getNext();
+		long combination[] = cEnum.next();
 
 		BitArray rows[] = new BitArray[rowsNumber];
 		for (int i  = 0; i < rowsNumber; ++i) {

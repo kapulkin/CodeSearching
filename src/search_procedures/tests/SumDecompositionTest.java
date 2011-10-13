@@ -13,12 +13,12 @@ public class SumDecompositionTest {
 	Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	@Test
-	public void sampleForFourByFour() {
+	public void sampleFor4By4() {
 		int sample[][] = new int [][]{
-				new int [] {0, 0, 0, 4},
-				new int [] {0, 0, 1, 3},
-				new int [] {0, 0, 2, 2},
-				new int [] {0, 1, 1, 2},
+				new int [] {4, 0, 0, 0},
+				new int [] {3, 1, 0, 0},
+				new int [] {2, 2, 0, 0},
+				new int [] {2, 1, 1, 0},
 				new int [] {1, 1, 1, 1}
 			};
 		SumDecomposition decomposition = new SumDecomposition(4, 4);
@@ -26,19 +26,37 @@ public class SumDecompositionTest {
 	}
 
 	@Test
-	public void sampleForFourByTree() {
+	public void sampleFor4By3() {
 		int decompositions[][] = new int [][]{
-				new int [] {0, 0, 4},
-				new int [] {0, 1, 3},
-				new int [] {0, 2, 2},
-				new int [] {1, 1, 2}
+				new int [] {4, 0, 0},
+				new int [] {3, 1, 0},
+				new int [] {2, 2, 0},
+				new int [] {2, 1, 1}
 			};
-		SumDecomposition decomposition = new SumDecomposition(3, 4);
+		SumDecomposition decomposition = new SumDecomposition(4, 3);
+		checkDecomposition(decompositions, decomposition);
+	}
+
+	@Test
+	public void sampleFor8By3() {
+		int decompositions[][] = new int [][]{
+				new int [] {8, 0, 0},
+				new int [] {7, 1, 0},
+				new int [] {6, 2, 0},
+				new int [] {6, 1, 1},
+				new int [] {5, 3, 0},
+				new int [] {5, 2, 1},
+				new int [] {4, 4, 0},
+				new int [] {4, 3, 1},
+				new int [] {4, 2, 2},
+				new int [] {3, 3, 2}
+			};
+		SumDecomposition decomposition = new SumDecomposition(8, 3	);
 		checkDecomposition(decompositions, decomposition);
 	}
 
 	private void checkDecomposition(int[][] sample, SumDecomposition decomposition) {
-		
+		logger.debug("number = " + decomposition.getNumber() + ", count = " + decomposition.getSumCount());
 		for (int i = 0; i < sample.length; ++i) {
 			assertTrue(decomposition.hasNext());
 			int items[] = decomposition.next();

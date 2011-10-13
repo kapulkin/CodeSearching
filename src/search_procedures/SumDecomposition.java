@@ -3,38 +3,89 @@ package search_procedures;
 import java.util.NoSuchElementException;
 
 /**
- * Раскладывает переданное в конструкторе число на заданное количество слагаемых
- * всеми возможными способами с точностью до перестановки слагаемых.
+ * Перечисляет все возможные разложения числа на заданное колличество слагаемых
+ * с точностью до перестановки. Дополнительно может быть задано ограничение на
+ * максимальное значение слагаемых.
+ * 
  * @author Stas
  *
  */
 public class SumDecomposition {
-	private int itemNumber;
 	private int number;
-//	private int restriction;
-	private int items[]; // все слагаемые хранятся в неубывающем порядке.
+
+	private int upperBound;
+	private int lowerBound;
+	private int nextItems[]; // все слагаемые хранятся в невозррастающем порядке.
+	/**
+	 * Индекс последнего ненулевого слагаемого в текущем разложении.
+	 */
+	private int last;
 	private boolean hasNext;
 	
 	/**
-	 * 
-	 * @param itemNumber колличество слагаемых
 	 * @param number разлагаемое число
-//	 * @param restriction ограничение сверху на слагаемое
+	 * @param sumCount колличество слагаемых
+	 * @param upperBound ограничение сверху на слагаемое
+	 * @param lowerBound ограничение снизу на слагаемое
 	 */
-	public SumDecomposition(int itemNumber, int number) {
-		this.itemNumber = itemNumber;
-		this.number = number;
-
-		if (itemNumber <= 0 || number < 0) {
-			throw new IllegalArgumentException("Wrong input parameters: " + itemNumber + ", " + number);
+	public SumDecomposition(int number, int sumCount, int upperBound, int lowerBound) {
+		if (sumCount <= 0 || number < 0 || upperBound <= 0) {
+			throw new IllegalArgumentException("Wrong input parameters: " + sumCount + ", " + number + ", " + upperBound);
 		}
 		
-		items = new int [itemNumber];
-		for (int i = 0; i < items.length - 1; ++i) {
-			items[i] = 0;
+		int summand = number / sumCount;
+		int reminder = number % sumCount;
+		if (summand > upperBound - (reminder == 0 ? 0 : 1)) {
+			throw new IllegalArgumentException("Cannot decompose " + number + " to summands not greater then " + upperBound);
 		}
-		items[items.length - 1] = number;
+		
+		if (summand < lowerBound) {
+			throw new IllegalArgumentException("Cannot decompose " + number + " to summands not less then " + lowerBound);
+		}
+		
+//		if (number / upperBound + (number % upperBound == 0 ? 0 : 1) > sumCount) {
+//			throw new IllegalArgumentException("Cannot decompose " + number + " to summands not greater then " + upperBound);
+//		}
+
+		this.number = number;
+		this.upperBound = upperBound;
+		this.lowerBound = lowerBound;
+		
+		nextItems = new int[sumCount];
+		for (int i = 0; i < sumCount; ++i) {
+			nextItems[i] = lowerBound;
+		}
+		int rest = number - sumCount * lowerBound;
+		for (last = 0; last < sumCount; ++last) {
+			int addition = Math.min(rest, upperBound - lowerBound);
+			nextItems[last] += addition;
+			rest -= addition;
+			if (rest == 0) {
+				break;
+			}
+		}
+
 		hasNext = true;
+	}
+
+	public SumDecomposition(int number, int sumCount) {
+		this(number, sumCount, number, 0);
+	}
+	
+	public int getSumCount() {
+		return nextItems.length;
+	}
+	
+	public int getNumber() {
+		return number;
+	}
+	
+	public int getUpperBound() {
+		return upperBound;
+	}
+	
+	public int getLowerBound() {
+		return lowerBound;
 	}
 	
 	public boolean hasNext() {
@@ -45,29 +96,48 @@ public class SumDecomposition {
 		if (!hasNext()) {
 			throw new NoSuchElementException("There is no next decomposition.");
 		}
-		int [] itemsCopy = new int[items.length];
-		System.arraycopy(items, 0, itemsCopy, 0, items.length);
 		
-		hasNext = false;
+		int items[] = nextItems;
+
+		int threshold = items[items.length - 1];
+		int rest = 0;
+		while (last >= 0 && items[last] - 1 < threshold + 1) {
+			rest += items[last];
+			--last;
+		}
 		
-		for (int i = items.length - 2; i >= 0; --i) {
-			++items[i]; // увеличиваем предпоследний элемент.
-			int current_sum = 0;
-			for (int j = 0; j <= i; ++j) {
-				current_sum += items[j];
-			}
-			if (number - current_sum >= items[i] * (items.length - 1 - i)) {
-				// можем замостить все справа не меньшими слагаемыми 
-				for (int j = i + 1; j < items.length - 1; ++j) {
-					items[j] = items[i];
-					current_sum += items[i];
-				}
-				items[items.length - 1] = number - current_sum;
-				hasNext = true; // нашли следующий элемент
+		if (last < 0) {
+			hasNext = false;
+			return items;
+		}
+
+		nextItems = new int[items.length];
+		System.arraycopy(items, 0, nextItems, 0, last);
+		nextItems[last] = items[last] - 1;
+		++rest;
+		
+		for (int i = last + 1; i < nextItems.length; ++i) {
+			nextItems[i] = lowerBound;
+		}
+		rest -= (getSumCount() - last - 1) * lowerBound;
+		for (int i = last + 1; i < nextItems.length; ++i) {
+			int addition = Math.min(rest, nextItems[last] - lowerBound);
+			nextItems[i] += addition;
+			rest -= addition;
+			if (rest == 0) {
+				last = i;
 				break;
 			}
 		}
-		
-		return itemsCopy;
+						
+		return items;
+	}
+	
+	@Override
+	public String toString() {
+		if (!hasNext()) {
+			return "end";
+		}
+		return nextItems.toString();
 	}
 }
