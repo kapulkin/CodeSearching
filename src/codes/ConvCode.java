@@ -62,12 +62,12 @@ public class ConvCode implements Code{
 			genMatr = matrix;
 			regCount = genMatr.getRowCount();
 			adderCount = genMatr.getColumnCount();
-			delay = ConvCodeAlgs.getHigherDegree(genMatr);
+			delay = ConvCodeAlgs.getHighestDegree(genMatr);
 		}else{
 			checkMatr = matrix;
 			adderCount = checkMatr.getColumnCount();
 			regCount = adderCount - checkMatr.getRowCount();
-			delay = ConvCodeAlgs.getHigherDegree(checkMatr);
+			delay = ConvCodeAlgs.getHighestDegree(checkMatr);
 		}
 	}
 

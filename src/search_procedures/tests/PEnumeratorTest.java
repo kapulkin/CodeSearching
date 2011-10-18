@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import common.TestUtils;
 import common.ToString;
 
-import search_procedures.PEnumerator;
+import search_tools.PEnumerator;
 
 public class PEnumeratorTest {
 	Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -43,7 +43,7 @@ public class PEnumeratorTest {
 	
 	@Test
 	public void shouldGiveNFactorialCombinations() {
-		for (int n = 1, f = 1; n <= 11; ++n) {
+		for (int n = 1, f = 1; n <= 10; ++n) {
 			logger.debug("n = " + n);
 			f *= n;
 			PEnumerator enumerator = new PEnumerator(n);

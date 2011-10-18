@@ -22,11 +22,12 @@ public class CCWeightsDistHeur implements IHeuristic {
 			
 			for (int j = 0;j < genMatr.getColumnCount(); ++j) {
 				Poly g = genMatr.get(i, j);
-				for (int k = 0;k < g.getDegree(); ++k) {
-					if (g.getCoeff(k)) {
-						++weight;
-					}
-				}
+				weight += g.getBitSet().cardinality();
+//				for (int k = 0;k < g.getDegree(); ++k) {
+//					if (g.getCoeff(k)) {
+//						++weight;
+//					}
+//				}
 			}
 			
 			if (weight < freeDist) {

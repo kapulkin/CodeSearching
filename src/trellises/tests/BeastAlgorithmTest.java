@@ -53,7 +53,7 @@ public class BeastAlgorithmTest {
 			Trellis trellis = Trellises.trellisFromParityCheckHR(code.parityCheck());
 			MinDistance.computeDistanceMetrics(trellis);
 			
-			int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 2 * (code.getDelay() + 1));
+			int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 2 * (code.getDelay() + 1), true);
 			int BEASTminDist = MinDistance.findMinDistWithBEAST(trellis, code.getN() * (code.getDelay() + 1));
 			
 			System.out.println("Viterby: " + VDminDist);
@@ -103,7 +103,7 @@ public class BeastAlgorithmTest {
 			fail("Unexpected exception");
 		}
 		
-		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 2 * (code.getDelay() + 1));
+		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 2 * (code.getDelay() + 1), true);
 		int BEASTminDist = MinDistance.findMinDistWithBEAST(trellis, code.getN() * (code.getDelay() + 1));
 		int TrivialMinDist = MinDistance.findMinDist(new ZTCode(code, code.getDelay()).generator());
 
@@ -125,7 +125,7 @@ public class BeastAlgorithmTest {
 		BlockCode code = new BlockCode(generator, true);
 		Trellis trellis = BlockCodeAlgs.buildTrellis(code);
 		
-		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 0);
+		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 0, false);
 		int BEASTminDist = MinDistance.findMinDistWithBEAST(trellis, 0, code.getN());
 		
 		System.out.println("Viterby: " + VDminDist);
@@ -160,7 +160,7 @@ public class BeastAlgorithmTest {
 		}
 
 		int TrivialMinDist = MinDistance.findMinDist(tbCode.generator());
-		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 1);
+		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 1, false);
 		int BEASTminDist = Integer.MAX_VALUE;
 		for (int vertexIndex = 0; vertexIndex < trellis.layerSize(0); ++vertexIndex) {
 			ITrellisIterator root = trellis.iterator(0, vertexIndex);

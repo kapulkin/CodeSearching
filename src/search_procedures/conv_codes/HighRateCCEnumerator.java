@@ -7,7 +7,7 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import search_procedures.AEnumerator;
+import search_tools.AEnumerator;
 import search_tools.RowsEnumerator;
 import search_tools.WeightedCodeWordsEnumerator;
 import trellises.Trellis;

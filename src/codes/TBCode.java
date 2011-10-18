@@ -32,7 +32,9 @@ public class TBCode extends TruncatedCode {
 		if (trellis == null) {
 			PolyMatrix minBaseGen = ConvCodeAlgs.getMinimalBaseGenerator(parentCode.generator());
 			
-			trellis = ConvCodeAlgs.buildTrellis(ConvCodeAlgs.buildSpanForm(minBaseGen)); 
+			Trellis explicit_trellis = ConvCodeAlgs.buildTrellis(ConvCodeAlgs.buildSpanForm(minBaseGen));
+			MinDistance.computeDistanceMetrics(explicit_trellis);
+			trellis = explicit_trellis;
 		}
 		
 		return trellis;
@@ -63,19 +65,4 @@ public class TBCode extends TruncatedCode {
 		
 		return trellis;
 	}/**/
-	
-	/**
-	 * 
-	 * @return Минимальное расстояние кода
-	 */
-	public int getMinDistByTrellis() {
-		if (minDist != -1) {
-			return minDist;
-		}
-		
-		minDist = MinDistance.findMinDist(this);
-		
-		return minDist;
-	}
-	
 }

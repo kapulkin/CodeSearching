@@ -84,12 +84,12 @@ public class SearchMain {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		initDesiredParameters("tb_codes_params.txt");
+		initDesiredParameters("zt_codes_params.txt");
 		
 		BlockCodesSearcher searcher = new BlockCodesSearcher();
-		BlockCodesSearcher.TaskPool[] pools = new BlockCodesSearcher.TaskPool[24];
+		BlockCodesSearcher.TaskPool[] pools = new BlockCodesSearcher.TaskPool[distanceUpperBounds.length - 3];
 		
-		for (int k = 3;k <= 26; ++k) {						
+		for (int k = 3;k <= distanceUpperBounds.length - 1/*26*/; ++k) {						
 			ArrayList<BlockCodesSearcher.SearchTask> tasks = new ArrayList<BlockCodesSearcher.SearchTask>();
 			
 			for (int ddelta = 0;ddelta < 3; ++ddelta) {

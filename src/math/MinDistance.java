@@ -53,11 +53,12 @@ public class MinDistance {
 	 * @param cycles ограничение на кол-во циклов, пройденных по решетке. 
 	 * @return вес кратчайшего ненулевого пути в решетке.
 	 */
-	public static int findMinDistWithViterby(Trellis trellis, int distanceMetric, int cycles)
+	public static int findMinDistWithViterby(Trellis trellis, int distanceMetric, int cycles, boolean fromZeroVertex)
 	{
 		int minDist = Integer.MAX_VALUE;		
-		                        
-		for(int v = 0;v < trellis.Layers[0].length;v ++)
+		int lookForPathsFromCnt = fromZeroVertex ? 1 : trellis.Layers[0].length; 
+
+		for(int v = 0; v < lookForPathsFromCnt; ++v)
 		{
 			ViterbiAlgorithm.Vertex[] lastLayer;
 			
@@ -85,6 +86,8 @@ public class MinDistance {
 	 * @return минимальное расстояние блокового кода
 	 */
 	public static int findMinDist(BlockCode code) {
+//		code.setMinDist(findMinDistWithBEAST(new BlockCodeTrellis(code.getGeneratorSpanForm()), 0, code.getN()));
+//		return code.getMinDist();
 		return findMinDistWithBEAST(new BlockCodeTrellis(code.getGeneratorSpanForm()), 0, code.getN());
 	}
 	
@@ -97,6 +100,8 @@ public class MinDistance {
 		PolyMatrix minBaseGen = ConvCodeAlgs.getMinimalBaseGenerator(code.generator());
 		Trellis trellis = ConvCodeAlgs.buildTrellis(ConvCodeAlgs.buildSpanForm(minBaseGen));
 		computeDistanceMetrics(trellis);
+//		code.setFreeDist(findMinDistWithBEAST(trellis, 0, code.getN() * (code.getDelay() + 1)));
+//		return code.getFreeDist();
 		return findMinDistWithBEAST(trellis, 0, code.getN() * (code.getDelay() + 1));
 	}
 	

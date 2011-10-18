@@ -1,4 +1,4 @@
-package search_procedures;
+package common;
 
 import java.util.NoSuchElementException;
 

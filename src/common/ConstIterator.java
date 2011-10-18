@@ -1,4 +1,4 @@
-package search_procedures;
+package common;
 
 public interface ConstIterator<E> {
 	/**

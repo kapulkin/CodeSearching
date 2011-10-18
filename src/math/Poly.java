@@ -65,6 +65,10 @@ public class Poly implements Cloneable, Comparable<Poly> {
 		this(poly.polyCoeffs);
 	}
 	
+	public BitSet getBitSet() {
+		return polyCoeffs;
+	}
+	
 	public int getDegree()
 	{
 		return Math.max(polyCoeffs.length() - 1, 0);

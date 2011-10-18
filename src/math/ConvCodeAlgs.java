@@ -158,7 +158,7 @@ public class ConvCodeAlgs {
 		return degrees;
 	}
 
-	public static int getHigherDegree(PolyMatrix matrix) {
+	public static int getHighestDegree(PolyMatrix matrix) {
 		int degree = Integer.MIN_VALUE;
 		for (int i = 0; i < matrix.getRowCount(); ++i) {
 			for (int j = 0; j < matrix.getColumnCount(); ++j) {
@@ -179,15 +179,7 @@ public class ConvCodeAlgs {
 	 * @return разложение входной матрицы по степпеням.
 	 */
 	public static Matrix[] buildPowerDecomposition(PolyMatrix matrix) {
-		int maxDegree = Integer.MIN_VALUE;
-
-		for (int i = 0; i < matrix.getRowCount(); ++i) {
-			for (int j = 0; j < matrix.getColumnCount(); ++j) {
-				if (maxDegree < matrix.get(i, j).getDegree()) {
-					maxDegree = matrix.get(i, j).getDegree();
-				}
-			}
-		}
+		int maxDegree = getHighestDegree(matrix);
 
 		logger.debug("maxDegree = " + maxDegree);
 		
@@ -341,6 +333,12 @@ public class ConvCodeAlgs {
 		return new ConvCodeSpanForm(new Matrix(rows), degrees, spanHeads, spanTails);
 	}
 
+	/**
+	 * Строит секционированную решетку сверточного кода в явном виде.
+	 * 
+	 * @param spanForm спеновая форма для сверточного кода
+	 * @return секционированная решетка сверточного кода
+	 */
 	public static Trellis buildTrellis(ConvCodeSpanForm spanForm) {
 		int b = spanForm.getRowCount();
 		int c = spanForm.matrix.getColumnCount();
@@ -401,7 +399,7 @@ public class ConvCodeAlgs {
 			logger.debug("next active rows: " + nextActiveRows);
 
 			// [from, to) - полуинтервал, соответствующий текущему сегменту.
-			int from = sections[layer].beginColumn();
+			int from = (layer == 0) ? 0 : sections[layer].beginColumn();
 			int to = (layer == sections.length - 1) ? c : sections[layer + 1].beginColumn();
 			BitArray sum = new BitArray(to - from);
 

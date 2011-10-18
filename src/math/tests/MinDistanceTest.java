@@ -56,7 +56,7 @@ public class MinDistanceTest {
 		System.out.println("Trivial: dist = " + TrivialMinDist + ", time = " + (endTime - startTime));
 
 		startTime = System.nanoTime();
-		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 2 * (code.getDelay() + 1));
+		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 2 * (code.getDelay() + 1), true);
 		endTime = System.nanoTime();
 		System.out.println("Viterby: dist = " + VDminDist + ", time = " + (endTime - startTime));
 

@@ -1,4 +1,4 @@
-package search_procedures;
+package search_tools;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -6,9 +6,7 @@ import java.util.NoSuchElementException;
 
 /**
  * Permutations enumerator
- * 
- * Рекурсивная реализация, не очень эффективна по памяти и времени.
- * 
+ *  
  * @author Stas
  *
  */
@@ -24,7 +22,7 @@ public class PEnumerator {
 	
 	public PEnumerator(int n) {
 		if (n <= 0) {
-			throw new IllegalArgumentException("The length of permutation can't be negative: " + n);
+			throw new IllegalArgumentException("The length of permutation must be positive: " + n);
 		}
 		
 		this.n = n;
