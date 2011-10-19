@@ -59,9 +59,11 @@ public class ConvCodeTrellis  implements ITrellis {
 
 			int nextLayer = (layer + 1) % sections.length;
 			
+			int fromIndex = (layer == 0) ? 0 : sections[layer].beginColumn();
+			int toIndex = (nextLayer == 0) ? c : sections[nextLayer].beginColumn();
 			ITrellisEdge edges[] = TrellisUtils.buildAccessorsEdges(spanForm.matrix, vertexIndex, 
 					currentSum, currentSumRows, currentActiveRows, 
-					sections[layer].spanHeads, sections[layer].beginColumn(), sections[nextLayer].beginColumn());
+					sections[layer].spanHeads, fromIndex, toIndex);
 
 			// восстанавливаем значение текущих активных рядов
 			for (Boundary spanHead : sections[layer].spanHeads) {
@@ -107,9 +109,12 @@ public class ConvCodeTrellis  implements ITrellis {
 				activeRows.remove(spanHead.row);
 			}
 
+			int fromIndex = (prevLayer == 0) ? 0 : sections[prevLayer].beginColumn();
+			int toIndex = (layer == 0) ? c : sections[layer].beginColumn();
 			ITrellisEdge edges[] = TrellisUtils.buildPredcessorsEdges(spanForm.matrix, vertexIndex, 
 					sum, sumRows, activeRows, 
-					sections[prevLayer].spanTails, sections[prevLayer].beginColumn(), sections[layer].beginColumn()); 
+//					sections[prevLayer].spanTails, sections[prevLayer].beginColumn(), sections[layer].beginColumn()); 
+					sections[prevLayer].spanTails, fromIndex, toIndex); 
 
 			// восстанавливаем значение текущих активных рядов
 			for (Boundary spanTail : sections[prevLayer].spanTails) {
@@ -294,7 +299,7 @@ public class ConvCodeTrellis  implements ITrellis {
 		int column = sections[layer].beginColumn();
 		int activeRowsCount = 0;
 		for (int row = 0; row < spanForm.matrix.getRowCount(); ++row) {
-			if (!spanForm.isRowActiveBefore(column, row)) {
+			if (spanForm.isRowActiveBefore(column, row)) {
 				++activeRowsCount;
 			}
 		}

@@ -45,26 +45,26 @@ public class ConvCodeTrellisTest {
 	
 	@Test
 	public void trellisShouldCorresponfToCodeWords() {
-		PolyMatrix minBaseG = ConvCodeAlgs.getMinimalBaseGenerator(G);
-		ConvCodeSpanForm spanForm = ConvCodeAlgs.buildSpanForm(minBaseG); // should be done without exceptions
-
-		ConvCodeAlgs.sortHeads(spanForm);
-		ITrellis trellis1 = new ConvCodeTrellis(spanForm);
-		
-		try {
-			IOTrellis.writeTrellisInGVZFormat(trellis1, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
-		} catch (IOException e) {
-			e.printStackTrace();
-			fail("Unexpected exception");
-		}
-
-		int delay = spanForm.delay;
-		TrellisesTest.trellisForwardTraversalShouldGiveCodeWord(new ConvCode(spanForm), trellis1, delay + 1);
+		trellisShouldCorresponfToCodeWords(G);
 	}
 	
 	@Test
+	public void CaseWith01111111111111Code() {
+		PolyMatrix generator = new PolyMatrix(1, 2);
+		// row 0
+		generator.set(0, 0, new Poly(new boolean[] {false, true, true, true, true, true, true}));
+		generator.set(0, 1, new Poly(new boolean[] {true, true, true, true, true, true, true}));
+		trellisShouldCorresponfToCodeWords(generator);
+		randomTraversalShouldBeEquivalentForTrellises(generator);
+	}
+
+	@Test
 	public void randomTraversalShouldBeEquivalentForTrellises() {
-		PolyMatrix minBaseG = ConvCodeAlgs.getMinimalBaseGenerator(G);
+		randomTraversalShouldBeEquivalentForTrellises(G);
+	}
+
+	private void randomTraversalShouldBeEquivalentForTrellises(PolyMatrix generator) {
+		PolyMatrix minBaseG = ConvCodeAlgs.getMinimalBaseGenerator(generator);
 		ConvCodeSpanForm spanForm = ConvCodeAlgs.buildSpanForm(minBaseG); // should be done without exceptions
 
 		ITrellis explicitTrellis = ConvCodeAlgs.buildTrellis(spanForm);
@@ -126,5 +126,23 @@ public class ConvCodeTrellisTest {
 			assertEquals(explicit.vertexIndex(), light.vertexIndex());
 			logger.debug("layer = " + explicit.layer() + ", vertexIndex = " + explicit.vertexIndex());
 		}
+	}
+
+	private void trellisShouldCorresponfToCodeWords(PolyMatrix generator) {
+		PolyMatrix minBaseG = ConvCodeAlgs.getMinimalBaseGenerator(generator);
+		ConvCodeSpanForm spanForm = ConvCodeAlgs.buildSpanForm(minBaseG); // should be done without exceptions
+
+		ConvCodeAlgs.sortHeads(spanForm);
+		ITrellis trellis1 = new ConvCodeTrellis(spanForm);
+		
+		try {
+			IOTrellis.writeTrellisInGVZFormat(trellis1, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		int delay = spanForm.delay;
+		TrellisesTest.trellisForwardTraversalShouldGiveCodeWord(new ConvCode(spanForm), trellis1, delay + 1);
 	}
 }

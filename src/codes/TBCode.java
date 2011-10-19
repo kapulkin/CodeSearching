@@ -15,7 +15,7 @@ import trellises.Trellises;
  */
 public class TBCode extends TruncatedCode {	
 	/**
-	 * Построение тайлбитингого кода по сверточному
+	 * Построение тайлбитингового кода по сверточному
 	 * @param code сверточный код
 	 * @param scaleDelta определяет параметры TB кода: k=(delay+1+scaleDelta)*b, n=(delay+1+scaleDelta)*c, где 
 	 * b/c - скорость, а delay - задержка сверточного кода  	 
