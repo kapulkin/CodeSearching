@@ -9,3 +9,5 @@ sql/			скрипты для работы с базой данных
 
 Команда для перевода из формата .dot в формат (например) .png: dot -Tpng -o trellis.png trellis.dot
 
+Туториал по настройке logback: http://logback.qos.ch/manual/configuration.html
+
