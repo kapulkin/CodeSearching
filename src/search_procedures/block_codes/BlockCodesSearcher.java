@@ -26,7 +26,7 @@ public class BlockCodesSearcher {
 		for (int i = 0;i < pools.length; ++i) {
 			ArrayList<SearchTask> tasks = pools[i].Tasks;
 			
-			for (int j = 0;j < tasks.size(); ++j){				
+			for (int j = 0;j < tasks.size(); ++j) {				
 				TruncatedCodeEnumerator truncEnum = new TruncatedCodeEnumerator(tasks.get(j).ConvCodeEnum, tasks.get(j).K, tasks.get(j).N);
 				BasicBlockCodesSearcher searcher = new BasicBlockCodesSearcher(tasks.get(j).MinDist, tasks.get(j).StateComplexity);
 			

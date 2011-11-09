@@ -12,13 +12,11 @@ import math.Matrix;
 
 public class IOMatrix {
 	
-	public static Matrix readMatrix(Scanner scanner) throws IOException
-	{
+	public static Matrix readMatrix(Scanner scanner) throws IOException {
 		return readMatrix(scanner, 0);
 	}
 	
-	public static Matrix readMatrix(Scanner scanner, int rows) throws IOException
-	{		
+	public static Matrix readMatrix(Scanner scanner, int rows) throws IOException {		
 		ArrayList<BitArray> data = new ArrayList<BitArray>();
 		EmptyLineSkipper skipper = new EmptyLineSkipper(scanner);
 		String line = skipper.nextLine();
@@ -46,7 +44,9 @@ public class IOMatrix {
 					row.add(matcher.group().equals("1"));
 				}			
 			}else{				
-				int octDigitsToRead = (int) Math.ceil((double)binaryBitsInBlock / 3); 
+				int octDigitsToRead = (int) Math.ceil((double)binaryBitsInBlock / 3);
+				int residual = 3 * octDigitsToRead -  binaryBitsInBlock;
+				
 				while(true)
 				{
 					if(!matcher.find())
@@ -58,10 +58,10 @@ public class IOMatrix {
 							throw new IOException();
 						
 						int octDigit = Integer.parseInt(matcher.group());
-						for(int j = 2;j >= 0;j --)
+						for(int j = (i == 0) ? residual : 2;j >= 0;j --)
 						{
-							if(3 * i + (2 - j) >= binaryBitsInBlock)
-								break;
+						//	if(3 * i + (2 - j) >= binaryBitsInBlock)
+							//	break;
 							row.add((octDigit & (1 << j)) != 0);
 						}
 					}

@@ -37,12 +37,10 @@ public class CEnumerator {
 		this.k = k;			
 	}
 	
-	private void initSequence()
-	{
+	private void initSequence() {
 		sequence = new long[k];
 		
-		for(int i = 0;i < k;i ++)
-		{
+		for (int i = 0;i < k;i ++) {
 			sequence[i] = i;
 		}
 	}
@@ -55,25 +53,21 @@ public class CEnumerator {
 		return n;
 	}
 	
-	public boolean hasNext()
-	{
+	public boolean hasNext() {
 		return sequence == null || (k > 0 && sequence[0] != (n-k));
 	}
 	
-	public long[] next()
-	{
+	public long[] next() {
 		if (!hasNext()) {
 			throw new NoSuchElementException("There is no next combination.");
 		}
 		
-		if(sequence == null)
-		{
+		if (sequence == null) {
 			initSequence();
 			return sequence;
 		}
 		
-		if(sequence[k-1] < n-1)
-		{
+		if (sequence[k-1] < n-1) {
 			sequence[k-1] ++;
 			return sequence;
 		}

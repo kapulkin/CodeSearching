@@ -43,22 +43,22 @@ public class MatrixEnumerator {
 		}
 		
 		cEnumDistinct = new CEnumerator((1L<<k), distinctColumnsCnt);
-		cEnumFill = new CEnumerator(n + distinctColumnsCnt - 1, distinctColumnsCnt - 1);
+		cEnumFill = new CEnumerator(n - 1, distinctColumnsCnt - 1);
 		
 		distinctColumns = cEnumDistinct.next();
 	}
 	
 	public boolean hasNext() {
-		return (distinctColumnsCnt < Math.min(1L<<k, n)) || cEnumDistinct.hasNext();
+		return (distinctColumnsCnt < Math.min(1L<<k, n)) || cEnumDistinct.hasNext() || cEnumFill.hasNext();
 	}
 	
 	public Matrix getNext() {
-		if(!cEnumFill.hasNext()) {
-			if(!cEnumDistinct.hasNext()) {
+		if (!cEnumFill.hasNext()) {
+			if (!cEnumDistinct.hasNext()) {
 				cEnumDistinct = new CEnumerator((1L<<k), ++distinctColumnsCnt);			
 			}
 			
-			distinctColumns= cEnumDistinct.next();
+			distinctColumns = cEnumDistinct.next();
 			cEnumFill = new CEnumerator(n - 1, distinctColumnsCnt - 1);
 		}
 		
@@ -87,8 +87,8 @@ public class MatrixEnumerator {
 		}
 		int remainder = n;
 		
-		for(int i = 0;i < distinctColumnsCnt - 1;++i) {
-			counts[i] = positions[i] - (i > 0 ? positions[i-1] : 0) + 1;
+		for (int i = 0;i < distinctColumnsCnt - 1;++i) {
+			counts[i] = positions[i] - (i > 0 ? positions[i-1] : -1);
 			remainder -= counts[i];
 		}
 		counts[distinctColumnsCnt - 1] = remainder;

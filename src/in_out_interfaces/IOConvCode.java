@@ -12,11 +12,13 @@ public class IOConvCode {
 
 	public static ConvCode readConvCode(Scanner scanner) throws IOException
 	{
-		int delay;				
+		int delay;		
+		int rows;
 	
 		delay = scanner.nextInt();
+		rows = scanner.nextInt();
 		
-		Matrix polyGen = IOMatrix.readMatrix(scanner);
+		Matrix polyGen = IOMatrix.readMatrix(scanner, rows);
 		BlockMatrix dividedPolyGen = new BlockMatrix(polyGen, 1, delay+1);
 		
 		return new ConvCode(dividedPolyGen, true);

@@ -20,14 +20,14 @@ import math.MinDistance;
 import codes.BlockCode;
 
 public class SearchMain {
-	private static int[][] complexityLowerBounds;
-	private static int[][] distanceUpperBounds;
-	private static int[] maxDistanceUpperBound;
+	public static int[][] complexityLowerBounds;
+	public static int[][] distanceUpperBounds;
+	public static int[] maxDistanceUpperBound;
 	
-	private static int[][] complexitiesInPaper;
-	private static int[][] distancesInPaper;
+	public static int[][] complexitiesInPaper;
+	public static int[][] distancesInPaper;
 	
-	private static void initDesiredParameters(String filename) throws FileNotFoundException{
+	public static void initDesiredParameters(String filename) throws FileNotFoundException{
 		Scanner scanner = new Scanner(new FileReader(new File(filename)));
 		StringTokenizer tokenizer = new StringTokenizer(scanner.nextLine(), " ()\n\r");
 		int maxK = Integer.parseInt(tokenizer.nextToken()) + 1, maxN = Integer.parseInt(tokenizer.nextToken()) + 1;
@@ -84,7 +84,7 @@ public class SearchMain {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		initDesiredParameters("zt_codes_params.txt");
+		initDesiredParameters("tb_codes_params.txt");
 		
 		BlockCodesSearcher searcher = new BlockCodesSearcher();
 		BlockCodesSearcher.TaskPool[] pools = new BlockCodesSearcher.TaskPool[distanceUpperBounds.length - 3];
