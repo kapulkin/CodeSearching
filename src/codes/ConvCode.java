@@ -1,5 +1,7 @@
 package codes;
 
+import trellises.ConvCodeTrellis;
+import trellises.ITrellis;
 import math.BitArray;
 import math.BlockMatrix;
 import math.ConvCodeAlgs;
@@ -39,7 +41,7 @@ public class ConvCode implements Code{
 	 * Порождающая матрица в полиномиальном представлении
 	 */
 	private PolyMatrix genMatr = null;
-	
+		
 	/**
 	 * Блоки, циклические сдвиги которых формируют порождающую матрицу сверточного кода 	 
 	 */
@@ -50,6 +52,12 @@ public class ConvCode implements Code{
 	 */
 	private PolyMatrix checkMatr = null;
 	
+	/**
+	 * Спеновая форма порождающей матрицы
+	 */
+	private ConvCodeSpanForm spanForm = null;
+
+	private ITrellis trellis; 
 	
 	/**
 	 * @param matrix Порождающая или проверочная матрица в полиномиальном представлении
@@ -170,6 +178,19 @@ public class ConvCode implements Code{
 	}
 	
 	/**
+	 * Метод приводит порождающую матрицу к minimal-base форме, а затем к спеновой форме.
+	 * После этого возвращает спеновую форму матрицы.
+	 * @return Спеновая форма порождающей матрицы. 
+	 */
+	public ConvCodeSpanForm spanForm() {
+		if (spanForm == null) {
+			genMatr = ConvCodeAlgs.getMinimalBaseGenerator(generator());
+			spanForm = ConvCodeAlgs.buildSpanForm(genMatr);
+		}
+		return spanForm;
+	}
+	
+	/**
 	 * 
 	 * @return Блоки, циклические сдвиги которых формируют порождающую матрицу сверточного кода
 	 */
@@ -181,6 +202,13 @@ public class ConvCode implements Code{
 		}
 		
 		return genBlocks;
+	}
+	
+	public ITrellis getTrellis() {
+		if (trellis == null) {
+			trellis = new ConvCodeTrellis(spanForm());
+		}
+		return trellis;
 	}
 	
 	public int getFreeDist() {

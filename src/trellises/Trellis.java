@@ -78,12 +78,12 @@ public class Trellis implements ITrellis{
 	public Vertex[][] Layers;
 
 	@Override
-	public ITrellisIterator iterator(int layer, int vertexIndex) {
+	public ITrellisIterator iterator(int layer, long vertexIndex) {
 		if (layer >= layersCount() || vertexIndex >= layerSize(layer)) {
 			throw new IndexOutOfBoundsException(layer + ", " + vertexIndex);
 		}
 
-		return new TrellisIterator(this, layer, vertexIndex);
+		return new TrellisIterator(this, layer, (int)vertexIndex);
 	}
 
 	@Override

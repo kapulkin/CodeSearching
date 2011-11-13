@@ -356,9 +356,13 @@ public class BeastAlgorithm {
 			// добавляем все вершины нулевого пути/цикла в решетке.
 			PathCounter zeroPath = new PathCounter(toorPath);
 			zeroPath.iterator.moveBackward(0);
-			while (zeroPath.iterator.layer() != toor.layer() && zeroPath.iterator.hasBackward()) {
-				zeroPath.iterator.moveBackward(0);
+			while (zeroPath.iterator.layer() != toor.layer()) {
 				Backward.add(new PathCounter(zeroPath));
+				if (zeroPath.iterator.hasBackward()) {
+					zeroPath.iterator.moveBackward(0);
+				} else {
+					break;
+				}
 			}
 		}
 		

@@ -123,12 +123,12 @@ public class BlockCodeTrellis implements ITrellis {
 
 		@Override
 		public boolean hasBackward() {
-			return spanForm.IsTailbiting || layer > 0;
+			return layer > 0;
 		}
 
 		@Override
 		public boolean hasForward() {
-			return spanForm.IsTailbiting || layer < sections.length - 1;
+			return layer < sections.length - 1;
 		}
 
 		@Override
@@ -229,12 +229,11 @@ public class BlockCodeTrellis implements ITrellis {
 		logger.debug("Construction of trellis for " + k + "/" + n + " code");
 		
 		ArrayList<TrellisSection> sectionsArray = TrellisUtils.buildSections(spanForm);
-		if (!spanForm.IsTailbiting) {
-			TrellisSection lastSection = new TrellisSection();
-			Boundary dummyBoundary = new Boundary(-1, n);
-			lastSection.spanHeads.add(dummyBoundary);
-			sectionsArray.add(lastSection); // добавляем последний слой с фиктивной границей
-		}
+
+		TrellisSection lastSection = new TrellisSection();
+		Boundary dummyBoundary = new Boundary(-1, n);
+		lastSection.spanHeads.add(dummyBoundary);
+		sectionsArray.add(lastSection); // добавляем последний слой с фиктивной границей
 
 		for (TrellisSection layer2 : sectionsArray) {
 			logger.debug(layer2.toString());
@@ -246,7 +245,7 @@ public class BlockCodeTrellis implements ITrellis {
 	}
 	
 	@Override
-	public ITrellisIterator iterator(int layer, int vertexIndex) {
+	public ITrellisIterator iterator(int layer, long vertexIndex) {
 		if (layer >= layersCount() || vertexIndex >= layerSize(layer)) {
 			throw new IndexOutOfBoundsException(layer + ", " + vertexIndex);
 		}

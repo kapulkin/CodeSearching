@@ -286,7 +286,7 @@ public class ConvCodeTrellis  implements ITrellis {
 	}
 
 	@Override
-	public ITrellisIterator iterator(int layer, int vertexIndex) {
+	public ITrellisIterator iterator(int layer, long vertexIndex) {
 		return new Iterator(layer, vertexIndex);
 	}
 
