@@ -44,7 +44,7 @@ public class BasicBlockCodeSearcherTest {
 			 try {
 				tbCode.getGeneratorSpanForm();				
 			}catch(Exception e) {
-				assertTrue(false);
+				fail("Unexpected exception.");
 			}
 				
 			ITrellis trellis = tbCode.getTrellis();

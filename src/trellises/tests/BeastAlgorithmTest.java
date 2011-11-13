@@ -160,14 +160,8 @@ public class BeastAlgorithmTest {
 		}
 
 		int TrivialMinDist = MinDistance.findMinDist(tbCode.generator());
-		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 1, false);
-		int BEASTminDist = Integer.MAX_VALUE;
-		for (int vertexIndex = 0; vertexIndex < trellis.layerSize(0); ++vertexIndex) {
-			ITrellisIterator root = trellis.iterator(0, vertexIndex);
-			ITrellisIterator toor = trellis.iterator(0, vertexIndex);
-			
-			BEASTminDist = Math.min(BEASTminDist, BeastAlgorithm.countMinDist(root, toor, 0, tbCode.getN()));
-		}
+		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 0, false);
+		int BEASTminDist = MinDistance.findMinDist(tbCode);
 		
 		System.out.println("Viterby: " + VDminDist);
 		System.out.println("BEAST: " + BEASTminDist);

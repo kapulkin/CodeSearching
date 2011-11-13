@@ -65,7 +65,7 @@ public class BlockCodeTrellis implements ITrellis {
 				currentActiveRows.remove(spanTail.row);
 			}
 
-			int nextLayer = (layer + 1) % sections.length;
+			int nextLayer = layer + 1;
 			
 			ITrellisEdge edges[] = TrellisUtils.buildAccessorsEdges(spanForm.Matr, vertexIndex, 
 					currentSum, currentSumRows, currentActiveRows,
@@ -92,7 +92,7 @@ public class BlockCodeTrellis implements ITrellis {
 				return new LongEdge[0];
 			}
 			
-			int prevLayer = (layer - 1 + sections.length) % sections.length;
+			int prevLayer = layer - 1;
 			
 			// получаем предыдущие активные ряды
 			for (Boundary spanTail : sections[prevLayer].spanTails) {
@@ -229,7 +229,7 @@ public class BlockCodeTrellis implements ITrellis {
 		logger.debug("Construction of trellis for " + k + "/" + n + " code");
 		
 		ArrayList<TrellisSection> sectionsArray = TrellisUtils.buildSections(spanForm);
-
+		
 		TrellisSection lastSection = new TrellisSection();
 		Boundary dummyBoundary = new Boundary(-1, n);
 		lastSection.spanHeads.add(dummyBoundary);
