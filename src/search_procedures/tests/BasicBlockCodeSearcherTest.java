@@ -3,10 +3,12 @@ package search_procedures.tests;
 import static org.junit.Assert.*;
 import in_out_interfaces.IOConvCode;
 import in_out_interfaces.IOMatrix;
+import in_out_interfaces.IOTrellis;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Scanner;
@@ -49,6 +51,10 @@ public class BasicBlockCodeSearcherTest {
 			int s = TrellisUtils.stateComplexity(trellis), d = tbCode.getMinDist();
 			int s_paper = SearchMain.complexitiesInPaper[k][2 * k];
 			int d_paper = SearchMain.distancesInPaper[k][2 * k];
+			
+			logger.debug("layers: " + trellis.layersCount());
+			
+			IOTrellis.writeTrellisInGVZFormat(trellis, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
 			
 			logger.debug("k = " + k + " s = " + s + "(" + s_paper + ")" + " d = " + d + "(" + d_paper + ")");
 			
