@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import codes.BlockCode;
 import codes.ConvCode;
+import codes.TBCode;
 import codes.TruncatedCode;
 import trellises.BeastAlgorithm;
 import trellises.BlockCodeTrellis;
@@ -110,13 +111,13 @@ public class MinDistance {
 	 * @param code усеченного блоковый код
 	 * @return минимальное расстояние усеченного блокового кода
 	 */
-	public static int findMinDist(TruncatedCode code) {
+	public static int findMinDist(TBCode code) {
 		ITrellis trellis = code.getTrellis();//new BlockCodeTrellis(code.getGeneratorSpanForm());
 		
 		int minDist = Integer.MAX_VALUE;
 		for (int vertexIndex = 0; vertexIndex < trellis.layerSize(0); ++vertexIndex) {
 			ITrellisIterator root = trellis.iterator(0, vertexIndex);
-			ITrellisIterator toor = trellis.iterator(0, vertexIndex);
+			ITrellisIterator toor = trellis.iterator(trellis.layersCount() - 1, vertexIndex);
 			
 			minDist = Math.min(minDist, BeastAlgorithm.countMinDist(root, toor, 0, code.getN()));
 		}

@@ -70,7 +70,7 @@ public class BlockCode implements Code {
 			k = n - checkMatr.getRowCount();			
 		}
 	}
-	
+		
 	/**
 	 * 
 	 * @return Количество информационных символов
@@ -146,24 +146,10 @@ public class BlockCode implements Code {
 		return genSpanForm;
 	}
 	
-	/* TODO: Этот метод, по-хорошему, надо убрать. Взамен создать класс 
-	 * BlockCodeTrellis implemetnts ITellis, возвращающий итератор, позволяющий 
-	 * ходить по решетке не строя ее.
-	 */
 	/**
 	 * 	
 	 * @return Решетка кода
 	 */
-	/*public Trellis getTrellis()
-	{
-		if(trellis == null)
-		{
-			trellis = Trellises.trellisFromGenSF(getGeneratorSpanForm());
-		}
-		
-		return trellis;
-	}/**/
-	
 	public ITrellis getTrellis() {
 		if (trellis == null) {
 			trellis = new BlockCodeTrellis(getGeneratorSpanForm());

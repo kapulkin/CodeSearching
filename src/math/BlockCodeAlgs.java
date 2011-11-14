@@ -177,11 +177,11 @@ public class BlockCodeAlgs {
 	}
 
 	/**
-	 * Строит решетку блокового кода с рассчитанной нулевой метрикой. Метрикой ребер выступает их весовая функция.
+	 * Строит решетку блокового кода в явном виде с рассчитанной нулевой метрикой. Метрикой ребер выступает их весовая функция.
 	 * @param code блоковый код.
 	 * @return решетка блокового кода с рассчитанной метрикой
 	 */
-	public static Trellis buildTrellis(BlockCode code) {
+	public static Trellis buildExplisitTrellis(BlockCode code) {
 		return Trellises.buildExplicitTrellis(new BlockCodeTrellis(code.getGeneratorSpanForm()));
 	}
 }

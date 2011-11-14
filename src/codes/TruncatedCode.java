@@ -17,6 +17,8 @@ public class TruncatedCode extends BlockCode {
 	 */
 	protected BlockMatrix blockGenMatr;
 	
+	int cycles;
+	
 	/**
 	 * Строит усеченный код со скоростью <em>k/n</em>, где <em>k = b * (L - L0), n = c * L, 
 	 * L = delay + 1 + scaleDelta, L0 = tailTruncation</em>.
@@ -30,6 +32,8 @@ public class TruncatedCode extends BlockCode {
 	public TruncatedCode(ConvCode code, int tailTruncation, int scaleDelta) {
 		int L = code.getDelay() + 1 + scaleDelta;
 		int L0 = tailTruncation;
+
+		cycles = L;
 		
 		parentCode = code;
 		blockGenMatr = new BlockMatrix(L - L0, L, code.getK(), code.getN());

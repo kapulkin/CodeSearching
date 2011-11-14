@@ -41,5 +41,4 @@ public class BlockCodesSearcher {
 		
 		return codes;
 	}
-
 }

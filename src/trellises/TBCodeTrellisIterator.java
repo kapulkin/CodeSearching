@@ -20,11 +20,11 @@ public class TBCodeTrellisIterator implements ITrellisIterator {
 	 * @param layer
 	 * @param vertexIndex
 	 */
-	public TBCodeTrellisIterator(ITrellis trellis, int cycles, int layer, int vertexIndex) {
+	public TBCodeTrellisIterator(ITrellis trellis, int cycles, int layer, long vertexIndex) {
 		if (cycles <= 0) {
 			throw new IllegalArgumentException("Cycles must be at least 1: " + cycles);
 		}
-		this.layersCount = cycles * trellis.layersCount();
+		this.layersCount = cycles * trellis.layersCount() + 1;
 		if (layer < 0 || layer > layersCount) {
 			throw new IndexOutOfBoundsException("Wrong value of layer: " + layer);
 		}

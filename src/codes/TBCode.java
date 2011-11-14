@@ -2,11 +2,9 @@ package codes;
 
 import math.ConvCodeAlgs;
 import math.MinDistance;
-import math.PolyMatrix;
-import trellises.BlockCodeTrellis;
 import trellises.ITrellis;
+import trellises.TailbitingCodeTrellis;
 import trellises.Trellis;
-import trellises.Trellises;
 
 /**
  * Tailbiting код. Усеченый код при L0 = 0.
@@ -30,16 +28,22 @@ public class TBCode extends TruncatedCode {
 	 */
 	public ITrellis getTrellis() {
 		if (trellis == null) {
-			PolyMatrix minBaseGen = ConvCodeAlgs.getMinimalBaseGenerator(parentCode.generator());
-			
-			Trellis explicit_trellis = ConvCodeAlgs.buildTrellis(ConvCodeAlgs.buildSpanForm(minBaseGen));
+			Trellis explicit_trellis = ConvCodeAlgs.buildTrellis(parentCode.spanForm());
 			MinDistance.computeDistanceMetrics(explicit_trellis);
-			trellis = explicit_trellis;
+			trellis = new TailbitingCodeTrellis(explicit_trellis, cycles);
 		}
 		
 		return trellis;
 	}
 	
+	public int getMinDist() {
+		if (minDist == -1) {
+			minDist = MinDistance.findMinDist(this);
+		}
+		
+		return minDist;
+	}
+
 	/*public Trellis getTrellis()
 	{	
 		if(trellis != null) {

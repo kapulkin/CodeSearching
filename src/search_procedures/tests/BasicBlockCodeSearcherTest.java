@@ -44,11 +44,14 @@ public class BasicBlockCodeSearcherTest {
 			 try {
 				tbCode.getGeneratorSpanForm();				
 			}catch(Exception e) {
-				assertTrue(false);
+				fail("Unexpected exception.");
 			}
 				
 			ITrellis trellis = tbCode.getTrellis();
-			int s = TrellisUtils.stateComplexity(trellis), d = tbCode.getMinDist();
+			IOTrellis.writeTrellisInGVZFormat(trellis, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
+
+			int s = TrellisUtils.stateComplexity(trellis);
+			int d = tbCode.getMinDist();
 			int s_paper = SearchMain.complexitiesInPaper[k][2 * k];
 			int d_paper = SearchMain.distancesInPaper[k][2 * k];
 			
@@ -58,8 +61,8 @@ public class BasicBlockCodeSearcherTest {
 			
 			logger.debug("k = " + k + " s = " + s + "(" + s_paper + ")" + " d = " + d + "(" + d_paper + ")");
 			
-			assertTrue(s == s_paper);			
-			assertTrue(d == d_paper);
+			assertEquals(s_paper, s);
+			assertEquals(d_paper, d);
 		}
 	}
 }

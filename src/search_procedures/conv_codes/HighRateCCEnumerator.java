@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import search_tools.AEnumerator;
+import search_tools.CEnumerator;
 import search_tools.RowsEnumerator;
 import search_tools.WeightedCodeWordsEnumerator;
 import trellises.Trellis;
@@ -144,24 +145,44 @@ public class HighRateCCEnumerator {
 		// TODO: еще более хитрая проверка: вместо тупого перебора хитрые правила и более тонкий перебор.
 
 		for (int weight = 1; weight <= expectedFreeDist-1; ++weight) {
-			WeightedCodeWordsEnumerator wordsEnumerator = new WeightedCodeWordsEnumerator(weight, delay, checkMatrix.getColumnCount());
-			
+			CEnumerator wordsEnumerator = new CEnumerator(checkMatrix.getColumnCount() * (delay + 1), weight);
 			while (wordsEnumerator.hasNext()) {
-				Poly word[] = wordsEnumerator.next(); // в word первые не более, чем min(weight, k+1) полиномы ненулевые 
-				AEnumerator columnsEnumerator = new AEnumerator(checkMatrix.getColumnCount(), Math.min(weight, checkMatrix.getColumnCount()));
-				while (columnsEnumerator.hasNext()) {
-					// TODO: Все перемножить и сравнить с нулем. И если ноль, выходим.
-					Poly sum = new Poly();
-					long columns[] = columnsEnumerator.next();
-					for (int i = 0; i < columns.length; ++i) {
-						sum.add(word[i].mul(checkMatrix.get(0, (int)columns[i])));
-					}
-					
-					if (sum.isZero()) {
-						return false;
-					}
+				long coeffs[] = wordsEnumerator.next();
+				Poly word[] = new Poly[checkMatrix.getColumnCount()];
+				for (int i = 0; i < word.length; ++i) {
+					word[i] = new Poly();
+				}
+				for (int i = 0; i < coeffs.length; ++i) {
+					word[(int)coeffs[i]/(delay + 1)].setCoeff((int)coeffs[i] % (delay + 1), true);
+				}
+				Poly sum = new Poly();
+				for (int i = 0; i < word.length; ++i) {
+					sum.add(word[i].mul(checkMatrix.get(0, i)));
+				}
+
+				if (sum.isZero()) {
+					return false;
 				}
 			}
+			
+//			WeightedCodeWordsEnumerator wordsEnumerator = new WeightedCodeWordsEnumerator(weight, delay, checkMatrix.getColumnCount());
+//			
+//			while (wordsEnumerator.hasNext()) {
+//				Poly word[] = wordsEnumerator.next(); // в word первые не более, чем min(weight, k+1) полиномы ненулевые 
+//				AEnumerator columnsEnumerator = new AEnumerator(checkMatrix.getColumnCount(), Math.min(weight, checkMatrix.getColumnCount()));
+//				while (columnsEnumerator.hasNext()) {
+//					// TODO: Все перемножить и сравнить с нулем. И если ноль, выходим.
+//					Poly sum = new Poly();
+//					long columns[] = columnsEnumerator.next();
+//					for (int i = 0; i < columns.length; ++i) {
+//						sum.add(word[i].mul(checkMatrix.get(0, (int)columns[i])));
+//					}
+//					
+//					if (sum.isZero()) {
+//						return false;
+//					}
+//				}
+//			}
 		}
 		
 		return true;/**/

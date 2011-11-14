@@ -123,7 +123,7 @@ public class BeastAlgorithmTest {
 		Matrix generator = new Matrix(new BitArray[] { row0, row1, row2 });
 		
 		BlockCode code = new BlockCode(generator, true);
-		Trellis trellis = BlockCodeAlgs.buildTrellis(code);
+		Trellis trellis = BlockCodeAlgs.buildExplisitTrellis(code);
 		
 		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 0, false);
 		int BEASTminDist = MinDistance.findMinDistWithBEAST(trellis, 0, code.getN());
@@ -148,7 +148,7 @@ public class BeastAlgorithmTest {
 		
 		ConvCode code = new ConvCode(G, true);
 		TBCode tbCode = new TBCode(code, 0);
-		Trellis trellis = BlockCodeAlgs.buildTrellis((BlockCode)tbCode);
+		Trellis trellis = BlockCodeAlgs.buildExplisitTrellis((BlockCode)tbCode);
 		
 		try {
 			logger.debug("Tailbiting code:");
@@ -160,14 +160,8 @@ public class BeastAlgorithmTest {
 		}
 
 		int TrivialMinDist = MinDistance.findMinDist(tbCode.generator());
-		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 1, false);
-		int BEASTminDist = Integer.MAX_VALUE;
-		for (int vertexIndex = 0; vertexIndex < trellis.layerSize(0); ++vertexIndex) {
-			ITrellisIterator root = trellis.iterator(0, vertexIndex);
-			ITrellisIterator toor = trellis.iterator(0, vertexIndex);
-			
-			BEASTminDist = Math.min(BEASTminDist, BeastAlgorithm.countMinDist(root, toor, 0, tbCode.getN()));
-		}
+		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 0, false);
+		int BEASTminDist = MinDistance.findMinDist(tbCode);
 		
 		System.out.println("Viterby: " + VDminDist);
 		System.out.println("BEAST: " + BEASTminDist);
