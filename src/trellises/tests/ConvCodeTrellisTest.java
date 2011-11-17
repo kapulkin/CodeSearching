@@ -18,6 +18,7 @@ import trellises.ITrellis;
 import trellises.ITrellisEdge;
 import trellises.ITrellisIterator;
 import codes.ConvCode;
+import codes.tests.ConvCodeTest;
 import math.ConvCodeAlgs;
 import math.ConvCodeSpanForm;
 import math.Poly;
@@ -25,13 +26,11 @@ import math.PolyMatrix;
 
 
 public class ConvCodeTrellisTest {
-	Logger logger;
+	static final private Logger logger = LoggerFactory.getLogger(ConvCodeTrellisTest.class);
 	
 	PolyMatrix G;
 
 	public ConvCodeTrellisTest() {
-		logger = LoggerFactory.getLogger(this.getClass());
-
 		G = new PolyMatrix(2, 3);
 		// row 0
 		G.set(0, 0, new Poly(new int[] {1}));

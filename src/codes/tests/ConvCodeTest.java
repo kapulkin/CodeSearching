@@ -10,16 +10,17 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import trellises.tests.BeastAlgorithmTest;
+
 import codes.ConvCode;
 
 public class ConvCodeTest {
+	static final private Logger logger = LoggerFactory.getLogger(ConvCodeTest.class);
+
 	ConvCode code;
-	Logger logger;
 
 	
 	public ConvCodeTest() {
-		logger = LoggerFactory.getLogger(this.getClass());
-
 		PolyMatrix G = new PolyMatrix(2, 3);
 		// row 0
 		G.set(0, 0, new Poly(new int[] {0, 1}));

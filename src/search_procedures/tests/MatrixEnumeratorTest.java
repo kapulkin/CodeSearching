@@ -10,10 +10,12 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import codes.tests.ConvCodeTest;
+
 import search_tools.MatrixEnumerator;
 
 public class MatrixEnumeratorTest {
-	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	static final private Logger logger = LoggerFactory.getLogger(MatrixEnumeratorTest.class);
 
 	@Test
 	public void numberOfMatrices(){

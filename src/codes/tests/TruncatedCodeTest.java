@@ -29,7 +29,7 @@ import java.util.Scanner;
 
 
 public class TruncatedCodeTest {
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	static final private Logger logger = LoggerFactory.getLogger(TruncatedCodeTest.class);
 
 	@Test
 	public void printTBCodeMatrix() {

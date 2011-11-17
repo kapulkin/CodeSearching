@@ -18,9 +18,10 @@ import math.MinDistance;
 import math.Poly;
 import math.PolyMatrix;
 import codes.ConvCode;
+import codes.tests.ConvCodeTest;
 
 public class HighRateCCEnumerator {
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	static final private Logger logger = LoggerFactory.getLogger(HighRateCCEnumerator.class);
 
 	int delay;
 	int freeDist;

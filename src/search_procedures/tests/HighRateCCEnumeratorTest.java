@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import codes.ConvCode;
+import codes.tests.ConvCodeTest;
 
 import search_procedures.conv_codes.HighRateCCEnumerator;
 import trellises.Trellis;
@@ -16,10 +17,10 @@ import trellises.Trellises;
 
 
 public class HighRateCCEnumeratorTest {
+	static final private Logger logger = LoggerFactory.getLogger(HighRateCCEnumeratorTest.class);
+
 	@Test
 	public void SearcherTest() {
-		final Logger logger = LoggerFactory.getLogger(this.getClass());
-
 		int v = 9, freeDist = 5;
 		HighRateCCEnumerator codeSearcher = new HighRateCCEnumerator(v, freeDist);
 		

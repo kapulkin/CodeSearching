@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import codes.ConvCode;
+import codes.tests.ConvCodeTest;
 
 import search_procedures.conv_codes.FreeDist4CCEnumerator;
 import trellises.Trellis;
@@ -15,7 +16,7 @@ import trellises.Trellises;
 
 
 public class FreeDist4CCEnumeratorTest {
-	final Logger logger = LoggerFactory.getLogger(this.getClass());
+	static final private Logger logger = LoggerFactory.getLogger(FreeDist4CCEnumeratorTest.class);
 
 	@Test
 	public void searcherShouldGiveCodeWithFreeDistEqualTo3() {

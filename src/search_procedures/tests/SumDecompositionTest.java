@@ -4,13 +4,15 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import codes.tests.ConvCodeTest;
+
 import static org.junit.Assert.*;
 
 import search_tools.SumDecomposition;
 
 
 public class SumDecompositionTest {
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	static final private Logger logger = LoggerFactory.getLogger(SumDecompositionTest.class);
 	
 	@Test
 	public void sampleFor4By4() {

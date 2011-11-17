@@ -6,13 +6,15 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import codes.tests.ConvCodeTest;
+
 import common.TestUtils;
 import common.ToString;
 
 import search_tools.PEnumerator;
 
 public class PEnumeratorTest {
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	static final private Logger logger = LoggerFactory.getLogger(PEnumeratorTest.class);
 
 	@Test
 	public void sampleFor3() {

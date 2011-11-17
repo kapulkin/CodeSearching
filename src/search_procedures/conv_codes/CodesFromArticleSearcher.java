@@ -27,13 +27,11 @@ import codes.ConvCode;
 import database.CodesDatabase;
 
 public class CodesFromArticleSearcher {
+	static final private Logger logger = LoggerFactory.getLogger(CodesFromArticleSearcher.class);
+	
 	Map<Integer, ArrayList<ConvCode>> codesFound = new HashMap<Integer, ArrayList<ConvCode>>();
 	
-	Logger logger = LoggerFactory.getLogger(this.getClass());
-
-	public static void main(String args[]) {
-		Logger logger = LoggerFactory.getLogger(CodesFromArticleSearcher.class);
-		
+	public static void main(String args[]) {		
 		if (args.length == 0) {
 			System.out.println("Free dist as the only parameter is needed.");
 			return ;

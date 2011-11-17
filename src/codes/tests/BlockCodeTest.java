@@ -12,11 +12,10 @@ import org.slf4j.LoggerFactory;
 import codes.BlockCode;
 
 public class BlockCodeTest {
+	static private Logger logger =  LoggerFactory.getLogger(BlockCodeTest.class);
 	BlockCode code;
-	Logger logger;
 
 	public BlockCodeTest() {
-		logger = LoggerFactory.getLogger(this.getClass());
 
 		BitArray row0 = new BitArray(6); row0.set(0); row0.set(1); row0.set(3);
 		BitArray row1 = new BitArray(6); row1.set(1); row1.set(4); row1.set(5);

@@ -8,11 +8,13 @@ import static org.junit.Assert.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import codes.tests.ConvCodeTest;
+
 import search_tools.WeightedCodeWordsEnumerator;
 
 
 public class WeightedCodeWordsEnumeratorTest {
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	static final private Logger logger = LoggerFactory.getLogger(WeightedCodeWordsEnumeratorTest.class);
 	
 	@Test
 	public void operationalDemonstration() {

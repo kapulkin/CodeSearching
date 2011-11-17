@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import search_tools.RowsEnumerator;
 
 import codes.ConvCode;
+import codes.tests.ConvCodeTest;
 
 import math.BitArray;
 import math.PolyMatrix;
@@ -20,7 +21,7 @@ import math.PolyMatrix;
  *
  */
 public class FreeDist3CCEnumerator {
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	static final private Logger logger = LoggerFactory.getLogger(FreeDist3CCEnumerator.class);
 	
 	int delay;
 	int infBitsNumber;

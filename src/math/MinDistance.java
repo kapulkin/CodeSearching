@@ -15,7 +15,7 @@ import trellises.Trellis;
 import trellises.ViterbiAlgorithm;
 
 public class MinDistance {
-	static Logger logger = LoggerFactory.getLogger(MinDistance.class);
+	static private Logger logger = LoggerFactory.getLogger(MinDistance.class);
 	
 	/**
 	 * Рассчитывает метрику решетки, где весовой функцией выступает вес кодовых слов на ребрах.

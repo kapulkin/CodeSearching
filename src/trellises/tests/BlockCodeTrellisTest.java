@@ -17,16 +17,16 @@ import math.BitArray;
 import math.BlockCodeAlgs;
 import math.Matrix;
 import codes.BlockCode;
+import codes.tests.ConvCodeTest;
 
 
 public class BlockCodeTrellisTest {
+	static final private Logger logger = LoggerFactory.getLogger(BlockCodeTrellisTest.class);
+
 	BlockCode code;
 	BlockCodeTrellis trellis;
-
-	Logger logger;
 	
 	public BlockCodeTrellisTest () {
-		logger = LoggerFactory.getLogger(this.getClass());
 		
 		// Генератор задан в минимальной спеновой форме. Секционированная решетка должна иметь 6 ярусов. 
 		BitArray row0 = new BitArray(6); row0.set(0); row0.set(1); row0.set(3);

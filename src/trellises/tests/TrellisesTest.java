@@ -28,7 +28,7 @@ import codes.BlockCode;
 import codes.Code;
 
 public class TrellisesTest {
-	static Logger logger = LoggerFactory.getLogger(TrellisesTest.class);
+	private static Logger logger = LoggerFactory.getLogger(TrellisesTest.class);
 
 	BlockCode code;
 	
