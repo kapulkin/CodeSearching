@@ -134,6 +134,16 @@ public class BlockMatrix{
 		blocks[i][j] = value;
 	}
 	
+	public Matrix[] getRow(int i) {
+		Matrix[] row = new Matrix[getColumnCount()];
+		
+		for (int k = 0;k < getColumnCount(); ++k) {
+			row[k] = blocks[i][k];
+		}
+		
+		return row;
+	}
+	
 	public Matrix breakBlockStructure()
 	{
 		Matrix unblocked = new Matrix(getTotalRowCount(), getTotalColumnCount());		

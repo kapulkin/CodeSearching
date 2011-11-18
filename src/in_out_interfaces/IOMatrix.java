@@ -45,12 +45,14 @@ public class IOMatrix {
 				}			
 			}else{				
 				int octDigitsToRead = (int) Math.ceil((double)binaryBitsInBlock / 3);
-				int residual = 3 * octDigitsToRead -  binaryBitsInBlock;
+				int residual = 2 - (3 * octDigitsToRead -  binaryBitsInBlock);
 				
 				while(true)
 				{
 					if(!matcher.find())
-						break;					
+						break;		
+					
+					ArrayList<Boolean> block = new ArrayList<Boolean>();
 					
 					for(int i = 0;i < octDigitsToRead;i ++)
 					{
@@ -58,13 +60,15 @@ public class IOMatrix {
 							throw new IOException();
 						
 						int octDigit = Integer.parseInt(matcher.group());
-						for(int j = (i == 0) ? residual : 2;j >= 0;j --)
+						for(int j = ((i == 0) ? residual : 2);j >= 0; --j)
 						{
 						//	if(3 * i + (2 - j) >= binaryBitsInBlock)
 							//	break;
-							row.add((octDigit & (1 << j)) != 0);
+							block.add(0, (octDigit & (1 << j)) != 0);
 						}
 					}
+					
+					row.addAll(block);
 				}				
 			}
 			

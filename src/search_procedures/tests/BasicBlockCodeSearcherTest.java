@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import org.junit.Test;
@@ -22,6 +23,12 @@ import codes.ConvCode;
 import codes.TBCode;
 import codes.tests.ConvCodeTest;
 
+import search_heuristics.CCFirstLastBlockStateHeur;
+import search_heuristics.CCWeightsDistHeur;
+import search_heuristics.CombinedHeuristic;
+import search_heuristics.IHeuristic;
+import search_heuristics.LRCCGreismerDistHeur;
+import search_heuristics.TBWeightDistHeur;
 import search_procedures.block_codes.SearchMain;
 import trellises.ITrellis;
 import trellises.TrellisUtils;
@@ -37,29 +44,60 @@ public class BasicBlockCodeSearcherTest {
 		Scanner scanner = new Scanner(new File("conv_codes_for_tb_truncation.txt"));
 		
 		for (int k = minK;k <= maxK; ++k) {
-			 ConvCode code = IOConvCode.readConvCode(scanner);
-			 BlockCode tbCode = new TBCode(code, k - (code.getDelay() + 1));
+			ConvCode code = IOConvCode.readConvCode(scanner);
+			BlockCode tbCode = new TBCode(code, k - (code.getDelay() + 1));
 			 
-			 IOMatrix.writeMatrix(tbCode.generator(), new BufferedWriter(new OutputStreamWriter(System.out)));
-			 
-			 try {
-				tbCode.getGeneratorSpanForm();				
-			}catch(Exception e) {
-				fail("Unexpected exception.");
-			}
-				
-			ITrellis trellis = tbCode.getTrellis();
-			IOTrellis.writeTrellisInGVZFormat(trellis, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
-
-			int s = TrellisUtils.stateComplexity(trellis);
-			int d = tbCode.getMinDist();
-			int s_paper = SearchMain.complexitiesInPaper[k][2 * k];
-			int d_paper = SearchMain.distancesInPaper[k][2 * k];
-			
-			logger.debug("k = " + k + " s = " + s + "(" + s_paper + ")" + " d = " + d + "(" + d_paper + ")");
-			
-			assertEquals(s_paper, s);
-			assertEquals(d_paper, d);
+			testHeuristics(tbCode); 
 		}
+	}
+	
+	private void testHeuristics(BlockCode tbCode) {
+		int k = tbCode.getK();
+		ArrayList<IHeuristic> cc_heuristics = new ArrayList<IHeuristic>();
+		
+		cc_heuristics.add(new CCWeightsDistHeur(SearchMain.distancesInPaper[k][2 * k]));
+		cc_heuristics.add(new CCFirstLastBlockStateHeur());
+		cc_heuristics.add(new LRCCGreismerDistHeur(SearchMain.distancesInPaper[k][2 * k]));
+		
+		IHeuristic tb_heuristic = new TBWeightDistHeur(SearchMain.distancesInPaper[k][2 * k]);
+		
+		logger.debug("k: " + k);
+		
+		for (int i = 0;i < cc_heuristics.size(); ++i) {
+			if (!cc_heuristics.get(i).check(((TBCode)tbCode).getParentCode())) {
+				fail(cc_heuristics.get(i).getClass() + " fails");					
+			}
+		}
+		
+		if (!tb_heuristic.check(tbCode)) {
+			fail(tb_heuristic.getClass() + " fails");
+		}
+
+	}
+	
+	private void testCodeParameters(BlockCode tbCode) throws IOException {
+		IOMatrix.writeMatrix(tbCode.generator(), new BufferedWriter(new OutputStreamWriter(System.out)));
+		 
+		 try {
+			tbCode.getGeneratorSpanForm();				
+		}catch(Exception e) {
+			fail("Unexpected exception.");
+		}
+			
+		ITrellis trellis = tbCode.getTrellis();		
+		int k = tbCode.getK();
+		int s = TrellisUtils.stateComplexity(trellis);
+		int d = tbCode.getMinDist();
+		int s_paper = SearchMain.complexitiesInPaper[k][2 * k];
+		int d_paper = SearchMain.distancesInPaper[k][2 * k];
+		
+		logger.debug("layers: " + trellis.layersCount());
+		
+		IOTrellis.writeTrellisInGVZFormat(trellis, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
+		
+		logger.debug("k = " + k + " s = " + s + "(" + s_paper + ")" + " d = " + d + "(" + d_paper + ")");
+		
+		assertEquals(s_paper, s);
+		assertEquals(d_paper, d);
 	}
 }

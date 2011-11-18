@@ -103,12 +103,12 @@ public class SearchMain {
 			
 					CombinedHeuristic heuristic = new CombinedHeuristic();
 			
-					//heuristic.addHeuristic(0, new CCWeightsDistHeur(tasks[k - 3].MinDist));
-					//heuristic.addHeuristic(1, new CCFirstLastBlockStateHeur());
-					//heuristic.addHeuristic(2, new LRCCGreismerDistHeur(tasks[k - 3].MinDist));
+					heuristic.addHeuristic(0, new CCWeightsDistHeur(task.MinDist));
+					heuristic.addHeuristic(1, new CCFirstLastBlockStateHeur());
+					heuristic.addHeuristic(2, new LRCCGreismerDistHeur(task.MinDist));
 			
 					task.ConvCodeEnum = new SiftingCCEnumerator(new ExhaustiveCCEnumByGenMatr(1, 2, task.StateComplexity), heuristic);
-					task.Heuristic = null;//new TBWeightDistHeur(task.MinDist);
+					task.Heuristic = new TBWeightDistHeur(task.MinDist);
 					tasks.add(task);
 				}
 			}
