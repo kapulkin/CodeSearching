@@ -46,7 +46,7 @@ public class BasicBlockCodeSearcherTest {
 			ConvCode code = IOConvCode.readConvCode(scanner);
 			BlockCode tbCode = new TBCode(code, k - (code.getDelay() + 1));
 			 
-			testHeuristics(tbCode); 
+			testCodeParameters(tbCode); 
 		}
 	}
 	
@@ -82,11 +82,29 @@ public class BasicBlockCodeSearcherTest {
 		}catch(Exception e) {
 			fail("Unexpected exception.");
 		}
-			
-		ITrellis trellis = tbCode.getTrellis();		
+		 
 		int k = tbCode.getK();
-		int s = TrellisUtils.stateComplexity(trellis);
+		long start, end;
+		 
+		logger.info("k = " + k);
+			
+		start = System.currentTimeMillis();
+		
+		ITrellis trellis = tbCode.getTrellis();
+		
+		end = System.currentTimeMillis();
+		
+		logger.info("trellis creation time = " + (double)(end - start) / 1000 + "s");
+				
+		start = System.currentTimeMillis();
+		
 		int d = tbCode.getMinDist();
+		
+		end = System.currentTimeMillis();
+		
+		logger.info("minimal distance finding time = " + (double)(end - start) / 1000 + "s");
+		
+		int s = TrellisUtils.stateComplexity(trellis);
 		int s_paper = SearchMain.complexitiesInPaper[k][2 * k];
 		int d_paper = SearchMain.distancesInPaper[k][2 * k];
 		
@@ -94,7 +112,7 @@ public class BasicBlockCodeSearcherTest {
 		
 		IOTrellis.writeTrellisInGVZFormat(trellis, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
 		
-		logger.debug("k = " + k + " s = " + s + "(" + s_paper + ")" + " d = " + d + "(" + d_paper + ")");
+		logger.debug(" s = " + s + "(" + s_paper + ")" + " d = " + d + "(" + d_paper + ")");
 		
 		assertEquals(s_paper, s);
 		assertEquals(d_paper, d);
