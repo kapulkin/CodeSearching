@@ -27,9 +27,10 @@ import trellises.TailbitingCodeTrellis;
 
 import codes.ConvCode;
 import codes.TBCode;
+import codes.tests.ConvCodeTest;
 
 public class TailbitingCodeTrellisTest {
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	static final private Logger logger = LoggerFactory.getLogger(TailbitingCodeTrellisTest.class);
 	
 	@Test
 	public void testTrellisWithBEAST1() {

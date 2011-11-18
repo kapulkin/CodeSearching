@@ -10,11 +10,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import codes.ConvCode;
+import codes.tests.ConvCodeTest;
 
 import search_procedures.block_codes.FileCCEnumerator;
 
 public class FileCCEnumeratorTest {
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	static final private Logger logger = LoggerFactory.getLogger(FileCCEnumeratorTest.class);
 
 	@Test
 	public void test() {

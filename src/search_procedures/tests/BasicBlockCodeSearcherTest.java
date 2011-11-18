@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import codes.BlockCode;
 import codes.ConvCode;
 import codes.TBCode;
+import codes.tests.ConvCodeTest;
 
 import search_heuristics.CCFirstLastBlockStateHeur;
 import search_heuristics.CCWeightsDistHeur;
@@ -33,7 +34,7 @@ import trellises.ITrellis;
 import trellises.TrellisUtils;
 
 public class BasicBlockCodeSearcherTest {
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	static final private Logger logger = LoggerFactory.getLogger(BasicBlockCodeSearcherTest.class);
 
 	@Test
 	public void testCorrectnessForCodesFromPaper() throws IOException {

@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import search_tools.RowsEnumerator;
 
 import codes.ConvCode;
+import codes.tests.ConvCodeTest;
 
 /**
  * Данный класс перебирает k/(k+1) скоростные коды со свободным расстоянием >= 4
@@ -20,7 +21,7 @@ import codes.ConvCode;
  *
  */
 public class FreeDist4CCEnumerator {
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	static final private Logger logger = LoggerFactory.getLogger(FreeDist4CCEnumerator.class);
 	
 	int delay;
 	int infBitsNumber;

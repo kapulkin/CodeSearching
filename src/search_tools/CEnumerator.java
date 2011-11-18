@@ -5,6 +5,8 @@ import java.util.NoSuchElementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import codes.tests.ConvCodeTest;
+
 /**
  * Combinations enumerator
  * 
@@ -12,11 +14,11 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class CEnumerator {
+	static final private Logger logger = LoggerFactory.getLogger(CEnumerator.class);
 	
 	private long n;
 	private int k;
 	private long[] sequence;
-	Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	
 	public CEnumerator(long n, int k)

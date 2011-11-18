@@ -13,9 +13,13 @@ import math.ConvCodeSpanForm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import codes.tests.ConvCodeTest;
+
 import trellises.TrellisSection.Boundary;
 
 public class ConvCodeTrellis  implements ITrellis {
+	static final private Logger logger = LoggerFactory.getLogger(ConvCodeTrellis.class);
+
 	public class Iterator implements ITrellisIterator {
 		Logger logger;
 
@@ -254,11 +258,7 @@ public class ConvCodeTrellis  implements ITrellis {
 	private int b, c;
 	private TrellisSection sections[];
 
-	private Logger logger;
-	
 	public ConvCodeTrellis(ConvCodeSpanForm spanForm) {
-		logger = LoggerFactory.getLogger(this.getClass());
-
 		this.spanForm = spanForm;
 		v = 0;
 		for (int i = 0; i < v; ++i) {

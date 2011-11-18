@@ -40,7 +40,7 @@ import trellises.Trellises;
 
 
 public class BeastAlgorithmTest {
-	final Logger logger = LoggerFactory.getLogger(this.getClass());
+	static final private Logger logger = LoggerFactory.getLogger(BeastAlgorithmTest.class);
 
 	@Test
 	public void testHighRateConvCodeDistanceSearch() {

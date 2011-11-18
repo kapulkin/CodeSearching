@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.Random;
 import java.util.Scanner;
 
-import math.BlockMatrix;
 import math.Matrix;
 import math.Poly;
 import math.PolyMatrix;
@@ -18,16 +17,15 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import codes.BlockCode;
+
 import codes.ConvCode;
-import codes.TBCode;
 
 import search_procedures.block_codes.ExhaustiveCCEnumByGenMatr;
 import search_procedures.block_codes.SearchMain;
 import search_tools.MatrixEnumerator;
 
 public class MatrixEnumeratorTest {
-	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	static final private Logger logger = LoggerFactory.getLogger(MatrixEnumeratorTest.class);
 
 	@Test
 	public void numberOfMatrices(){

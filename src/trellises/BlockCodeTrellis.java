@@ -21,11 +21,13 @@ import trellises.TrellisSection.Boundary;
  *
  */
 public class BlockCodeTrellis implements ITrellis {
+	static private Logger logger = LoggerFactory.getLogger(BlockCodeTrellis.class);
+
 	public class Iterator implements ITrellisIterator {
-		Logger logger;
+		private Logger logger;
 		
-		int layer;
-		long vertexIndex;
+		private int layer;
+		private long vertexIndex;
 		
 		/**
 		 * Номера рядов, активных в текущем ярусе. Фактически, номера рядов, пересекающих ярус.
@@ -218,11 +220,7 @@ public class BlockCodeTrellis implements ITrellis {
 	private SpanForm spanForm;
 	private TrellisSection sections[];
 
-	private Logger logger;
-	
 	public BlockCodeTrellis(SpanForm spanForm) {
-		logger = LoggerFactory.getLogger(this.getClass());
-		
 		this.spanForm = spanForm;
 		
 		int k = spanForm.Matr.getRowCount(), n = spanForm.Matr.getColumnCount();

@@ -12,10 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import codes.ConvCode;
+import codes.tests.ConvCodeTest;
 import search_procedures.conv_codes.IConvCodeEnumerator;
 
 public class FileCCEnumerator implements IConvCodeEnumerator {
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	static final private Logger logger = LoggerFactory.getLogger(FileCCEnumerator.class);
 	
 	private Scanner scanner;
 	private String filename;
