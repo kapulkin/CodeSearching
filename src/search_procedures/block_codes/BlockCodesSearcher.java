@@ -3,8 +3,9 @@ package search_procedures.block_codes;
 import java.util.ArrayList;
 
 import codes.BlockCode;
+import codes.ConvCode;
 import search_heuristics.IHeuristic;
-import search_procedures.conv_codes.IConvCodeEnumerator;
+import search_procedures.conv_codes.ICodeEnumerator;
 
 public class BlockCodesSearcher {		
 	public static class SearchTask {
@@ -12,7 +13,7 @@ public class BlockCodesSearcher {
 		public int N;
 		public int MinDist;
 		public int StateComplexity;
-		public IConvCodeEnumerator ConvCodeEnum;
+		public ICodeEnumerator<ConvCode> ConvCodeEnum;
 		public IHeuristic Heuristic;
 	}
 	
@@ -28,7 +29,7 @@ public class BlockCodesSearcher {
 			
 			for (int j = 0;j < tasks.size(); ++j) {				
 				TruncatedCodeEnumerator truncEnum = new TruncatedCodeEnumerator(tasks.get(j).ConvCodeEnum, tasks.get(j).K, tasks.get(j).N);
-				BasicBlockCodesSearcher searcher = new BasicBlockCodesSearcher(tasks.get(j).MinDist, tasks.get(j).StateComplexity);
+				BasicBlockCodesSearcher<BlockCode> searcher = new BasicBlockCodesSearcher<BlockCode>(tasks.get(j).MinDist, tasks.get(j).StateComplexity);
 			
 				searcher.setCandidateEnumerator(truncEnum);
 				searcher.setHeuristic(tasks.get(j).Heuristic);

@@ -13,8 +13,6 @@ import math.ConvCodeSpanForm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import codes.tests.ConvCodeTest;
-
 import trellises.TrellisSection.Boundary;
 
 public class ConvCodeTrellis  implements ITrellis {

@@ -1,20 +1,19 @@
 package search_procedures.block_codes;
 
-import search_procedures.conv_codes.IConvCodeEnumerator;
-import codes.BlockCode;
+import search_procedures.conv_codes.ICodeEnumerator;
 import codes.ConvCode;
 import codes.TBCode;
 import codes.TruncatedCode;
 import codes.ZTCode;
 
-public class TruncatedCodeEnumerator implements ICandidateEnumerator {
-	private IConvCodeEnumerator ccEnum;	
+public class TruncatedCodeEnumerator implements ICandidateEnumerator<TruncatedCode> {
+	private ICodeEnumerator<ConvCode> ccEnum;	
 //	private int tailTruncation = -1;
 //	private int scaleDelta = -1;
 	private int k = -1;
 	private int n = -1;
 	
-	public TruncatedCodeEnumerator(IConvCodeEnumerator ccEnum, int k, int n) {
+	public TruncatedCodeEnumerator(ICodeEnumerator<ConvCode> ccEnum, int k, int n) {
 		this.ccEnum = ccEnum;		
 		this.k = k;
 		this.n = n;
@@ -27,7 +26,7 @@ public class TruncatedCodeEnumerator implements ICandidateEnumerator {
 	}/**/	
 	
 	@Override
-	public BlockCode next() {
+	public TruncatedCode next() {
 		ConvCode convCode = ccEnum.next();
 		
 		if (convCode == null)
@@ -56,5 +55,4 @@ public class TruncatedCodeEnumerator implements ICandidateEnumerator {
 		
 		return new TruncatedCode(convCode, L0, L - (convCode.getDelay() + 1));
 	}
-
 }

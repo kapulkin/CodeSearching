@@ -7,7 +7,6 @@ import in_out_interfaces.IOTrellis;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -21,11 +20,8 @@ import org.slf4j.LoggerFactory;
 import codes.BlockCode;
 import codes.ConvCode;
 import codes.TBCode;
-import codes.tests.ConvCodeTest;
-
 import search_heuristics.CCFirstLastBlockStateHeur;
 import search_heuristics.CCWeightsDistHeur;
-import search_heuristics.CombinedHeuristic;
 import search_heuristics.IHeuristic;
 import search_heuristics.LRCCGreismerDistHeur;
 import search_heuristics.TBWeightDistHeur;

@@ -4,10 +4,10 @@ import math.BlockMatrix;
 import math.Matrix;
 import math.PolyMatrix;
 import codes.ConvCode;
-import search_procedures.conv_codes.IConvCodeEnumerator;
+import search_procedures.conv_codes.ICodeEnumerator;
 import search_tools.MatrixEnumerator;
 
-public class ExhaustiveCCEnumByGenMatr implements IConvCodeEnumerator {
+public class ExhaustiveCCEnumByGenMatr implements ICodeEnumerator<ConvCode> {
 	private int k;
 	private int n;
 	private int delay;

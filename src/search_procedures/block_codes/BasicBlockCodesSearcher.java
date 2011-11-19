@@ -6,7 +6,7 @@ import trellises.TrellisUtils;
 
 import codes.BlockCode;
 
-public class BasicBlockCodesSearcher extends BlockCodesBaseSearchScheme {
+public class BasicBlockCodesSearcher<DesiredCode extends BlockCode> extends CodesBaseSearchScheme<DesiredCode> {
 	private IHeuristic heuristic;
 	private int requiredMinDistance;
 	private int requiredStateComplexity;
@@ -21,7 +21,7 @@ public class BasicBlockCodesSearcher extends BlockCodesBaseSearchScheme {
 	}
 	
 	@Override
-	protected BlockCode process(BlockCode candidate) {
+	protected DesiredCode process(DesiredCode candidate) {
 		if (heuristic != null && !heuristic.check(candidate)) {
 			return null;
 		}
@@ -44,5 +44,4 @@ public class BasicBlockCodesSearcher extends BlockCodesBaseSearchScheme {
 		
 		return candidate;
 	}
-
 }

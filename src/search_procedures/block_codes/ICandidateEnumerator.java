@@ -1,9 +1,7 @@
 package search_procedures.block_codes;
 
-import codes.BlockCode;
+public interface ICandidateEnumerator<DesiredCode> {
 
-public interface ICandidateEnumerator {
-
-	BlockCode next();
+	DesiredCode next();
 	
 }
