@@ -1,6 +1,7 @@
 package search_procedures.block_codes;
 
-import search_procedures.conv_codes.ICodeEnumerator;
+import search_procedures.ICandidateEnumerator;
+import search_procedures.ICodeEnumerator;
 import codes.ConvCode;
 import codes.TBCode;
 import codes.TruncatedCode;

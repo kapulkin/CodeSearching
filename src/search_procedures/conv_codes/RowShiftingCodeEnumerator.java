@@ -1,6 +1,7 @@
 package search_procedures.conv_codes;
 
 import math.PolyMatrix;
+import search_procedures.ICodeEnumerator;
 import search_tools.CEnumerator;
 import codes.ConvCode;
 

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import codes.BlockCode;
 import codes.ConvCode;
 import search_heuristics.IHeuristic;
-import search_procedures.conv_codes.ICodeEnumerator;
+import search_procedures.ICodeEnumerator;
 
 public class BlockCodesSearcher {		
 	public static class SearchTask {

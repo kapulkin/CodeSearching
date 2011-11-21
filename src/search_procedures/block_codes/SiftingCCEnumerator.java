@@ -2,7 +2,7 @@ package search_procedures.block_codes;
 
 import codes.ConvCode;
 import search_heuristics.IHeuristic;
-import search_procedures.conv_codes.ICodeEnumerator;
+import search_procedures.ICodeEnumerator;
 
 public class SiftingCCEnumerator implements ICodeEnumerator<ConvCode> {
 	private IHeuristic heuristic;	

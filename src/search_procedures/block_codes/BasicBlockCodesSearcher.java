@@ -1,6 +1,7 @@
 package search_procedures.block_codes;
 
 import search_heuristics.IHeuristic;
+import search_procedures.CodesBaseSearchScheme;
 import trellises.ITrellis;
 import trellises.TrellisUtils;
 

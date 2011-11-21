@@ -6,8 +6,8 @@ import java.util.TreeSet;
 import math.BitArray;
 import math.ConvCodeSpanForm;
 import math.Matrix;
-import search_procedures.conv_codes.ICodeEnumerator;
-import search_procedures.conv_codes.RowShiftingCodeEnumerator;
+import search_procedures.ICandidateEnumerator;
+import search_procedures.ICodeEnumerator;
 import codes.BlockCode;
 import codes.ConvCode;
 import codes.ZTCode;
@@ -18,14 +18,8 @@ import codes.ZTCode;
  *
  */
 public class DZTCodeSearcher extends BasicBlockCodesSearcher<BlockCode> {
-	ICodeEnumerator<ConvCode> ccEnum;
-	ConvCode ccCode;
-	ZTCode zt1;
-	RowShiftingCodeEnumerator rowCcEnum;
-	RowShiftingZTCodeSearcher rowZTSearcher;
 	int k, n;
 	int minDist;
-	int scale1, scale2;
 
 	/**
 	 * Constructs a searcher for (<code>k</code>, <code>n</code>) DZT code with minimal distance <code>minDist</code>.
@@ -40,17 +34,8 @@ public class DZTCodeSearcher extends BasicBlockCodesSearcher<BlockCode> {
 		this.k = k;
 		this.n = n;
 		this.minDist = minDist;
-		this.ccEnum = ccEnum;	
-
-		ccCode = ccEnum.next();
-		if (ccCode == null) {
-			throw new IllegalArgumentException("Convolutional code enumerator has not even one code.");
-		}
-		scale1 = Math.min(k/ccCode.getK(), n / ccCode.getN() - ccCode.getDelay());
-		zt1 = new ZTCode(ccCode, scale1);
-		rowZTSearcher = new RowShiftingZTCodeSearcher(minDist, Integer.MAX_VALUE, ccCode, k, n);
 		
-		this.candidateEnum = new DZTCandidateEnumerator();
+		this.candidateEnum = new DZTCandidateEnumerator(ccEnum);
 	}
 	
 	public static int getScale1(ConvCode cc, int k, int n) {
@@ -98,6 +83,25 @@ public class DZTCodeSearcher extends BasicBlockCodesSearcher<BlockCode> {
 	}
 
 	private class DZTCandidateEnumerator implements ICandidateEnumerator<BlockCode> {
+		ICodeEnumerator<ConvCode> ccEnum;
+		ConvCode ccCode;
+		ZTCode zt1;
+
+		RowShiftingZTCodeSearcher rowZTSearcher;
+
+		public DZTCandidateEnumerator(ICodeEnumerator<ConvCode> ccEnum) {
+			this.ccEnum = ccEnum;
+			
+			ccCode = ccEnum.next();
+			if (ccCode == null) {
+				throw new IllegalArgumentException("Convolutional code enumerator has not even one code.");
+			}
+			rowZTSearcher = new RowShiftingZTCodeSearcher(minDist, Integer.MAX_VALUE, ccCode, k, n);
+
+			int scale1 = getScale1(ccCode, k, minDist);
+			zt1 = new ZTCode(ccCode, scale1);
+		}
+		
 		@Override
 		public BlockCode next() {
 			ZTCode zt2;
@@ -110,7 +114,7 @@ public class DZTCodeSearcher extends BasicBlockCodesSearcher<BlockCode> {
 					rowZTSearcher = new RowShiftingZTCodeSearcher(minDist, Integer.MAX_VALUE, cc, k, n);
 					zt2 = (ZTCode) rowZTSearcher.findNext();
 				} while (zt2 == null);
-				scale1 = getScale1(ccCode, k, n);
+				int scale1 = getScale1(ccCode, k, n);
 				zt1 = new ZTCode(ccCode, scale1);
 			}
 			

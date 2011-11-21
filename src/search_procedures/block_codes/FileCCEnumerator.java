@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import codes.ConvCode;
 import codes.tests.ConvCodeTest;
-import search_procedures.conv_codes.ICodeEnumerator;
+import search_procedures.ICodeEnumerator;
 
 public class FileCCEnumerator implements ICodeEnumerator<ConvCode> {
 	static final private Logger logger = LoggerFactory.getLogger(FileCCEnumerator.class);

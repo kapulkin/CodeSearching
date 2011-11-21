@@ -1,4 +1,4 @@
-package search_procedures.block_codes;
+package search_procedures;
 
 import codes.Code;
 
