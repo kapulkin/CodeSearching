@@ -11,6 +11,7 @@ import java.util.Scanner;
 import java.util.StringTokenizer;
 
 import search_heuristics.CCFirstLastBlockStateHeur;
+import search_heuristics.CCFreeDistHeur;
 import search_heuristics.CCWeightsDistHeur;
 import search_heuristics.CombinedHeuristic;
 import search_heuristics.LRCCGreismerDistHeur;
@@ -106,6 +107,7 @@ public class SearchMain {
 					heuristic.addHeuristic(0, new CCWeightsDistHeur(task.MinDist));
 					heuristic.addHeuristic(1, new CCFirstLastBlockStateHeur());
 					heuristic.addHeuristic(2, new LRCCGreismerDistHeur(task.MinDist));
+					heuristic.addHeuristic(3, new CCFreeDistHeur(task.MinDist));
 			
 					task.ConvCodeEnum = new SiftingCCEnumerator(new ExhaustiveCCEnumByGenMatr(1, 2, task.StateComplexity), heuristic);
 					task.Heuristic = new TBWeightDistHeur(task.MinDist);

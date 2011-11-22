@@ -98,12 +98,12 @@ public class MinDistance {
 	 * @return свободное расстояние сверточного кода
 	 */
 	public static int findFreeDist(ConvCode code) {
-		PolyMatrix minBaseGen = ConvCodeAlgs.getMinimalBaseGenerator(code.generator());
-		Trellis trellis = ConvCodeAlgs.buildTrellis(ConvCodeAlgs.buildSpanForm(minBaseGen));
-		computeDistanceMetrics(trellis);
+		//PolyMatrix minBaseGen = ConvCodeAlgs.getMinimalBaseGenerator(code.generator());
+		//Trellis trellis = ConvCodeAlgs.buildTrellis(ConvCodeAlgs.buildSpanForm(minBaseGen));
+		//computeDistanceMetrics(trellis);
 //		code.setFreeDist(findMinDistWithBEAST(trellis, 0, code.getN() * (code.getDelay() + 1)));
 //		return code.getFreeDist();
-		return findMinDistWithBEAST(trellis, 0, code.getN() * (code.getDelay() + 1));
+		return findMinDistWithBEAST(code.getTrellis(), 0, code.getN() * (code.getDelay() + 1));
 	}
 	
 	/**

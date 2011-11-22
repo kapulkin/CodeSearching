@@ -2,11 +2,13 @@ package codes;
 
 import trellises.ConvCodeTrellis;
 import trellises.ITrellis;
+import trellises.Trellis;
 import math.BitArray;
 import math.BlockMatrix;
 import math.ConvCodeAlgs;
 import math.ConvCodeSpanForm;
 import math.Matrix;
+import math.MinDistance;
 import math.PolyMatrix;
 import math.SmithDecomposition;
 
@@ -206,12 +208,18 @@ public class ConvCode implements Code{
 	
 	public ITrellis getTrellis() {
 		if (trellis == null) {
-			trellis = new ConvCodeTrellis(spanForm());
+			PolyMatrix minBaseGen = ConvCodeAlgs.getMinimalBaseGenerator(generator());
+			trellis = ConvCodeAlgs.buildTrellis(ConvCodeAlgs.buildSpanForm(minBaseGen));
+			MinDistance.computeDistanceMetrics((Trellis)trellis);
+			//trellis = new ConvCodeTrellis(spanForm());
 		}
 		return trellis;
 	}
 	
 	public int getFreeDist() {
+		if (freeDist == -1) {
+			freeDist = MinDistance.findFreeDist(this);
+		}
 		return freeDist;
 	}
 	
