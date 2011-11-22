@@ -1,10 +1,11 @@
 package search_procedures.conv_codes;
 
 import math.PolyMatrix;
+import search_procedures.ICodeEnumerator;
 import search_tools.CEnumerator;
 import codes.ConvCode;
 
-public class RowShiftingCodeEnumerator implements IConvCodeEnumerator {
+public class RowShiftingCodeEnumerator implements ICodeEnumerator<ConvCode> {
 	private int weight;
 	private int length;
 	private int shift;
@@ -28,6 +29,31 @@ public class RowShiftingCodeEnumerator implements IConvCodeEnumerator {
 		this(weight, length, shift, 0);
 	}
 	
+	/**
+	 * Gets input word length of enumerating codes.
+	 * @return input word length of enumerating codes.
+	 */
+	public int getK() {
+		return 1;
+	}
+	
+	/**
+	 * Gets code word length of enumerating codes.
+	 * @return code word length of enumerating codes.
+	 */
+	public int getN() {
+		return shift;
+	}
+	
+	/**
+	 * Gets degree of enumerating codes.
+	 * @return degree of enumerating codes.
+	 */
+	public int getDegree() {
+//		return (start + length + shift - 1) / shift - 1;
+		return (start + length - 1) / shift;
+	}
+	
 	@Override
 	public void reset() {
 		enumerator = new CEnumerator(length, weight);
@@ -40,7 +66,7 @@ public class RowShiftingCodeEnumerator implements IConvCodeEnumerator {
 		}
 		
 		long coeffs[] = enumerator.next();
-		PolyMatrix generator = new PolyMatrix(1, (start + length + shift - 1) / shift);
+		PolyMatrix generator = new PolyMatrix(1, getDegree() + 1);
 		for (int i = 0; i < coeffs.length; ++i) {
 			int pos = start + (int)coeffs[i];
 			generator.get(0, pos / shift).setCoeff(pos % shift, true);

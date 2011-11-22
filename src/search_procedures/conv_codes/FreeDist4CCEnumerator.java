@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import search_tools.RowsEnumerator;
 
 import codes.ConvCode;
-import codes.tests.ConvCodeTest;
 
 /**
  * Данный класс перебирает k/(k+1) скоростные коды со свободным расстоянием >= 4

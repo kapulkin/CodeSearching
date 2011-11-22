@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import search_tools.RowsEnumerator;
 
 import codes.ConvCode;
-import codes.tests.ConvCodeTest;
 
 import math.BitArray;
 import math.PolyMatrix;

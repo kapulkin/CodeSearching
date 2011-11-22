@@ -6,9 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import codes.BlockCode;
+import codes.ConvCode;
 import search_heuristics.IHeuristic;
-import search_procedures.conv_codes.IConvCodeEnumerator;
+import search_procedures.ICodeEnumerator;
 import search_procedures.tests.BasicBlockCodeSearcherTest;
+
 
 public class BlockCodesSearcher {
 	static final private Logger logger = LoggerFactory.getLogger(BasicBlockCodeSearcherTest.class);
@@ -18,7 +20,7 @@ public class BlockCodesSearcher {
 		public int N;
 		public int MinDist;
 		public int StateComplexity;
-		public IConvCodeEnumerator ConvCodeEnum;
+		public ICodeEnumerator<ConvCode> ConvCodeEnum;
 		public IHeuristic Heuristic;
 	}
 	
@@ -35,7 +37,7 @@ public class BlockCodesSearcher {
 			for (int j = 0;j < tasks.size(); ++j) {
 				SearchTask task = tasks.get(j);
 				TruncatedCodeEnumerator truncEnum = new TruncatedCodeEnumerator(task.ConvCodeEnum, task.K, task.N);
-				BasicBlockCodesSearcher searcher = new BasicBlockCodesSearcher(task.MinDist, task.StateComplexity);
+				BasicBlockCodesSearcher<BlockCode> searcher = new BasicBlockCodesSearcher<BlockCode>(task.MinDist, task.StateComplexity);
 			
 				searcher.setCandidateEnumerator(truncEnum);
 				searcher.setHeuristic(task.Heuristic);

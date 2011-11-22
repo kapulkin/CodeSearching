@@ -2,13 +2,13 @@ package search_procedures.block_codes;
 
 import codes.ConvCode;
 import search_heuristics.IHeuristic;
-import search_procedures.conv_codes.IConvCodeEnumerator;
+import search_procedures.ICodeEnumerator;
 
-public class SiftingCCEnumerator implements IConvCodeEnumerator {
+public class SiftingCCEnumerator implements ICodeEnumerator<ConvCode> {
 	private IHeuristic heuristic;	
-	private IConvCodeEnumerator ccEnum;
+	private ICodeEnumerator<ConvCode> ccEnum;
 	
-	public SiftingCCEnumerator(IConvCodeEnumerator ccEnum, IHeuristic heuristic) {
+	public SiftingCCEnumerator(ICodeEnumerator<ConvCode> ccEnum, IHeuristic heuristic) {
 		this.ccEnum = ccEnum;		
 		this.heuristic = heuristic;
 	}

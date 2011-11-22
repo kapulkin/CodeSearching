@@ -6,6 +6,7 @@ import java.util.TreeSet;
 public class SpanForm implements ISpanForm {
 
 	public Matrix Matr;
+	@Deprecated
 	public boolean IsTailbiting = false;
 		
 	public int[] spanHeads;
