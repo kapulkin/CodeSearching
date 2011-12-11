@@ -55,7 +55,7 @@ public class ArrayLayeredFront<T extends PathTracker> extends AbstractFront<T> i
 			public void remove() {
 				iter.remove();
 				--size;
-				if (!iter.hasNext()) {
+				if (layers[layerIndex].isEmpty()) {
 					removeLayer(layerIndex);
 				}
 			}

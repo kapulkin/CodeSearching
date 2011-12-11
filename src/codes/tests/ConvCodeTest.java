@@ -10,8 +10,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import trellises.tests.BeastAlgorithmTest;
-
 import codes.ConvCode;
 
 public class ConvCodeTest {

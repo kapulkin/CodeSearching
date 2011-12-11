@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import codes.BlockCode;
 import codes.ConvCode;
 import codes.TBCode;
-import codes.TruncatedCode;
 import trellises.BeastAlgorithm;
 import trellises.BlockCodeTrellis;
 import trellises.ITrellis;

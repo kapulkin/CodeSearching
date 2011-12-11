@@ -74,13 +74,19 @@ public class BasicBlockCodeSearcherTest {
 	private void testCodeParameters(BlockCode tbCode) throws IOException {
 		IOMatrix.writeMatrix(tbCode.generator(), new BufferedWriter(new OutputStreamWriter(System.out)));
 		 
-		 try {
+		try {
 			tbCode.getGeneratorSpanForm();				
 		}catch(Exception e) {
 			fail("Unexpected exception.");
 		}
 		 
 		int k = tbCode.getK();
+		if (k == 23) {
+			k += 0;
+		}
+		if (k == 24) {
+			k += 0;
+		}
 		long start, end;
 		 
 		logger.info("k = " + k);

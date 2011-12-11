@@ -15,6 +15,7 @@ public class HashMapLayeredFront<T extends PathTracker> extends AbstractFront<T>
 	public Iterator<T> iterator() {
 		return new Iterator<T> () {
 			Iterator<Map<Long, T>> layerIter = layers.values().iterator();
+			Map<Long, T> currentLayer;
 			Iterator<T> iter = null;
 			@Override
 			public boolean hasNext() {
@@ -24,7 +25,8 @@ public class HashMapLayeredFront<T extends PathTracker> extends AbstractFront<T>
 			@Override
 			public T next() {
 				if (iter == null || !iter.hasNext()) {
-					iter = layerIter.next().values().iterator();
+					currentLayer = layerIter.next();
+					iter = currentLayer.values().iterator();
 				}
 				return iter.next();
 			}
@@ -33,7 +35,7 @@ public class HashMapLayeredFront<T extends PathTracker> extends AbstractFront<T>
 			public void remove() {
 				iter.remove();
 				--size;
-				if (!iter.hasNext()) {
+				if (currentLayer.isEmpty()) {
 					layerIter.remove();
 				}
 			}
