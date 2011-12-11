@@ -7,7 +7,7 @@ import java.util.NoSuchElementException;
 
 public class ArrayLayeredFront<T extends PathTracker> extends AbstractFront<T> implements Front<T> {
 	public static int LAYERS_MAX = 512;
-	protected Map<Long, T> layers[] = new HashMap[LAYERS_MAX];
+	protected Map<Long, T> layers[];
 	/**
 	 * Если фронт содержит хотя бы один не пустой ярус, {@code minLayer} равен индексу первого яруса, содержащего вершины, иначе <code>minLayer > maxLayer</code>.   
 	 */
@@ -18,7 +18,11 @@ public class ArrayLayeredFront<T extends PathTracker> extends AbstractFront<T> i
 	protected int maxLayer = Integer.MIN_VALUE;
 	
 	public ArrayLayeredFront() {
-		
+		this(LAYERS_MAX);
+	}
+	
+	public ArrayLayeredFront(int layersNumber) {
+		layers = new HashMap[layersNumber];
 	}
 	
 	@Override
@@ -70,7 +74,7 @@ public class ArrayLayeredFront<T extends PathTracker> extends AbstractFront<T> i
 			layers[t.layer()] = layerMap;
 			
 			minLayer = Math.min(minLayer, t.layer());
-			maxLayer = Math.max(maxLayer, minLayer);
+			maxLayer = Math.max(maxLayer, t.layer());
 		}
 		
 		if (layerMap.containsKey(t.vertexIndex())) {
