@@ -110,14 +110,14 @@ public class PathPicker implements PathTracker, Comparable<PathPicker> {
 			return true;
 		}
 		
-		PathPicker picker = (PathPicker) obj;
+		PathTracker picker = (PathTracker) obj;
 		
-		return iterator.layer() == picker.iterator.layer() &&
-			iterator.vertexIndex() == picker.iterator.vertexIndex();
+		return iterator.layer() == picker.layer() &&
+			iterator.vertexIndex() == picker.vertexIndex();
 	}
 
 	public int compareTo(PathPicker tracker) {
-		return BeastAlgorithm.compareTrellisIterators(iterator, tracker.iterator);
+		return BeastAlgorithm.comparePathTrackers(this, tracker);
 	}
 	
 	@Override

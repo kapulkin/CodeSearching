@@ -1,0 +1,17 @@
+package trellises;
+
+import java.util.Set;
+
+/**
+ * Фронт вершин при обходе в алгоритме BEAST.
+ * @author Stas
+ *
+ * @param <T>
+ */
+public interface Front<T> extends Set<T> {
+	T get(int layer, long vertexIndex);
+	
+	boolean remove(int layer, long vertexIndex);
+	
+	boolean contains(int layer, long vertexIndex);
+}

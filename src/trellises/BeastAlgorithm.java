@@ -129,14 +129,14 @@ public class BeastAlgorithm {
 	public static class SimpleFrontBuilder {
 		private Logger logger2 = LoggerFactory.getLogger(this.getClass());
 
-		private TreeSet<PathTracker> Forward, Backward;
+		private Front<PathTracker> Forward, Backward;
 		double tresholdForward, tresholdBackward;
 		int metric;
 
 		PathTracker root;
 		PathTracker toor;
 		
-		public SimpleFrontBuilder(TreeSet<PathTracker> Forward, TreeSet<PathTracker> Backward,
+		public SimpleFrontBuilder(Front<PathTracker> Forward, Front<PathTracker> Backward,
 				PathTracker root, PathTracker toor, int metric) {
 			this.Forward = Forward;
 			this.Backward = Backward;
@@ -145,11 +145,11 @@ public class BeastAlgorithm {
 			this.toor = toor;
 		}
 		
-		TreeSet<PathTracker> getForwardFront() {
+		Front<PathTracker> getForwardFront() {
 			return Forward;
 		}
 		
-		TreeSet<PathTracker> getBackwardFront() {
+		Front<PathTracker> getBackwardFront() {
 			return Backward;
 		}
 
@@ -157,12 +157,12 @@ public class BeastAlgorithm {
 			this.tresholdForward = tresholdForward;
 			logger2.debug("tresholdForward = " + tresholdForward);
 			
-			TreeSet<PathTracker> newForward = new TreeSet<PathTracker>();
+			Front<PathTracker> newForward = new ArrayLayeredFront<PathTracker>();
 
 			BeastPropagationStrategy strategy = new UniversalPropagationStrategy(root, metric, tresholdBackward);
 
 			while (!Forward.isEmpty()) {
-				TreeSet<PathTracker> oldForward = new TreeSet<PathTracker>();
+				Front<PathTracker> oldForward = new ArrayLayeredFront<PathTracker>();
 				
 				for (Iterator<PathTracker> iterator = Forward.iterator(); iterator.hasNext();) {
 					PathTracker tracker = iterator.next();
@@ -197,12 +197,12 @@ public class BeastAlgorithm {
 			this.tresholdBackward = tresholdBackward;
 			logger2.debug("tresholdBackward = " + tresholdBackward);
 			
-			TreeSet<PathTracker> newBackward = new TreeSet<PathTracker>();
+			Front<PathTracker> newBackward = new ArrayLayeredFront<PathTracker>();
 
 			BeastPropagationStrategy strategy = new UniversalPropagationStrategy(root, metric, tresholdBackward);
 
 			while (!Backward.isEmpty()) {
-				TreeSet<PathTracker> oldBackward = new TreeSet<PathTracker>();
+				Front<PathTracker> oldBackward = new ArrayLayeredFront<PathTracker>();
 				
 				for (Iterator<PathTracker> iterator = Backward.iterator(); iterator.hasNext();) {
 					PathTracker tracker = iterator.next();
@@ -230,13 +230,19 @@ public class BeastAlgorithm {
 		}
 	}
 	
-	static int compareTrellisIterators(ITrellisIterator a, ITrellisIterator b) {
+	static public int comparePathTrackers(PathTracker a, PathTracker b) {
 		if (a.layer() == b.layer()) {
 			return (int) (a.vertexIndex() - b.vertexIndex());
 		}
 		return a.layer() - b.layer();
 	}
 
+	static public <T extends PathTracker> Front<T> getBestFront() {
+//		return new ArrayLayeredFront<T>();
+		return new HashMapLayeredFront<T>();
+//		return new TreeSetFront<T>();
+	}
+	
 	/**
 	 * Алгоритм BEAST для поиска минимального/свободного расстояния кода в решетке.
 	 * 
@@ -258,7 +264,7 @@ public class BeastAlgorithm {
 	 * @return множество путей, содержащее кратчайший ненулевой путь между вершинами root и toor
 	 */
 	public static TrellisPath[] findOptimalPaths(ITrellisIterator root, ITrellisIterator toor, int metric, int upperBound) {
-		TreeSet<PathTracker> Forward = new TreeSet<PathTracker>(), Backward = new TreeSet<PathTracker>();
+		Front<PathTracker> Forward = getBestFront(), Backward = getBestFront();
  		int tresholdForward = 0, tresholdBackward = 0;
 	
 		PathPicker rootPath = new PathPicker(root, metric);
@@ -301,7 +307,7 @@ public class BeastAlgorithm {
 			for (PathTracker tracker : Forward) {
 				if (Backward.contains(tracker)) {
 					PathPicker fpath = (PathPicker) tracker;
-					PathPicker bpath = (PathPicker) Backward.floor(fpath);
+					PathPicker bpath = (PathPicker) Backward.get(fpath.layer(), fpath.vertexIndex());
 					
 					if (fpath.path.weight() == 0 && bpath.path.weight() == 0) {
 						// нулевой путь, пропускаем
@@ -343,7 +349,7 @@ public class BeastAlgorithm {
 	 *  <code>toor</code> лежат на нулевом пути, и ищутся все ненулевые пути между ними.  
 	 */
 	public static int countMinDist(ITrellisIterator root, ITrellisIterator toor, int metric, int upperBound) {
-		TreeSet<PathTracker> Forward = new TreeSet<PathTracker>(), Backward = new TreeSet<PathTracker>();
+		Front<PathTracker> Forward = getBestFront(), Backward = getBestFront();
 		int tresholdForward = 0, tresholdBackward = 0;
 	
 		PathCounter rootPath = new PathCounter(root, metric);
@@ -380,9 +386,8 @@ public class BeastAlgorithm {
 			}
 			
 			for (PathTracker fpath : Forward) {
-				if (Backward.contains(fpath)) {
-					PathTracker bpath = Backward.floor(fpath);
-					
+				PathTracker bpath = Backward.get(fpath.layer(), fpath.vertexIndex());
+				if (bpath != null) {
 					if (fpath.weight() == 0 && bpath.weight() == 0) {
 						// нулевой путь, пропускаем
 						continue;
@@ -624,14 +629,14 @@ public class BeastAlgorithm {
 		return newBackwards;
 	}
 	
-	private static TreeSet<PathTracker> findForwardFront(TreeSet<PathTracker> Forward,
+	private static Front<PathTracker> findForwardFront(Front<PathTracker> Forward,
 			int tresholdForward, ITrellisIterator root, int metric) {
 		logger.debug("tresholdForward = " + tresholdForward);
 		
-		TreeSet<PathTracker> newForward = new TreeSet<PathTracker>();
+		Front<PathTracker> newForward = getBestFront();
 		
 		while (!Forward.isEmpty()) {
-			TreeSet<PathTracker> oldForward = new TreeSet<PathTracker>();
+			Front<PathTracker> oldForward = getBestFront();
 			
 			for (Iterator<PathTracker> iterator = Forward.iterator(); iterator.hasNext();) {
 				PathCounter vertex = (PathCounter) iterator.next();
@@ -688,18 +693,18 @@ public class BeastAlgorithm {
 			Forward.addAll(oldForward);
 		}
 		
-		logger.debug("newForward: "  + newForward);
+		logger.debug("newForward: size = {}, {}", newForward.size(), newForward);
 		return newForward;
 	}
 
-	private static TreeSet<PathTracker> findBackwardPaths(TreeSet<PathTracker> Backward,
+	private static Front<PathTracker> findBackwardPaths(Front<PathTracker> Backward,
 			int tresholdBackward, int metric) {
 		logger.debug("tresholdBackward = " + tresholdBackward);
 
-		TreeSet<PathTracker> newBackward = new TreeSet<PathTracker>();
+		Front<PathTracker> newBackward = getBestFront();
 		
 		while (!Backward.isEmpty()) {
-			TreeSet<PathTracker> oldBackward = new TreeSet<PathTracker>();
+			Front<PathTracker> oldBackward = getBestFront();
 			
 			for (Iterator<PathTracker> iterator = Backward.iterator(); iterator.hasNext();) {
 				PathCounter path = (PathCounter) iterator.next();
@@ -745,7 +750,7 @@ public class BeastAlgorithm {
 			Backward.addAll(oldBackward);
 		}
 		
-		logger.debug("newBackward: "  + newBackward);
+		logger.debug("newBackward: size = {}, {}",  newBackward.size(), newBackward);
 		return newBackward;
 	}
 
@@ -756,10 +761,10 @@ public class BeastAlgorithm {
 	 * @param pathes множество путей
 	 * @param path добавляемый путь
 	 */
-	private static void addTheLeastPath(TreeSet<PathTracker> trackers, PathTracker tracker) {
-		if (trackers.contains(tracker)) {
-			PathTracker tracker2 = trackers.floor(tracker);
-			if (tracker.equals(tracker2) && tracker2.weight() > tracker.weight()) {
+	private static void addTheLeastPath(Front<PathTracker> trackers, PathTracker tracker) {
+		PathTracker tracker2 = trackers.get(tracker.layer(), tracker.vertexIndex());
+		if (tracker2 != null) {
+			if (tracker2.weight() > tracker.weight()) {
 				// существующий путь с большей метрикой - удаляем его
 				trackers.remove(tracker2);
 			}

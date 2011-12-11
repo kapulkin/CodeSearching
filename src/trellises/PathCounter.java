@@ -3,7 +3,7 @@ package trellises;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-class PathCounter implements PathTracker, Comparable<PathCounter> {
+class PathCounter implements PathTracker, Comparable<PathTracker> {
 	//TODO: после рефакторинга сделать 4 поля ниже приватными 
 	/**
 	 * Итератор текущей вершины
@@ -99,17 +99,17 @@ class PathCounter implements PathTracker, Comparable<PathCounter> {
 		if (obj == this) {
 			return true;
 		}
-		PathCounter vertex = (PathCounter) obj;
+		PathTracker vertex = (PathTracker) obj;
 		if (vertex == null) {
 			return false;
 		}
 
-		return iterator.layer() == vertex.iterator.layer() &&
-			iterator.vertexIndex() == vertex.iterator.vertexIndex();
+		return iterator.layer() == vertex.layer() &&
+			iterator.vertexIndex() == vertex.vertexIndex();
 	}
 
-	public int compareTo(PathCounter tracker) {
-		return BeastAlgorithm.compareTrellisIterators(iterator, tracker.iterator);
+	public int compareTo(PathTracker tracker) {
+		return BeastAlgorithm.comparePathTrackers(this, tracker);
 	}
 
 	@Override
