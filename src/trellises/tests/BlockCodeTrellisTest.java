@@ -17,7 +17,6 @@ import math.BitArray;
 import math.BlockCodeAlgs;
 import math.Matrix;
 import codes.BlockCode;
-import codes.tests.ConvCodeTest;
 
 
 public class BlockCodeTrellisTest {

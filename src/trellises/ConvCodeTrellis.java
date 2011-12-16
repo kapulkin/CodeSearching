@@ -115,9 +115,8 @@ public class ConvCodeTrellis  implements ITrellis {
 			int toIndex = (layer == 0) ? c : sections[layer].beginColumn();
 			ITrellisEdge edges[] = TrellisUtils.buildPredcessorsEdges(spanForm.matrix, vertexIndex, 
 					sum, sumRows, activeRows, 
-//					sections[prevLayer].spanTails, sections[prevLayer].beginColumn(), sections[layer].beginColumn()); 
 					sections[prevLayer].spanTails, fromIndex, toIndex); 
-
+			
 			// восстанавливаем значение текущих активных рядов
 			for (Boundary spanTail : sections[prevLayer].spanTails) {
 				activeRows.remove(spanTail.row);

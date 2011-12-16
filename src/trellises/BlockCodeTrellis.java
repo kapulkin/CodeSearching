@@ -59,28 +59,13 @@ public class BlockCodeTrellis implements ITrellis {
 				return new LongEdge[0];
 			}
 
-			// получаем следующие активные ряды: добавляем к текущим начавшийся активный ряд и удаляем завершившийся
-			for (Boundary spanHead : sections[layer].spanHeads) {
-				currentActiveRows.add(spanHead.row);
-			}
-			for (Boundary spanTail : sections[layer].spanTails) {
-				currentActiveRows.remove(spanTail.row);
-			}
 
 			int nextLayer = layer + 1;
-			
-			ITrellisEdge edges[] = TrellisUtils.buildAccessorsEdges(spanForm.Matr, vertexIndex, 
-					currentSum, currentSumRows, currentActiveRows,
-					sections[layer].spanHeads, sections[layer].beginColumn(), sections[nextLayer].beginColumn());
-			
-			// восстанавливаем значение текущих активных рядов
-			for (Boundary spanHead : sections[layer].spanHeads) {
-				currentActiveRows.remove(spanHead.row);
-			}
-			for (Boundary spanTail : sections[layer].spanTails) {
-				currentActiveRows.add(spanTail.row);
-			}
 
+			ITrellisEdge edges[] = TrellisUtils.buildAccessorsEdges(spanForm.Matr,
+					vertexIndex, currentSum, currentActiveRows,
+					sections[layer].spanHeads, sections[layer].spanTails, sections[layer].beginColumn(), sections[nextLayer].beginColumn());
+			
 			for (int i = 0; i < edges.length; ++i) {
 				logger.debug("edge " + i + ": " + edges[i]);
 			}
@@ -96,25 +81,9 @@ public class BlockCodeTrellis implements ITrellis {
 			
 			int prevLayer = layer - 1;
 			
-			// получаем предыдущие активные ряды
-			for (Boundary spanTail : sections[prevLayer].spanTails) {
-				currentActiveRows.add(spanTail.row);
-			}
-			for (Boundary spanHead : sections[prevLayer].spanHeads) {
-				currentActiveRows.remove(spanHead.row);
-			}
-			
-			ITrellisEdge edges[] = TrellisUtils.buildPredcessorsEdges(spanForm.Matr, vertexIndex, 
-					currentSum, currentSumRows, currentActiveRows, 
-					sections[prevLayer].spanTails, sections[prevLayer].beginColumn(), sections[layer].beginColumn());
-			
-			// восстанавливаем значение текущих активных рядов
-			for (Boundary spanTail : sections[prevLayer].spanTails) {
-				currentActiveRows.remove(spanTail.row);
-			}
-			for (Boundary spanHead : sections[prevLayer].spanHeads) {
-				currentActiveRows.add(spanHead.row);
-			}
+			ITrellisEdge edges[] = TrellisUtils.buildPredcessorsEdges(spanForm.Matr,
+					vertexIndex, currentSum, currentActiveRows,
+					sections[prevLayer].spanHeads, sections[prevLayer].spanTails, sections[prevLayer].beginColumn(), sections[layer].beginColumn());
 			
 			for (int i = 0; i < edges.length; ++i) {
 				logger.debug("edge " + i + ": " + edges[i]);
