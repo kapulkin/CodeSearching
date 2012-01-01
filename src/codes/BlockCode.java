@@ -2,10 +2,12 @@ package codes;
 
 import trellises.BlockCodeTrellis;
 import trellises.ITrellis;
+import trellises.LightTrellis;
 import math.BitArray;
 import math.BlockCodeAlgs;
 import math.MathAlgs;
 import math.Matrix;
+import math.MinDistance;
 import math.SpanForm;
 
 /**
@@ -152,13 +154,21 @@ public class BlockCode implements Code {
 	 */
 	public ITrellis getTrellis() {
 		if (trellis == null) {
-			trellis = new BlockCodeTrellis(getGeneratorSpanForm());
+			ITrellis implicitTrellis = new BlockCodeTrellis(getGeneratorSpanForm());
+			try {
+				trellis = new LightTrellis(implicitTrellis);
+			} catch (IllegalArgumentException e) {
+				trellis = implicitTrellis;
+			}
 		}
 		
 		return trellis; 
 	}
 
 	public int getMinDist() {
+		if (minDist < 0) {
+			minDist = MinDistance.findMinDist(this);
+		}
 		return minDist;
 	}
 	

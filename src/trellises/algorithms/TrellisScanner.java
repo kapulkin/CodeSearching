@@ -1,9 +1,10 @@
-package trellises;
+package trellises.algorithms;
 
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-import trellises.Trellis.Edge;
+import trellises.IntEdge;
+import trellises.Trellis;
 import trellises.Trellis.Vertex;
 
 import math.BitArray;
@@ -159,7 +160,7 @@ public class TrellisScanner
 				if(rPredCounts[rStateFirst] == 0)
 				{											
 					rightLayer[rStateFirst] = new Vertex();
-					rightLayer[rStateFirst].Predecessors = new Trellis.Edge[predsArraySize];
+					rightLayer[rStateFirst].Predecessors = new IntEdge[predsArraySize];
 				}
 				
 				// если исходящая степень равна двум, то надо учесть второе ребро
@@ -170,7 +171,7 @@ public class TrellisScanner
 					if(rPredCounts[rStateSecond] == 0)
 					{																	
 						rightLayer[rStateSecond] = new Vertex();
-						rightLayer[rStateSecond].Predecessors = new Trellis.Edge[predsArraySize];
+						rightLayer[rStateSecond].Predecessors = new IntEdge[predsArraySize];
 					}
 				}
 									
@@ -192,30 +193,30 @@ public class TrellisScanner
 			
 			lastEdgeBits.xor(changedBitContr);
 			
-			Trellis.Edge edge1 = new Edge();
-			Trellis.Edge edge2 = new Edge();
+			IntEdge edge1 = new IntEdge();
+			IntEdge edge2 = new IntEdge();
 			
-			edge1 = new Edge();
-			edge1.Src = lState;
-			edge1.Dst = rStateFirst;
-			edge1.Bits = (BitArray)lastEdgeBits.clone();
-			edge1.Metrics = new double[0];
+			edge1 = new IntEdge();
+			edge1.src = lState;
+			edge1.dst = rStateFirst;
+			edge1.bits = (BitArray)lastEdgeBits.clone();
+			edge1.metrics = new int[0];
 			
 			rightLayer[rStateFirst].Predecessors[rPredCounts[rStateFirst]++] = edge1;
 			
 			if(onExpandStage)
 			{
-				edge2 = new Edge();
-				edge2.Src = lState;
-				edge2.Dst = rStateSecond;
-				edge2.Bits = (BitArray)lastEdgeBits.clone();
-				edge2.Bits.xor(activeBitContr);
-				edge2.Metrics = new double[0];
+				edge2 = new IntEdge();
+				edge2.src = lState;
+				edge2.dst = rStateSecond;
+				edge2.bits = (BitArray)lastEdgeBits.clone();
+				edge2.bits.xor(activeBitContr);
+				edge2.metrics = new int[0];
 				
-				leftLayer[lState].Accessors = new Trellis.Edge[]{edge1, edge2};					
+				leftLayer[lState].Accessors = new IntEdge[]{edge1, edge2};					
 				rightLayer[rStateSecond].Predecessors[rPredCounts[rStateSecond]++] = edge2;
 			}else{
-				leftLayer[lState].Accessors = new Trellis.Edge[]{edge1};
+				leftLayer[lState].Accessors = new IntEdge[]{edge1};
 			}
 			
 		}

@@ -8,7 +8,6 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 
-import trellises.Trellis.Edge;
 import trellises.TrellisSection.Boundary;
 
 import math.BitArray;
@@ -140,16 +139,10 @@ public class TrellisUtils {
 		return edges;
 	}
 	
-	public static long getNextVertex(long vertexIndex, SortedSet<Integer> activeRows, int newRow, boolean isNewRowInSum) {
+	public static long getNextVertexByAdding(long vertexIndex, SortedSet<Integer> activeRows, int newRow, boolean isNewRowInSum) {
 		int position = activeRows.headSet(newRow).size();
 
-		// -1L >>> 64 has no effect, so we need process case of posotion == 0 separately
-		if (position == 0) {
-			return vertexIndex << 1 + (isNewRowInSum ? 1 : 0);
-		}
-		
-		long nextVertex = vertexIndex & (-1L >>> (Long.SIZE - position));
-		nextVertex |= (vertexIndex & (-1L << (position))) << 1;
+		long nextVertex = insertBit(vertexIndex, position);
 		if (isNewRowInSum) {
 			nextVertex |= 1 << position;
 		}
@@ -157,10 +150,48 @@ public class TrellisUtils {
 		return nextVertex;
 	}
 	
-	public static long getNextVertex(long vertexIndex, SortedSet<Integer> activeRows, int oldRow) {
+	public static long getNextVertexByAdding(long vertexIndex, SortedSet<Integer> activeRows, int newRow, BitArray sum, Matrix matrix, boolean isNewRowInSum) {
+		int position = activeRows.headSet(newRow).size();
+
+		long nextVertex = insertBit(vertexIndex, position);
+		if (isNewRowInSum) {
+			nextVertex |= 1 << position;
+			sum.xor(matrix.getRow(newRow));
+		}
+		
+		return nextVertex;
+	}
+
+	private static long insertBit(long vertexIndex, int position) {
+		// -1L >>> 64 has no effect, so we need process case of position == 0 separately
+		if (position == 0) {
+			return vertexIndex << 1;
+		}
+		
+		long nextVertex = vertexIndex & (-1L >>> (Long.SIZE - position));
+		nextVertex |= (vertexIndex & (-1L << (position))) << 1;
+
+		return nextVertex;
+	}
+	
+	public static long getNextVertexByRemoving(long vertexIndex, SortedSet<Integer> activeRows, int oldRow) {
 		int position = activeRows.headSet(oldRow).size();
 		
-		// -1L >>> 64 has no effect, so we need process case of posotion == 0 separately
+		return removeBit(vertexIndex, position);
+	}
+	
+	public static long getNextVertexByRemoving(long vertexIndex, SortedSet<Integer> activeRows, int oldRow, BitArray sum, Matrix matrix) {
+		int position = activeRows.headSet(oldRow).size();
+
+		if ((vertexIndex & (1 << position)) != 0) {
+			sum.xor(matrix.getRow(oldRow));
+		}
+		
+		return removeBit(vertexIndex, position);
+	}
+
+	private static long removeBit(long vertexIndex, int position) {
+		// -1L >>> 64 has no effect, so we need process case of position == 0 separately
 		if (position == 0) {
 			return vertexIndex >>> 1;
 		}
@@ -270,15 +301,15 @@ public class TrellisUtils {
 			int nextLayer = (layer + 1) % trellis.Layers.length;
 			for (int vertexIndex = 0; vertexIndex < trellis.Layers[layer].length; ++vertexIndex) {
 				// строим обратные ребра. Если на последнем ярусе нет прямых ребер, то нет и обратных. 
-				for (Edge edge : trellis.Layers[layer][vertexIndex].Accessors) {
-					int vertex = edge.Dst;
+				for (IntEdge edge : trellis.Layers[layer][vertexIndex].Accessors) {
+					int vertex = edge.dst;
 					
-					Edge predcessors[] = trellis.Layers[nextLayer][vertex].Predecessors;
-					Edge newPredecessors[];
+					IntEdge predcessors[] = trellis.Layers[nextLayer][vertex].Predecessors;
+					IntEdge newPredecessors[];
 					if (predcessors == null) {
-						newPredecessors = new Edge[] {edge};
+						newPredecessors = new IntEdge[] {edge};
 					} else {
-						newPredecessors = new Edge[predcessors.length + 1];
+						newPredecessors = new IntEdge[predcessors.length + 1];
 						System.arraycopy(predcessors, 0, newPredecessors, 0, predcessors.length);
 						newPredecessors[predcessors.length] = edge;
 					}
@@ -289,7 +320,7 @@ public class TrellisUtils {
 	
 		for (int vertexIndex = 0; vertexIndex < trellis.Layers[0].length; ++vertexIndex) {
 			if (trellis.Layers[0][vertexIndex].Predecessors == null) {
-				trellis.Layers[0][0].Predecessors = new Edge[0];
+				trellis.Layers[0][0].Predecessors = new IntEdge[0];
 			}
 		}
 	}
@@ -318,12 +349,12 @@ public class TrellisUtils {
 		// вычисляем вершину предыдущего яруса, соотвествующую переходу по нулевому ребру
 		long nextVertex = vertexIndex;		
 		for (Boundary spanTail : spanTails) {
-			nextVertex = getNextVertex(nextVertex, activeRows, spanTail.row);
+			nextVertex = getNextVertexByRemoving(nextVertex, activeRows, spanTail.row);
 			activeRows.remove(spanTail.row);
 		}
 		
 		for (Boundary spanHead : spanHeads) {
-			nextVertex = getNextVertex(nextVertex, activeRows, spanHead.row, false);
+			nextVertex = getNextVertexByAdding(nextVertex, activeRows, spanHead.row, false);
 			activeRows.add(spanHead.row);
 		}
 		
@@ -369,12 +400,12 @@ public class TrellisUtils {
 		// получаем предыдущие активные ряды и вычисляем вершину предыдущего яруса, соотвествующую переходу по нулевому ребру
 		long prevVertex = vertexIndex;
 		for (Boundary spanHead : spanHeads) {
-			prevVertex = getNextVertex(prevVertex, activeRows, spanHead.row);
+			prevVertex = getNextVertexByRemoving(prevVertex, activeRows, spanHead.row);
 			activeRows.remove(spanHead.row);
 		}
 		
 		for (Boundary spanTail : spanTails) {
-			prevVertex = getNextVertex(prevVertex, activeRows, spanTail.row, false);
+			prevVertex = getNextVertexByAdding(prevVertex, activeRows, spanTail.row, false);
 			activeRows.add(spanTail.row);
 		}
 		

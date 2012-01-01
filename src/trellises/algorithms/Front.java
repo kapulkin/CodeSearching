@@ -1,4 +1,4 @@
-package trellises;
+package trellises.algorithms;
 
 import java.util.Set;
 
@@ -10,6 +10,8 @@ import java.util.Set;
  */
 public interface Front<T> extends Set<T> {
 	T get(int layer, long vertexIndex);
+	
+	Iterable<T> getLayer(int layer);
 	
 	boolean remove(int layer, long vertexIndex);
 	

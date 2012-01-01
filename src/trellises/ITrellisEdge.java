@@ -16,5 +16,7 @@ public interface ITrellisEdge {
 
 	public BitArray bits();
 	
-	public double[] metrics();
+	public int metric(int i);
+	
+	public int[] metrics();
 }

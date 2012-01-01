@@ -1,4 +1,4 @@
-package trellises;
+package trellises.algorithms;
 
 import java.util.Iterator;
 
@@ -15,7 +15,7 @@ public interface PathTracker {
 	/**
 	 * @return вес пройденного пути
 	 */
-	public double weight();
+	public int weight();
 	/**
 	 * @return <code>true</code>, если возможно движение вперед
 	 */

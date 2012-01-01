@@ -110,21 +110,24 @@ public class IOTrellis {
 					
 					writer.write("\"" + Integer.toString(i) + "," + acc.src() + "\"" 
 							+ " -> " + "\"" + Integer.toString((i+1) % trellis.layersCount()) + "," + acc.dst()+"\"");
-					writer.write(" [weight = 100, label=\"");
+					writer.write(" [weight = 100");
 										
-					for(int b = 0;b < acc.bits().getFixedSize();b ++)
-					{
-						if(acc.bits().get(b) == true)
+					if (acc.bits() != null) {
+						writer.write(", label=\"");
+						for(int b = 0;b < acc.bits().getFixedSize();b ++)
 						{
-							writer.write("1");
-						}else
-						{
-							writer.write("0");
+							if(acc.bits().get(b) == true)
+							{
+								writer.write("1");
+							}else
+							{
+								writer.write("0");
+							}
+							writer.flush();
 						}
-						writer.flush();
+						writer.write("\"");
 					}
-					
-					writer.write("\"];");
+					writer.write("];");
 					
 					writer.newLine();
 				}

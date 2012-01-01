@@ -1,8 +1,12 @@
-package trellises;
+package trellises.algorithms;
 
 import java.util.Map;
 import java.util.TreeMap;
 
+import trellises.ITrellisEdge;
+import trellises.ITrellisIterator;
+import trellises.IntEdge;
+import trellises.Trellis;
 
 /**
  * 
@@ -40,7 +44,7 @@ public class ViterbiAlgorithm {
 	 * @param maxPaths количество лучших путей
 	 * @param dstVertex целевая вершина
 	 */ 
-	private static void computePaths(Vertex[] srcVertices, Trellis.Edge[] edges, int metric, int maxPaths, Vertex dstVertex)
+	private static void computePaths(Vertex[] srcVertices, IntEdge[] edges, int metric, int maxPaths, Vertex dstVertex)
 	{	
 		// Минимум из суммарного количества путей до предшественников и maxPaths 
 		int pathsCnt = 0;
@@ -70,10 +74,10 @@ public class ViterbiAlgorithm {
 					continue;
 				}
 				
-				if(srcVertices[j].Metrics[pathIds[j]] + edges[j].Metrics[metric] < bestMetric)
+				if(srcVertices[j].Metrics[pathIds[j]] + edges[j].metrics[metric] < bestMetric)
 				{
 					bestSrc = j;
-					bestMetric = srcVertices[j].Metrics[pathIds[j]] + edges[j].Metrics[metric];
+					bestMetric = srcVertices[j].Metrics[pathIds[j]] + edges[j].metrics[metric];
 				}
 			}
 			
@@ -131,12 +135,12 @@ public class ViterbiAlgorithm {
 				currentLayer[v] = new ViterbiAlgorithm.Vertex();
 				currentLayer[v].Index = v;
 				
-				Trellis.Edge[] predEdges = trellis.Layers[layerInd][v].Predecessors;
+				IntEdge[] predEdges = trellis.Layers[layerInd][v].Predecessors;
 				Vertex[] predVertices = new Vertex[predEdges.length];
 				
 				for(int e = 0;e < predEdges.length;e ++)
 				{
-					predVertices[e] = lastLayer[predEdges[e].Src];
+					predVertices[e] = lastLayer[predEdges[e].src];
 				}
 				
 				computePaths(predVertices, predEdges, metric, optimalPathsCnt, currentLayer[v]);
@@ -154,7 +158,7 @@ public class ViterbiAlgorithm {
 	 * @param root
 	 * @param toor
 	 * @param metric номер метрики в решетке для рассчета веса путей
-	 * @param stepCount ограничение на максимальное колличество шаго алгоритма. Не используется, если меньше 0 
+	 * @param stepCount ограничение на максимальное колличество шагов алгоритма. Не используется, если меньше 0 
 	 * @return вес кратчайшего ненулевого пути из вершины root до toor
 	 */
 	public static int findMinDist(ITrellisIterator root, ITrellisIterator toor, int metric, int stepCount) {
@@ -178,7 +182,7 @@ public class ViterbiAlgorithm {
 		for (int i = (root.vertexIndex() == 0 ? 1 : 0); i < edges.length; ++i) {
 			ITrellisIterator iterator = root.clone();
 			iterator.moveForward(i);
-			WeightedIterator next = new WeightedIterator(iterator, edges[i].metrics()[metric]);
+			WeightedIterator next = new WeightedIterator(iterator, edges[i].metric(metric));
 			
 			long vertexIndex = next.iterator.vertexIndex();
 			if (!layer.containsKey(next.iterator.vertexIndex()) || layer.get(vertexIndex).weight > next.weight) {

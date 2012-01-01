@@ -33,10 +33,10 @@ import codes.TBCode;
 import codes.ZTCode;
 
 import search_procedures.conv_codes.FreeDist4CCEnumerator;
-import trellises.BeastAlgorithm;
 import trellises.ITrellisIterator;
 import trellises.Trellis;
 import trellises.Trellises;
+import trellises.algorithms.BeastAlgorithm;
 
 
 public class BeastAlgorithmTest {
@@ -123,7 +123,7 @@ public class BeastAlgorithmTest {
 		Matrix generator = new Matrix(new BitArray[] { row0, row1, row2 });
 		
 		BlockCode code = new BlockCode(generator, true);
-		Trellis trellis = BlockCodeAlgs.buildExplisitTrellis(code);
+		Trellis trellis = BlockCodeAlgs.buildExplicitTrellis(code);
 		
 		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 0, false);
 		int BEASTminDist = MinDistance.findMinDistWithBEAST(trellis, 0, code.getN());
@@ -148,7 +148,7 @@ public class BeastAlgorithmTest {
 		
 		ConvCode code = new ConvCode(G, true);
 		TBCode tbCode = new TBCode(code, 0);
-		Trellis trellis = BlockCodeAlgs.buildExplisitTrellis((BlockCode)tbCode);
+		Trellis trellis = BlockCodeAlgs.buildExplicitTrellis((BlockCode)tbCode);
 		
 		try {
 			logger.debug("Tailbiting code:");

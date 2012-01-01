@@ -1,9 +1,10 @@
-package trellises;
+package trellises.algorithms;
 
 import java.util.Iterator;
 import java.util.TreeSet;
 
-public class TreeSetFront<T extends PathTracker> extends TreeSet<T> implements Front<T> {
+
+public class TreeSetFront extends TreeSet<PathTracker> implements Front<PathTracker> {
 	/**
 	 * 
 	 */
@@ -29,7 +30,7 @@ public class TreeSetFront<T extends PathTracker> extends TreeSet<T> implements F
 		}
 
 		@Override
-		public double weight() {
+		public int weight() {
 			return 0;
 		}
 
@@ -74,16 +75,23 @@ public class TreeSetFront<T extends PathTracker> extends TreeSet<T> implements F
 	}
 	
 	@Override
-	public T get(int layer, long vertexIndex) {
+	public PathTracker get(int layer, long vertexIndex) {
 		MockTracker tracker = new MockTracker(layer, vertexIndex);
-		T t = floor((T)tracker);
+		PathTracker t = floor(tracker);
 		return tracker.equals(t) ? t : null;
+	}
+
+	@Override
+	public Iterable<PathTracker> getLayer(int layer) {
+		MockTracker low = new MockTracker(layer, 0);
+		MockTracker high = new MockTracker(layer + 1, 0);
+		return subSet(low, high);
 	}
 
 	@Override
 	public boolean remove(int layer, long vertexIndex) {
 		MockTracker tracker = new MockTracker(layer, vertexIndex);
-		return remove((T)tracker);
+		return remove(tracker);
 	}
 
 	@Override

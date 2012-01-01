@@ -2,7 +2,6 @@ package trellises;
 
 import java.util.NoSuchElementException;
 
-import trellises.Trellis.Edge;
 
 public class TrellisIterator implements ITrellisIterator {
 	Trellis trellis;
@@ -16,12 +15,12 @@ public class TrellisIterator implements ITrellisIterator {
 	}
 	
 	@Override
-	public Edge[] getAccessors() {
+	public IntEdge[] getAccessors() {
 		return trellis.Layers[layer][vertexIndex].Accessors;
 	}
 
 	@Override
-	public Edge[] getPredecessors() {
+	public IntEdge[] getPredecessors() {
 		return trellis.Layers[layer][vertexIndex].Predecessors;
 	}
 
@@ -46,7 +45,7 @@ public class TrellisIterator implements ITrellisIterator {
 			throw new NoSuchElementException();
 		}
 		
-		vertexIndex = getPredecessors()[edgeIndex].Src;
+		vertexIndex = getPredecessors()[edgeIndex].src;
 		layer = (layer + trellis.Layers.length - 1) % trellis.Layers.length;
 	}
 
@@ -56,7 +55,7 @@ public class TrellisIterator implements ITrellisIterator {
 			throw new NoSuchElementException();
 		}
 		
-		vertexIndex = getAccessors()[edgeIndex].Dst;
+		vertexIndex = getAccessors()[edgeIndex].dst;
 		layer = (layer + 1) % trellis.Layers.length;
 	}
 

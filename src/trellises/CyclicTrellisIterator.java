@@ -2,7 +2,6 @@ package trellises;
 
 import java.util.NoSuchElementException;
 
-import trellises.Trellis.Edge;
 
 public class CyclicTrellisIterator implements ITrellisIterator {
 	Trellis trellis;
@@ -16,12 +15,12 @@ public class CyclicTrellisIterator implements ITrellisIterator {
 	}
 	
 	@Override
-	public Edge[] getAccessors() {
+	public IntEdge[] getAccessors() {
 		return trellis.Layers[layer][vertexIndex].Accessors;
 	}
 
 	@Override
-	public Edge[] getPredecessors() {
+	public IntEdge[] getPredecessors() {
 		return trellis.Layers[layer][vertexIndex].Predecessors;
 	}
 
@@ -42,13 +41,13 @@ public class CyclicTrellisIterator implements ITrellisIterator {
 
 	@Override
 	public void moveForward(int edgeIndex) throws NoSuchElementException {
-		vertexIndex = getAccessors()[edgeIndex].Dst;
+		vertexIndex = getAccessors()[edgeIndex].dst;
 		layer = (layer + 1) % trellis.Layers.length;
 	}
 
 	@Override
 	public void moveBackward(int edgeIndex) throws NoSuchElementException {
-		vertexIndex = getPredecessors()[edgeIndex].Src;
+		vertexIndex = getPredecessors()[edgeIndex].src;
 		layer = (layer + trellis.Layers.length - 1) % trellis.Layers.length;
 	}
 

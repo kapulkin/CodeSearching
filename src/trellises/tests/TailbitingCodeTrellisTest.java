@@ -18,16 +18,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import trellises.BeastAlgorithm;
-import trellises.BlockCodeTrellis;
 import trellises.ITrellis;
-import trellises.ITrellisIterator;
-import trellises.TBCodeTrellisIterator;
-import trellises.TailbitingCodeTrellis;
 
 import codes.ConvCode;
 import codes.TBCode;
-import codes.tests.ConvCodeTest;
 
 public class TailbitingCodeTrellisTest {
 	static final private Logger logger = LoggerFactory.getLogger(TailbitingCodeTrellisTest.class);
@@ -68,6 +62,7 @@ public class TailbitingCodeTrellisTest {
 		try {
 			logger.debug("Tailbiting code:");
 			IOBlockMatrix.writeMatrix(tbCode.blockGenMatrix(), new BufferedWriter(new OutputStreamWriter(System.out)));
+//			IOTrellis.writeTrellisInGVZFormat(trellis, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
 		} catch (IOException e) {
 			e.printStackTrace();
 			fail("Unexpected exception.");

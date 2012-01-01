@@ -1,4 +1,4 @@
-package trellises;
+package trellises.algorithms;
 
 import java.util.AbstractSet;
 

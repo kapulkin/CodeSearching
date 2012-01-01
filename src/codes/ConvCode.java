@@ -1,7 +1,11 @@
 package codes;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import trellises.ConvCodeTrellis;
 import trellises.ITrellis;
+import trellises.LightTrellis;
 import math.BitArray;
 import math.BlockMatrix;
 import math.ConvCodeAlgs;
@@ -16,6 +20,7 @@ import math.SmithDecomposition;
  *
  */
 public class ConvCode implements Code{
+	static private Logger logger = LoggerFactory.getLogger(ConvCode.class); 
 	
 	/**
 	 * Свободное расстояние кода
@@ -206,7 +211,13 @@ public class ConvCode implements Code{
 	
 	public ITrellis getTrellis() {
 		if (trellis == null) {
-			trellis = new ConvCodeTrellis(spanForm());
+			ITrellis implicitTrellis = new ConvCodeTrellis(spanForm());
+			try {
+				trellis = new LightTrellis(implicitTrellis);
+			} catch (IllegalArgumentException e) {
+				logger.debug("Failed to build explicit trellis, implicit will be used: {}", e.getMessage());
+				trellis = implicitTrellis;
+			}
 		}
 		return trellis;
 	}

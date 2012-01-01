@@ -1,4 +1,4 @@
-package trellises;
+package trellises.algorithms;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -65,6 +65,15 @@ public class HashMapLayeredFront<T extends PathTracker> extends AbstractFront<T>
 		return layerMap.get(vertexIndex);
 	}
 
+	@Override
+	public Iterable<T> getLayer(int layer) {
+		Map<Long, T> layerMap = layers.get(layer);
+		if (layerMap == null) {
+			return null;
+		}
+		return layerMap.values();
+	}
+	
 	@Override
 	public boolean remove(int layer, long vertexIndex) {
 		Map<Long, T> layerMap = layers.get(layer);

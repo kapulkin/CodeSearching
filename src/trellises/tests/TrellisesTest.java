@@ -15,22 +15,25 @@ import org.slf4j.LoggerFactory;
 import math.BitArray;
 import math.BlockCodeAlgs;
 import math.Matrix;
+import math.MinDistance;
 import math.Poly;
 import math.PolyMatrix;
 
 import trellises.BlockCodeTrellis;
+import trellises.ConjunctedEdgesTrellis;
 import trellises.ITrellis;
 import trellises.ITrellisEdge;
 import trellises.Trellis;
 import trellises.ITrellisIterator;
 import trellises.Trellises;
+import trellises.algorithms.BeastAlgorithm;
 import codes.BlockCode;
 import codes.Code;
 
 public class TrellisesTest {
 	private static Logger logger = LoggerFactory.getLogger(TrellisesTest.class);
 
-	BlockCode code;
+	BlockCode blockCode;
 	
 	public TrellisesTest() {
 		// Генератор задан в минимальной спеновой форме. Секционированная решетка должна иметь 6 ярусов. 
@@ -39,19 +42,19 @@ public class TrellisesTest {
 		BitArray row2 = new BitArray(6); row2.set(2); row2.set(3); row2.set(4);
 		Matrix generator = new Matrix(new BitArray[] { row0, row1, row2 });
 
-		code = new BlockCode(generator, true);
+		blockCode = new BlockCode(generator, true);
 	}
 	
 	@Test
 	public void explicitTrellisConstructionFromBlockCodeTrellisTest() {
 
-		BlockCodeAlgs.sortHeads(code.getGeneratorSpanForm());
-		Trellis trellis1 = Trellises.buildExplicitTrellis(new BlockCodeTrellis(code.getGeneratorSpanForm()));
-		trellisForwardTraversalShouldGiveCodeWord(code, trellis1, 1);
+		BlockCodeAlgs.sortHeads(blockCode.getGeneratorSpanForm());
+		Trellis trellis1 = Trellises.buildExplicitTrellis(new BlockCodeTrellis(blockCode.getGeneratorSpanForm()));
+		trellisForwardTraversalShouldGiveCodeWord(blockCode, trellis1, 1);
 
-		BlockCodeAlgs.sortTails(code.getGeneratorSpanForm());
-		Trellis trellis2 = Trellises.buildExplicitTrellis(new BlockCodeTrellis(code.getGeneratorSpanForm()));
-		trellisBackwardTraversalShouldGiveCodeWord(code, trellis2);
+		BlockCodeAlgs.sortTails(blockCode.getGeneratorSpanForm());
+		Trellis trellis2 = Trellises.buildExplicitTrellis(new BlockCodeTrellis(blockCode.getGeneratorSpanForm()));
+		trellisBackwardTraversalShouldGiveCodeWord(blockCode, trellis2);
 	}
 	
 	@Test
@@ -72,6 +75,17 @@ public class TrellisesTest {
 		// TODO: отсортировать строки проверочной матрицы аналогично sortHeads и sortTails 
 		//trellisForwardTraversalShouldGiveCodeWord(new ConvCode(parityCheck, false), trellis, 1);
 	}
+
+	@Test
+	public void testConjunctedEdgesTrellis() {
+		int expectedMinDist = MinDistance.findMinDist(blockCode); 		
+		Trellis trellis = BlockCodeAlgs.buildExplicitTrellis(blockCode);
+		ConjunctedEdgesTrellis ceTrellis = new ConjunctedEdgesTrellis(trellis);
+		
+		testTrellisEquality(trellis, ceTrellis);
+		trellisForwardTraversalShouldGiveCodeWord(blockCode, ceTrellis, 1);
+		testInBeast(ceTrellis.iterator(0, 0), ceTrellis.iterator(ceTrellis.layersCount() - 1, 0), 0, expectedMinDist);
+	}
 	
 	
 	/**
@@ -79,6 +93,8 @@ public class TrellisesTest {
 	 * <code>code</code>. Метод перебирает все информационные последовательности
 	 * длиной <code>wordsNumber</code> слов и проверяет корректность построенной
 	 * решеткой кодовой последовательнотью.
+	 * 
+	 * Предполагается, что решетка построена по матрице в спеновой форме, в которой строки упорядочены по их началам.
 	 * 
 	 * Стоит заметить, что стандартная решетка <strong>блокового</strong> кода позволяет 
 	 * построить кодовую последовательность, состоящую только из одного кодового
@@ -141,6 +157,11 @@ public class TrellisesTest {
 	 * <code>code</code>. Метод перебирает все информационные последовательности
 	 * длиной <code>wordsNumber</code> слов и проверяет корректность построенной
 	 * решеткой кодовой последовательноти.
+	 *
+	 * Предполагается, что решетка построена по матрице в спеновой форме, в которой строки упорядочены по их концам.
+	 * 
+	 * Данный метод не работает для tailbiting-кода. 
+	 *
 	 * @param code код
 	 * @param trellis проверяемая решетка
 	 */
@@ -180,5 +201,47 @@ public class TrellisesTest {
 			logger.info("code word = " + codeBitSet);
 			assertTrue(codeWord.equals(codeBitSet));
 		}
+	}
+
+	static public void testInBeast(ITrellisIterator root, ITrellisIterator toor, int metric, int expectedMinDist) {
+		int minDist = BeastAlgorithm.countMinDist(root, toor, metric, expectedMinDist + 1);
+		assertEquals(expectedMinDist, minDist);
+	}
+	
+	static public void testTrellisEquality(ITrellis trellis, ITrellis trellis_) {
+		assertEquals(trellis.layersCount(), trellis_.layersCount());
+		for (int i = 0; i < trellis.layersCount(); ++i) {
+			assertEquals(trellis.layerSize(i), trellis_.layerSize(i));
+		}
+		
+		for (int layer = 0; layer < trellis.layersCount(); ++layer) {
+			for (int vertexIndex = 0; vertexIndex < trellis.layerSize(layer); ++vertexIndex) {
+				ITrellisIterator iter = trellis.iterator(layer, vertexIndex);
+				ITrellisIterator iter_ = trellis_.iterator(layer, vertexIndex);
+				
+				assertEquals(iter.hasForward(), iter_.hasForward());
+				ITrellisEdge edges[], edges_[];
+				edges = iter.getAccessors();
+				edges_ = iter_.getAccessors();
+				assertEquals(edges.length, edges_.length);
+				for (int e = 0; e < edges.length; ++e) {
+					assertEdgeEquals(edges[e], edges_[e]);
+				}
+				assertEquals(iter.hasBackward(), iter_.hasBackward());
+				edges = iter.getPredecessors();
+				edges_ = iter_.getPredecessors();
+				assertEquals(edges.length, edges_.length);
+				for (int e = 0; e < edges.length; ++e) {
+					assertEdgeEquals(edges[e], edges_[e]);
+				}
+			}
+		}
+	}
+	
+	static private void assertEdgeEquals(ITrellisEdge edge, ITrellisEdge edge_) {
+		assertEquals(edge.src(), edge.src());
+		assertEquals(edge.dst(), edge.dst());
+		assertEquals(edge.bits(), edge.bits());
+		assertArrayEquals(edge.metrics(), edge.metrics());
 	}
 }

@@ -28,9 +28,7 @@ public class TBCode extends TruncatedCode {
 	 */
 	public ITrellis getTrellis() {
 		if (trellis == null) {
-			Trellis conv_trellis = ConvCodeAlgs.buildTrellis(parentCode.spanForm());
-			MinDistance.computeDistanceMetrics(conv_trellis);
-			trellis = new TailbitingCodeTrellis(conv_trellis, cycles);
+			trellis = new TailbitingCodeTrellis(parentCode.getTrellis(), cycles);
 		}
 		
 		return trellis;

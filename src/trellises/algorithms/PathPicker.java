@@ -1,7 +1,10 @@
-package trellises;
+package trellises.algorithms;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import trellises.ITrellisEdge;
+import trellises.ITrellisIterator;
 
 /**
  * Сохраняет путь, пройденный в решетке
@@ -53,7 +56,7 @@ public class PathPicker implements PathTracker, Comparable<PathPicker> {
 		for (int i = 0; i < edges.length; ++i) {
 			PathPicker tracker = this.clone();
 			tracker.iterator.moveForward(i);
-			path.addVertex(iterator.vertexIndex(), edges[i].metrics()[metric]);
+			path.addVertex(iterator.vertexIndex(), edges[i].metric(metric));
 			trackers.add(tracker);
 		}
 
@@ -68,7 +71,7 @@ public class PathPicker implements PathTracker, Comparable<PathPicker> {
 		for (int i = 0; i < edges.length; ++i) {
 			PathPicker tracker = this.clone();
 			tracker.iterator.moveBackward(i);
-			path.addVertex(iterator.vertexIndex(), edges[i].metrics()[metric]);
+			path.addVertex(iterator.vertexIndex(), edges[i].metric(metric));
 			trackers.add(tracker);
 		}
 
@@ -85,7 +88,7 @@ public class PathPicker implements PathTracker, Comparable<PathPicker> {
 		return iterator.vertexIndex();
 	}
 
-	public double weight() {
+	public int weight() {
 		return path.weight();
 	}
 	

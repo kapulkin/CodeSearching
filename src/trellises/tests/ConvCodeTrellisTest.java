@@ -18,7 +18,6 @@ import trellises.ITrellis;
 import trellises.ITrellisEdge;
 import trellises.ITrellisIterator;
 import codes.ConvCode;
-import codes.tests.ConvCodeTest;
 import math.ConvCodeAlgs;
 import math.ConvCodeSpanForm;
 import math.Poly;
@@ -121,9 +120,9 @@ public class ConvCodeTrellisTest {
 				light.moveBackward(edge);
 			}
 			
+			logger.debug("layer = " + explicit.layer() + ", vertexIndex = " + explicit.vertexIndex());
 			assertEquals(explicit.layer(), light.layer());
 			assertEquals(explicit.vertexIndex(), light.vertexIndex());
-			logger.debug("layer = " + explicit.layer() + ", vertexIndex = " + explicit.vertexIndex());
 		}
 	}
 
