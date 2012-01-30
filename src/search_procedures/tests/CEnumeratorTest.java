@@ -11,7 +11,7 @@ import search_tools.CEnumerator;
 public class CEnumeratorTest {
 	static final private Logger logger = LoggerFactory.getLogger(CEnumeratorTest.class);
 	
-	@Test
+	//@Test
 	public void sample() {
 		long n = 5;
 		CEnumerator enumerator = new CEnumerator(n, 2);
@@ -20,6 +20,24 @@ public class CEnumeratorTest {
 			enumerator.next();
 		}
 		assertFalse(enumerator.hasNext());
+	}
+	
+	@Test
+	public void countTest() {
+		long n = (1L << 10);
+		int k = 3;
+		CEnumerator enumerator = new CEnumerator(n, k);
+		long cnt = enumerator.count().longValue();
+		long actual_cnt = 0;
+		
+		logger.debug("count result:" + cnt);
+		while (enumerator.hasNext()) {
+			++actual_cnt;
+			enumerator.next();
+		}
+		logger.debug("actual count:" + actual_cnt);
+		
+		assertTrue(cnt == actual_cnt);
 	}
 
 	public void zeroElementsShouldGiveTheOnlyOneCombination() {

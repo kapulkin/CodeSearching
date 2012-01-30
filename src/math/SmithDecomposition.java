@@ -1,8 +1,7 @@
 package math;
 
 
-public class SmithDecomposition 
-{	
+public class SmithDecomposition {	
 	private int b;
 	private int c;
 	
@@ -12,8 +11,7 @@ public class SmithDecomposition
 	private PolyMatrix B;
 	private PolyMatrix InvB;
 	
-	public SmithDecomposition(PolyMatrix G)
-	{
+	public SmithDecomposition(PolyMatrix G) {
 		b = G.getRowCount();
 		c = G.getColumnCount();
 		
@@ -26,30 +24,35 @@ public class SmithDecomposition
 		decomposeSubmatrix(0);
 	}
 	
-	public PolyMatrix getA()
-	{
+	public PolyMatrix getA() {
 		return A;
 	}
 	
-	public PolyMatrix getInvA()
-	{
+	public PolyMatrix getInvA() {
 		return InvA;
 	}
 	
-	public PolyMatrix getB()
-	{
+	public PolyMatrix getB() {
 		return B;
 	}
 	
-	public PolyMatrix getInvB()
-	{
+	public PolyMatrix getInvB() {
 		return InvB;
 	}
 	
-	public PolyMatrix getD()
-	{
+	public PolyMatrix getD() {
 		return D;		
-	}	
+	}
+	
+	public boolean isBasic() {
+		for (int i = 0;i < b; ++i) {
+			if (!D.get(i, i).equals(Poly.getUnitPoly())) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
 	
 	private void decomposeSubmatrix(int diagInd)
 	{

@@ -1,10 +1,8 @@
 package codes;
 
-import math.ConvCodeAlgs;
 import math.MinDistance;
 import trellises.ITrellis;
 import trellises.TailbitingCodeTrellis;
-import trellises.Trellis;
 
 /**
  * Tailbiting код. Усеченый код при L0 = 0.

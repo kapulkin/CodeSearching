@@ -11,6 +11,11 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import codes.ConvCode;
+import codes.TBCode;
+import codes.TruncatedCode;
+import codes.ZTCode;
+
 import trellises.Trellis;
 import trellises.TrellisSection;
 import trellises.TrellisUtils;
@@ -507,19 +512,57 @@ public class ConvCodeAlgs {
 	 * @param decomposition декомпозиция Смита
 	 * @return ортогональная матрица в minimal base форме
 	 */
-	public static PolyMatrix getOrthogonalMatrix(SmithDecomposition decomp)
-	{
-		PolyMatrix ort = new PolyMatrix(decomp.getD().getColumnCount() - decomp.getD().getRowCount(), decomp.getD().getColumnCount());
+	public static PolyMatrix getOrthogonalMatrix(SmithDecomposition decomp) {
+		if (!decomp.isBasic()) {
+			throw new IllegalArgumentException("Impossible to find orthogonal matrix because matrix is not basic!");
+		}
 		
-		for(int i = 0;i < ort.getRowCount();i ++)
-		{
-			for(int j = 0;j < ort.getColumnCount();j ++)
-			{
-				ort.set(i, j, decomp.getInvB().get(j, i + decomp.getD().getRowCount()));
-			}
+		int k = decomp.getD().getRowCount();
+		int n = decomp.getD().getColumnCount();
+		int r = n - k;
+		PolyMatrix ort = new PolyMatrix(r, n);
+		PolyMatrix invB = decomp.getInvB();
+		PolyMatrix gamma = decomp.getD();
+		
+		for (int i = 0; i < n;i ++) {
+			for (int j = 0; j < r;j ++) {
+				Poly sum = new Poly();
+				
+				for (int l = 0; l < k; ++l) {
+					sum.add(invB.get(i, l).mul(gamma.get(l, j)));
+				}
+				
+				sum.add(invB.get(i, k + j));
+				ort.set(j, i, sum);
+			}			
 		}
 		
 		return ort;
+	}
+	
+	public static TruncatedCode truncate(int k, int n, ConvCode convCode) {
+		int L, L0;
+		
+		if ((n % convCode.getN() != 0) ||  (k % convCode.getK() != 0)) {
+			throw new IllegalArgumentException("cann't truncate conv code in such way");
+		}
+		
+		L = n / convCode.getN();
+		L0 = L - k / convCode.getK();
+		
+		if (L0 < 0) {
+			return null;
+		}
+		
+		if (L0 == 0) {
+			return new TBCode(convCode, L - (convCode.getDelay() + 1));
+		}
+		
+		if (L0 == convCode.getDelay()) {
+			return new ZTCode(convCode, L - (convCode.getDelay() + 1));
+		}		
+		
+		return new TruncatedCode(convCode, L0, L - (convCode.getDelay() + 1));
 	}
 
 	static private boolean decreaseConstraint(PolyMatrix matr) {
@@ -540,7 +583,7 @@ public class ConvCodeAlgs {
 			highestDegrees[i] = maxDeg;
 			
 			for (int j = 0;j < matr.getColumnCount(); ++j) {
-				int deg = matr.get(i, j).getDegree();
+				int deg = matr.get(i, j).isZero() ? -1 : matr.get(i, j).getDegree();
 				
 				if (deg == maxDeg) {
 					highestDegreesMatr.set(i, j, true);
@@ -579,4 +622,5 @@ public class ConvCodeAlgs {
 		
 		return true;
 	}
+	 
 }

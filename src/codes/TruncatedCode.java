@@ -35,17 +35,13 @@ public class TruncatedCode extends BlockCode {
 
 		cycles = L;
 		
-		parentCode = code;
-		blockGenMatr = new BlockMatrix(L - L0, L, code.getK(), code.getN());
+		parentCode = code;		
 		k = code.getK() * (L - L0);
-		n = code.getN() * L;
+		n = code.getN() * L;		
+	}
+	
+	public TruncatedCode() {
 		
-		for (int row = 0; row < L - L0; ++row) {
-			for (int power = 0; power <= code.getDelay(); ++power) {
-				int col = (row + power) % L;
-				blockGenMatr.set(row, col, code.getGenBlocks()[power]);
-			}
-		}
 	}
 	
 	@Override
@@ -53,7 +49,7 @@ public class TruncatedCode extends BlockCode {
 	{
 		if(genMatr == null)
 		{
-			genMatr = blockGenMatr.breakBlockStructure();
+			genMatr = blockGenMatrix().breakBlockStructure();
 		}
 		
 		return genMatr;
@@ -64,6 +60,19 @@ public class TruncatedCode extends BlockCode {
 	 * @return порождающая матрица в виде блоков
 	 */
 	public BlockMatrix blockGenMatrix() {
+		if (blockGenMatr == null) {
+			int L = cycles;
+			int L0 = L - k / parentCode.getK();
+
+			blockGenMatr = new BlockMatrix(L - L0, L, parentCode.getK(), parentCode.getN());			
+			
+			for (int row = 0; row < L - L0; ++row) {
+				for (int power = 0; power <= parentCode.getDelay(); ++power) {
+					int col = (row + power) % L;
+					blockGenMatr.set(row, col, parentCode.getGenBlocks()[power]);
+				}
+			}
+		}
 		return blockGenMatr;
 	}
 
@@ -98,22 +107,22 @@ public class TruncatedCode extends BlockCode {
 		// разбиение паттерна на блоки
 		BlockMatrix dividedPattern = new BlockMatrix(pattern, parentCode.getK(), parentCode.getN());
 		
-		int[] spanHeads = new int[blockGenMatr.getTotalRowCount()];
-		int[] spanTails = new int[blockGenMatr.getTotalRowCount()];
+		int[] spanHeads = new int[blockGenMatrix().getTotalRowCount()];
+		int[] spanTails = new int[blockGenMatrix().getTotalRowCount()];
 				
-		for (int rowBlock = 0;rowBlock < blockGenMatr.getRowCount();rowBlock ++) {			
+		for (int rowBlock = 0;rowBlock < blockGenMatrix().getRowCount();rowBlock ++) {			
 			for (int i = 0;i < parentCode.getK();i ++) {
 				spanHeads[rowBlock * parentCode.getK() + i] = (pattSpanForm.getHead(i) + rowBlock * parentCode.getN()) % (blockGenMatr.getTotalColumnCount());
 				spanTails[rowBlock * parentCode.getK() + i] = (pattSpanForm.getTail(i) + rowBlock * parentCode.getN()) % (blockGenMatr.getTotalColumnCount());
 			}
 
 			for (int power = 0; power < dividedPattern.getColumnCount(); ++power) {
-				int colBlock = (rowBlock + power) % blockGenMatr.getColumnCount();
-				blockGenMatr.set(rowBlock, colBlock, dividedPattern.get(0, power));
+				int colBlock = (rowBlock + power) % blockGenMatrix().getColumnCount();
+				blockGenMatrix().set(rowBlock, colBlock, dividedPattern.get(0, power));
 			}
 		}
 		
-		genMatr = blockGenMatr.breakBlockStructure();
+		genMatr = blockGenMatrix().breakBlockStructure();
 		genSpanForm = new SpanForm(genMatr, spanHeads, spanTails);
 		genSpanForm.IsTailbiting = true;
 

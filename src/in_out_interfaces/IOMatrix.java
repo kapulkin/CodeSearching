@@ -101,8 +101,7 @@ public class IOMatrix {
 		return mat;		
 	}
 	
-	public static void writeMatrix(Matrix mat, BufferedWriter writer) throws IOException
-	{
+	public static void writeMatrix(Matrix mat, BufferedWriter writer) throws IOException {
 		for(int i = 0;i < mat.getRowCount();i ++)
 		{
 			for(int j = 0;j < mat.getColumnCount();j ++)

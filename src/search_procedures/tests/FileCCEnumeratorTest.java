@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import codes.ConvCode;
 
-import search_procedures.block_codes.FileCCEnumerator;
+import search_procedures.conv_codes.FileCCEnumerator;
 
 public class FileCCEnumeratorTest {
 	static final private Logger logger = LoggerFactory.getLogger(FileCCEnumeratorTest.class);

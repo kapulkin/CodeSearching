@@ -168,4 +168,43 @@ public class PolyMatrix {
 		}
 		return str;
 	}
+	
+	public int compareColumns(int i, int j) {
+		for (int k = getRowCount() - 1;k >= 0; --k) {
+			Poly pi = get(k, i);
+			Poly pj = get(k, j);
+			
+			for (int c = Math.max(pi.getDegree(), pj.getDegree()); c >= 0; --c) {				
+				boolean bi = pi.getDegree() < c ? false : pi.getCoeff(c);
+				boolean bj = pj.getDegree() < c ? false : pj.getCoeff(c);
+				
+				if (bi && !bj) {
+					return 1;
+				} else if (!bi && bj) {
+					return -1;
+				}
+			}
+		}
+		
+		return 0;
+	}
+	
+	public void swapColumns(int i, int j) {
+		for (int k = 0;k < getRowCount(); ++k) {
+			Poly b = get(k, i);
+			
+			set(k, i, get(k, j));
+			set(k, j, b);
+		}
+	}
+	
+	public void sortColumns() {		
+		for (int i = 0;i < getColumnCount() - 1; ++i) {
+			for (int j = i + 1;j > 0; --j) {
+				if (compareColumns(j, j - 1) == -1) {
+					swapColumns(j, j - 1);
+				}
+			}
+		}
+	}
 }

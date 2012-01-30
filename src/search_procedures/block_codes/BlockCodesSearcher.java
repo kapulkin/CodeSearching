@@ -15,17 +15,24 @@ import search_procedures.tests.BasicBlockCodeSearcherTest;
 public class BlockCodesSearcher {
 	static final private Logger logger = LoggerFactory.getLogger(BasicBlockCodeSearcherTest.class);
 	
+	private int timeThreshold = 300;
+	
 	public static class SearchTask {
 		public int K;
 		public int N;
 		public int MinDist;
 		public int StateComplexity;
+		public int ExpectedTime = -1;
 		public ICodeEnumerator<ConvCode> ConvCodeEnum;
 		public IHeuristic Heuristic;
 	}
 	
 	public static class TaskPool {
 		public ArrayList<SearchTask> Tasks;
+		
+		public TaskPool(ArrayList<SearchTask> tasks) {
+			Tasks = tasks;
+		}
 	}
 	
 	public BlockCode[] searchTruncatedCodes(TaskPool[] pools) {
@@ -36,12 +43,23 @@ public class BlockCodesSearcher {
 			
 			for (int j = 0;j < tasks.size(); ++j) {
 				SearchTask task = tasks.get(j);
-				TruncatedCodeEnumerator truncEnum = new TruncatedCodeEnumerator(task.ConvCodeEnum, task.K, task.N);
-				BasicBlockCodesSearcher<BlockCode> searcher = new BasicBlockCodesSearcher<BlockCode>(task.MinDist, task.StateComplexity);
+				
+				if (task.ExpectedTime > timeThreshold) {
+					logger.info("task: " + "k=" + task.K + " n=" + task.N + " s=" + task.StateComplexity + " d=" + task.MinDist);
+					logger.info("expected time " + task.ExpectedTime + "s is too big");
+					continue;
+				}
+				
+				TruncatedCodeEnumerator truncEnum = new TruncatedCodeEnumerator(task.ConvCodeEnum, task.K, task.N);				
+				BasicBlockCodesSearcher<BlockCode> searcher = new BasicBlockCodesSearcher<BlockCode>();
 			
 				searcher.setCandidateEnumerator(truncEnum);
 				searcher.setHeuristic(task.Heuristic);
 			
+				if (task.ExpectedTime > 0) {
+					logger.info("expected time " + task.ExpectedTime + "s");
+				}
+				
 				if ((codes[i] = searcher.findNext()) != null) {
 					logger.info("task: " + "k=" + task.K + " n=" + task.N + " s=" + task.StateComplexity + " d=" + task.MinDist);
 					break;

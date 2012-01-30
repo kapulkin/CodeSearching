@@ -79,8 +79,7 @@ public class Poly implements Cloneable, Comparable<Poly> {
 		return polyCoeffs.get(index);
 	}
 	
-	public void setCoeff(int index, Boolean val)
-	{
+	public void setCoeff(int index, Boolean val) {
 		polyCoeffs.set(index, val);
 	}
 	

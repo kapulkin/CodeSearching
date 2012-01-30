@@ -1,5 +1,6 @@
 package search_tools;
 
+import java.math.BigInteger;
 import java.util.NoSuchElementException;
 
 import org.slf4j.Logger;
@@ -35,6 +36,18 @@ public class CEnumerator {
 		
 		this.n = n;
 		this.k = k;			
+	}
+	
+	public BigInteger count() {
+		BigInteger numerator = BigInteger.ONE;
+	    BigInteger denumerator = BigInteger.ONE;		
+		
+		for (long i = n - k + 1;i <= n; ++i) {
+			numerator = numerator.multiply(new BigInteger(Long.toString(i)));
+			denumerator = denumerator.multiply(new BigInteger(Long.toString(n - i + 1)));			
+		}
+		
+		return numerator.divide(denumerator);
 	}
 	
 	private void initSequence() {
@@ -83,6 +96,24 @@ public class CEnumerator {
 		for(int i = k-indFromEnd;i < k;i ++)
 		{
 			sequence[i] = sequence[k-1-indFromEnd] + (i - (k-1-indFromEnd));
+		}
+		
+		return sequence;
+	}
+	
+	public long[] getByIndex(BigInteger index) {
+		long[] sequence = new long[k];
+		long digit = 0;
+		
+		for (int i = k - 1; i >= 0; --i) {
+			BigInteger delta = BigInteger.ZERO;
+			
+			while ((delta.add(new CEnumerator(n - digit, k).count())).compareTo(index) <= 0) { 
+				delta = delta.add(new CEnumerator(n - digit, k).count());
+				++digit;
+			}
+			
+			sequence[i] = digit;
 		}
 		
 		return sequence;

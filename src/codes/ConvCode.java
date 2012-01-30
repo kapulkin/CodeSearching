@@ -3,6 +3,7 @@ package codes;
 import trellises.ConvCodeTrellis;
 import trellises.ITrellis;
 import trellises.Trellis;
+import trellises.Trellises;
 import math.BitArray;
 import math.BlockMatrix;
 import math.ConvCodeAlgs;
@@ -208,9 +209,14 @@ public class ConvCode implements Code{
 	
 	public ITrellis getTrellis() {
 		if (trellis == null) {
-			PolyMatrix minBaseGen = ConvCodeAlgs.getMinimalBaseGenerator(generator());
-			trellis = ConvCodeAlgs.buildTrellis(ConvCodeAlgs.buildSpanForm(minBaseGen));
-			MinDistance.computeDistanceMetrics((Trellis)trellis);
+			if (genMatr != null) {
+				PolyMatrix minBaseGen = ConvCodeAlgs.getMinimalBaseGenerator(generator());
+				trellis = ConvCodeAlgs.buildTrellis(ConvCodeAlgs.buildSpanForm(minBaseGen));
+				MinDistance.computeDistanceMetrics((Trellis)trellis);
+			}else {				
+				trellis = Trellises.trellisFromParityCheckHR(checkMatr);
+				MinDistance.computeDistanceMetrics((Trellis)trellis);
+			}
 			//trellis = new ConvCodeTrellis(spanForm());
 		}
 		return trellis;

@@ -25,7 +25,7 @@ import search_heuristics.CCWeightsDistHeur;
 import search_heuristics.IHeuristic;
 import search_heuristics.LRCCGreismerDistHeur;
 import search_heuristics.TBWeightDistHeur;
-import search_procedures.block_codes.SearchMain;
+import search_procedures.block_codes.BlockCodesTable;
 import trellises.ITrellis;
 import trellises.TrellisUtils;
 
@@ -34,15 +34,16 @@ public class BasicBlockCodeSearcherTest {
 
 	@Test
 	public void testCorrectnessForCodesFromPaper() throws IOException {
-		SearchMain.initDesiredParameters("tb_codes_params.txt");
+		BlockCodesTable.initDesiredParameters("tb_codes_params.txt");
 		
-		int minK = 3, maxK = SearchMain.complexitiesInPaper.length - 1;
+		int minK = 3, maxK = BlockCodesTable.complexitiesInPaper.length - 1;
 		Scanner scanner = new Scanner(new File("conv_codes_for_tb_truncation.txt"));
 		
 		for (int k = minK;k <= maxK; ++k) {
 			ConvCode code = IOConvCode.readConvCode(scanner);
 			BlockCode tbCode = new TBCode(code, k - (code.getDelay() + 1));
 			 
+//			code.parityCheck().sortColumns();
 			testCodeParameters(tbCode); 
 		}
 	}
@@ -51,11 +52,11 @@ public class BasicBlockCodeSearcherTest {
 		int k = tbCode.getK();
 		ArrayList<IHeuristic> cc_heuristics = new ArrayList<IHeuristic>();
 		
-		cc_heuristics.add(new CCWeightsDistHeur(SearchMain.distancesInPaper[k][2 * k]));
+		cc_heuristics.add(new CCWeightsDistHeur(BlockCodesTable.distancesInPaper[k][2 * k]));
 		cc_heuristics.add(new CCFirstLastBlockStateHeur());
-		cc_heuristics.add(new LRCCGreismerDistHeur(SearchMain.distancesInPaper[k][2 * k]));
+		cc_heuristics.add(new LRCCGreismerDistHeur(BlockCodesTable.distancesInPaper[k][2 * k]));
 		
-		IHeuristic tb_heuristic = new TBWeightDistHeur(SearchMain.distancesInPaper[k][2 * k]);
+		IHeuristic tb_heuristic = new TBWeightDistHeur(BlockCodesTable.distancesInPaper[k][2 * k]);
 		
 		logger.debug("k: " + k);
 		
@@ -72,13 +73,13 @@ public class BasicBlockCodeSearcherTest {
 	}
 	
 	private void testCodeParameters(BlockCode tbCode) throws IOException {
-		IOMatrix.writeMatrix(tbCode.generator(), new BufferedWriter(new OutputStreamWriter(System.out)));
+		//IOMatrix.writeMatrix(tbCode.generator(), new BufferedWriter(new OutputStreamWriter(System.out)));
 		 
-		 try {
+		/* try {
 			tbCode.getGeneratorSpanForm();				
 		}catch(Exception e) {
 			fail("Unexpected exception.");
-		}
+		}/**/
 		 
 		int k = tbCode.getK();
 		long start, end;
@@ -102,8 +103,8 @@ public class BasicBlockCodeSearcherTest {
 		logger.info("minimal distance finding time = " + (double)(end - start) / 1000 + "s");
 		
 		int s = TrellisUtils.stateComplexity(trellis);
-		int s_paper = SearchMain.complexitiesInPaper[k][2 * k];
-		int d_paper = SearchMain.distancesInPaper[k][2 * k];
+		int s_paper = BlockCodesTable.complexitiesInPaper[k][2 * k];
+		int d_paper = BlockCodesTable.distancesInPaper[k][2 * k];
 		
 		logger.debug("layers: " + trellis.layersCount());
 		
@@ -114,4 +115,6 @@ public class BasicBlockCodeSearcherTest {
 		//assertEquals(s_paper, s);
 		//assertEquals(d_paper, d);
 	}
+	
+	
 }

@@ -30,7 +30,7 @@ public class DZTCodeSearcher extends BasicBlockCodesSearcher<BlockCode> {
 	 * @param ccEnum convolutional code enumerator
 	 */
 	DZTCodeSearcher(int k, int n, int minDist, ICodeEnumerator<ConvCode> ccEnum) {
-		super(minDist, Integer.MAX_VALUE);
+		//super(minDist, Integer.MAX_VALUE);
 		this.k = k;
 		this.n = n;
 		this.minDist = minDist;
