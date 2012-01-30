@@ -182,6 +182,6 @@ public class BlockCodeAlgs {
 	 * @return решетка блокового кода с рассчитанной метрикой
 	 */
 	public static Trellis buildExplicitTrellis(BlockCode code) {
-		return Trellises.buildExplicitTrellis(new BlockCodeTrellis(code.getGeneratorSpanForm()));
+		return Trellises.getExplicitTrellisOf(new BlockCodeTrellis(code.getGeneratorSpanForm()));
 	}
 }

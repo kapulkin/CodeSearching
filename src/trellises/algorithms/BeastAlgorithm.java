@@ -668,9 +668,9 @@ public class BeastAlgorithm {
 				// вес пути path < tresholdForward
 				int i = 0;
 				ITrellisEdge edges[] = vertex.iterator.getAccessors();
-				if (vertex.vertexIndex() == 0 && vertex != root) {
+				if (vertex.vertexIndex() == 0 && vertex != root && edges[0].metric(metric) == 0) {
 					// проходим по всем вершинам нулевого цикла и сразу переходим из каждой из них по ненулевому пути.					
-					assert(edges[0].metric(metric) == 0);
+//					assert(edges[0].metric(metric) == 0);
 
 					PathTracker zeroPath = vertex.forwardIterator().next();
 					
@@ -731,8 +731,8 @@ public class BeastAlgorithm {
 				
 				int i = 0;
 				ITrellisEdge edges[] = vertex.iterator.getPredecessors();
-				if (vertex.vertexIndex() == 0) {
-					assert(edges[0].metric(metric) == 0);
+				if (vertex.vertexIndex() == 0 && edges[0].metric(metric) == 0) {
+//					assert(edges[0].metric(metric) == 0);
 					++i;
 				}
 				for (; i < edges.length; ++i) {

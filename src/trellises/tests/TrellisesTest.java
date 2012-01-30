@@ -49,11 +49,11 @@ public class TrellisesTest {
 	public void explicitTrellisConstructionFromBlockCodeTrellisTest() {
 
 		BlockCodeAlgs.sortHeads(blockCode.getGeneratorSpanForm());
-		Trellis trellis1 = Trellises.buildExplicitTrellis(new BlockCodeTrellis(blockCode.getGeneratorSpanForm()));
+		Trellis trellis1 = Trellises.getExplicitTrellisOf(new BlockCodeTrellis(blockCode.getGeneratorSpanForm()));
 		trellisForwardTraversalShouldGiveCodeWord(blockCode, trellis1, 1);
 
 		BlockCodeAlgs.sortTails(blockCode.getGeneratorSpanForm());
-		Trellis trellis2 = Trellises.buildExplicitTrellis(new BlockCodeTrellis(blockCode.getGeneratorSpanForm()));
+		Trellis trellis2 = Trellises.getExplicitTrellisOf(new BlockCodeTrellis(blockCode.getGeneratorSpanForm()));
 		trellisBackwardTraversalShouldGiveCodeWord(blockCode, trellis2);
 	}
 	

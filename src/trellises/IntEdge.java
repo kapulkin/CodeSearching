@@ -22,6 +22,10 @@ public class IntEdge implements ITrellisEdge {
 
 	public IntEdge() {}
 	
+	public IntEdge(ITrellisEdge edge) {
+		this((int)edge.src(), (int)edge.dst(), edge.bits(), edge.metrics());
+	}
+	
 	public IntEdge(int src, int dst, BitArray bits) {
 		this.src = src;
 		this.dst = dst;
