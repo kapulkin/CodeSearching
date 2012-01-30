@@ -239,9 +239,10 @@ public class TrellisesTest {
 	}
 	
 	static private void assertEdgeEquals(ITrellisEdge edge, ITrellisEdge edge_) {
-		assertEquals(edge.src(), edge.src());
-		assertEquals(edge.dst(), edge.dst());
-		assertEquals(edge.bits(), edge.bits());
-		assertArrayEquals(edge.metrics(), edge.metrics());
+		assertEquals(edge.src(), edge_.src());
+		assertEquals(edge.dst(), edge_.dst());
+		assertEquals(edge.bits(), edge_.bits());
+		// TODO: implement function belows
+//		assertArrayEquals(edge.metrics(), edge_.metrics());
 	}
 }

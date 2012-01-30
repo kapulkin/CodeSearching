@@ -94,6 +94,7 @@ public class IOPolyMatrix {
 					writer.write(", ");
 				}
 			}
+			writer.newLine();
 		}
 		writer.newLine();
 		writer.flush();

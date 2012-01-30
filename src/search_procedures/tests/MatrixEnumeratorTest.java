@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import in_out_interfaces.IOConvCode;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Random;
 import java.util.Scanner;
@@ -20,8 +21,10 @@ import org.slf4j.LoggerFactory;
 
 import codes.ConvCode;
 
-import search_procedures.block_codes.ExhaustiveCCEnumByGenMatr;
+import search_procedures.block_codes.BlockCodesTable;
 import search_procedures.block_codes.SearchMain;
+import search_procedures.conv_codes.ExhaustiveCCEnumByGenMatr;
+import search_procedures.conv_codes.ExhaustiveHRCCEnumByCheckMatr;
 import search_tools.MatrixEnumerator;
 
 public class MatrixEnumeratorTest {
@@ -29,18 +32,11 @@ public class MatrixEnumeratorTest {
 
 	@Test
 	public void numberOfMatrices(){
-		int columns = 5;
+		int columns = 4;
 		int rows = 5;
 		MatrixEnumerator enumerator = new MatrixEnumerator(rows, columns);
-		int expectedNumber = 0;
-		int actualNumber = 0;
-		
-		for (int c = 1; c <= Math.min((1 << rows), columns); ++c) {
-			int differentColumnCombination = combination((1 << rows), c);
-			int finalCombination = combination(columns - 1, c - 1);
-			
-			expectedNumber += differentColumnCombination * finalCombination;
-		}
+		int expectedNumber = enumerator.count().intValue();
+		int actualNumber = 0;		
 		
 		logger.debug("expected: " + expectedNumber);
 		
@@ -51,6 +47,25 @@ public class MatrixEnumeratorTest {
 		
 		logger.debug("actual: " + actualNumber);
 		assertEquals(expectedNumber, actualNumber);
+	}
+	
+	//@Test
+	public void performanceTest() throws IOException {
+		BlockCodesTable.initDesiredParameters("tb_code_paramsHR.txt");
+		
+		int minK = 3, maxK = BlockCodesTable.complexitiesInPaper.length - 1;
+		
+		for (int k = minK;k <= maxK; k += 3) {			
+			int n = 4 * (k / 3);
+			ExhaustiveHRCCEnumByCheckMatr cc_enum = new ExhaustiveHRCCEnumByCheckMatr(3, BlockCodesTable.complexitiesInPaper[k][n]);
+			int cnt = 0;
+						
+			while (cc_enum.next() != null) {				
+				++cnt;
+			}
+			
+			logger.info("k = " + k + ", count " + Integer.toString(cnt));
+		}
 	}
 	
 	//@Test
@@ -82,20 +97,22 @@ public class MatrixEnumeratorTest {
 		logger.debug("succsessful tests: " + succ_tests);
 	}
 	
-	@Test
+	//@Test
 	public void codesFromPaperTest() throws IOException {
-		SearchMain.initDesiredParameters("tb_codes_params.txt");
+		BlockCodesTable.initDesiredParameters("tb_codes_params.txt");
 		
-		int minK = 3, maxK = SearchMain.complexitiesInPaper.length - 1;
-		Scanner scanner = new Scanner(new File("conv_codes_for_tb_truncation.txt"));
+		int minK = 3, maxK = BlockCodesTable.complexitiesInPaper.length - 1;
+		Scanner scanner = new Scanner(new File("HRconv_codes_for_tb_truncation.txt"));
 		
 		for (int k = minK;k <= maxK; ++k) {
-			ConvCode gain_code = sortColumns(IOConvCode.readConvCode(scanner));
-			ExhaustiveCCEnumByGenMatr cc_enum = new ExhaustiveCCEnumByGenMatr(gain_code.getK(), gain_code.getN(), gain_code.getDelay());
+			ConvCode gain_code = IOConvCode.readConvCode(scanner);
+			ExhaustiveHRCCEnumByCheckMatr cc_enum = new ExhaustiveHRCCEnumByCheckMatr(gain_code.getK(), gain_code.getDelay());
+			
+			gain_code.parityCheck().sortColumns();
 			
 			ConvCode code = null;
-			while ((code = cc_enum.next()) != null) {
-				if (code.generator().equals(gain_code.generator())) {
+			while ((code = cc_enum.next()) != null) {				
+				if (code.parityCheck().equals(gain_code.parityCheck())) {
 					break;
 				}
 			}
@@ -105,49 +122,7 @@ public class MatrixEnumeratorTest {
 			}
 		}
 	}
-	
-	private int compareColumns(int i, int j, int delay, PolyMatrix mat) {
-		for (int k = mat.getRowCount() - 1;k >= 0; --k) {
-			for (int c = delay; c >= 0; --c) {
-				Poly pi = mat.get(k, i);
-				Poly pj = mat.get(k, j);
-				boolean bi = pi.getDegree() < c ? false : pi.getCoeff(c);
-				boolean bj = pj.getDegree() < c ? false : pj.getCoeff(c);
-				
-				if (bi && !bj) {
-					return 1;
-				} else if (!bi && bj) {
-					return -1;
-				}
-			}
-		}
 		
-		return 0;
-	}
-	
-	private void swapColumns(int i, int j, PolyMatrix mat) {
-		for (int k = 0;k < mat.getRowCount(); ++k) {
-			Poly b = mat.get(k, i);
-			
-			mat.set(k, i, mat.get(k, j));
-			mat.set(k, j, b);
-		}
-	}
-	
-	private ConvCode sortColumns(ConvCode code) {
-		PolyMatrix gen = code.generator().clone();
-		
-		for (int i = 0;i < gen.getColumnCount() - 1; ++i) {
-			for (int j = i + 1;j > 0; --j) {
-				if (compareColumns(j, j - 1, code.getDelay(), gen) == -1) {
-					swapColumns(j, j - 1, gen);
-				}
-			}
-		}
-		
-		return new ConvCode(gen, true);
-	}
-	
 	public Matrix getRandomMatrix(int rows, int columns) {
 		Random randomGenerator = new Random();
 		Matrix randomMatrix = new Matrix(rows, columns);

@@ -1,5 +1,8 @@
 package search_tools;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
+
 import math.Matrix;
 
 public class MatrixEnumerator {
@@ -15,24 +18,9 @@ public class MatrixEnumerator {
 	private int n;
 	
 	/**
-	 * Перечислитель различных столбцов
+	 * Перечислитель столбцов
 	 */
-	private CEnumerator cEnumDistinct;
-	
-	/**
-	 * Перечислитель размещений столбцов
-	 */
-	private CEnumerator cEnumFill;
-	
-	/** 
-	 * Количество различных столбцов
-	 * */
-	private int distinctColumnsCnt = 1;
-	
-	/** 
-	 * Различные столбцы
-	 * */
-	private long[] distinctColumns;
+	private CEnumerator columnEnum;			
 	
 	public MatrixEnumerator(int rows, int columns) {
 		k = rows;
@@ -42,18 +30,37 @@ public class MatrixEnumerator {
 			throw new IllegalArgumentException("Overflow during shift operation.");
 		}
 		
-		cEnumDistinct = new CEnumerator((1L<<k), distinctColumnsCnt);
-		cEnumFill = new CEnumerator(n - 1, distinctColumnsCnt - 1);
-		
-		distinctColumns = cEnumDistinct.next();
+		columnEnum = new CEnumerator((1L<<k) * n, n);		
 	}
 	
+	public BigInteger count() {
+		/*BigInteger cnt = new BigInteger("0");
+		
+		for (int distCol = 1; distCol <= Math.min(n, (1L<<k)); ++distCol) {
+			cnt = cnt.add(new CEnumerator((1L<<k), distCol).count()).multiply((new CEnumerator(n - 1, distCol - 1).count()));
+		}/**/
+		
+		return columnEnum.count();
+	}
+	
+	/*public long[] getDistinctColumns() {
+		long[] distinctColumns = new long[n];
+
+		for (int i = 0; i < n)
+		
+		return distinctColumns.toArray(new Long[0]);
+	}/**/
+	
+//	public long[] getCounts() {
+	//	return counts;
+	//}
+	
 	public boolean hasNext() {
-		return (distinctColumnsCnt < Math.min(1L<<k, n)) || cEnumDistinct.hasNext() || cEnumFill.hasNext();
+		return columnEnum.hasNext();//(distinctColumnsCnt < Math.min(1L<<k, n)) || cEnumDistinct.hasNext() || cEnumFill.hasNext();
 	}
 	
 	public Matrix getNext() {
-		if (!cEnumFill.hasNext()) {
+		/*if (!cEnumFill.hasNext()) {
 			if (!cEnumDistinct.hasNext()) {
 				cEnumDistinct = new CEnumerator((1L<<k), ++distinctColumnsCnt);			
 			}
@@ -62,7 +69,8 @@ public class MatrixEnumerator {
 			cEnumFill = new CEnumerator(n - 1, distinctColumnsCnt - 1);
 		}
 		
-		long[] counts = positionsToCounts(cEnumFill.next());
+		counts = positionsToCounts(cEnumFill.next());
+		
 		int columnsFilled = 0;
 		Matrix mat = new Matrix(k, n);
 	    		
@@ -75,10 +83,30 @@ public class MatrixEnumerator {
 			columnsFilled += counts[l];
 		}
 		
+		return mat;/**/
+		
+		return matrixByColumns(columnEnum.next());
+	}
+	
+	public Matrix getByIndex(BigInteger index) {
+		return matrixByColumns(columnEnum.getByIndex(index));
+	}
+	
+	private Matrix matrixByColumns(long[] columns) {
+		Matrix mat = new Matrix(k, n);
+		
+		for (int i = 0;i < n; ++i) {
+			long column = columns[i] / n;
+			
+			for (int j = 0;j < k; ++j) {
+				mat.set(j, i, (column & (1L << j)) != 0);
+			}
+		}
+		
 		return mat;
 	}
 	
-	private long[] positionsToCounts(long[] positions) {
+	/*private long[] positionsToCounts(long[] positions) {
 		long[] counts = new long[distinctColumnsCnt];
 		
 		if (distinctColumnsCnt == 1) {
@@ -93,5 +121,5 @@ public class MatrixEnumerator {
 		}
 		counts[distinctColumnsCnt - 1] = remainder;
 		return counts;
-	}
+	}/**/
 }

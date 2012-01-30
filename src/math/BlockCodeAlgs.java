@@ -1,5 +1,7 @@
 package math;
 
+import java.util.ArrayList;
+
 import trellises.BlockCodeTrellis;
 import trellises.Trellis;
 import trellises.Trellises;
@@ -183,5 +185,89 @@ public class BlockCodeAlgs {
 	 */
 	public static Trellis buildExplicitTrellis(BlockCode code) {
 		return Trellises.getExplicitTrellisOf(new BlockCodeTrellis(code.getGeneratorSpanForm()));
+	}	
+	
+	public static BitArray[] buildCosetsWithBigWeight(BlockCode code, int weight) {		
+		BitArray cosetCharacteristicVector = new BitArray(1 << (code.getN() - code.getK()));
+		ArrayList<BitArray> badCosetsFront = new ArrayList<BitArray>();
+		Matrix parityCheck = code.parityCheck().transpose();
+		
+		cosetCharacteristicVector.set(0);
+		badCosetsFront.add(new BitArray(code.getN() - code.getK()));
+		for (int w = 1;w <= weight; ++w) {
+			ArrayList<BitArray> newFront = new ArrayList<BitArray>();
+			
+			for (BitArray coset : badCosetsFront) {
+				for (int i = 0;i < code.getN(); ++i) {
+					BitArray neighbour = new BitArray(coset);
+					
+					neighbour.and(parityCheck.getRow(i));
+					int neighbourIndex = 0;
+					
+					for (int b = 0;b < code.getN() - code.getK(); ++b) {
+						if (neighbour.get(b)) {
+							neighbourIndex ^= (1 << b); 
+						}
+					}
+					
+					if (!cosetCharacteristicVector.get(neighbourIndex)) {
+						cosetCharacteristicVector.set(neighbourIndex);
+						newFront.add(neighbour);
+					}
+				}
+			}
+			
+			badCosetsFront = newFront;
+		}
+		
+		ArrayList<BitArray> cosets = new ArrayList<BitArray>();
+		for (int cosetIndex = 0;cosetIndex < cosetCharacteristicVector.getFixedSize(); ++cosetIndex) {
+			if (!cosetCharacteristicVector.get(cosetIndex)) {
+				BitArray coset = new BitArray(code.getN() - code.getK());
+				
+				for (int i = 0;i < code.getN() - code.getK(); ++i) {
+					coset.set(i, cosetIndex & (1 << i));
+				}
+				
+				cosets.add(coset);
+			}
+		}
+		
+		return cosets.toArray(new BitArray[0]);
+	}
+	
+	public static BitArray findCosetLeader(BlockCode code, BitArray syndrome) {
+		Matrix parityCheck = code.parityCheck();
+		Integer[] permSubmatrix = MathAlgs.getPermutationSubmatrix(parityCheck);
+		
+		if (permSubmatrix.length < code.getN() - code.getK()) {
+			permSubmatrix = new Integer[code.getN() - code.getK()];
+			for(int i = 0;i < parityCheck.getRowCount();i ++) {
+				int uniqueInd = parityCheck.getRow(i).nextSetBit(0);
+				
+				for(int j = 0;j < parityCheck.getRowCount();j ++) {
+					if(i == j) continue;
+					
+					if(parityCheck.get(j, uniqueInd) == true) {
+						parityCheck.getRow(j).xor(parityCheck.getRow(i));
+						syndrome.set(j, syndrome.get(j) ^ syndrome.get(i));
+					}
+				}
+							
+				permSubmatrix[i] = uniqueInd;
+			}
+		}
+		
+		BitArray cosetWord = new BitArray(code.getN());
+		
+		for (int i = 0;i < syndrome.getFixedSize(); ++i) {
+			if (syndrome.get(i)) {
+				cosetWord.set(permSubmatrix[i]);
+			}
+		}
+		
+		
+		
+		return cosetWord;
 	}
 }

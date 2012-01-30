@@ -9,14 +9,14 @@ public class RowShiftingZTCodeSearcher extends BasicBlockCodesSearcher<Truncated
 
 	public RowShiftingZTCodeSearcher(int requiredMinDistance,
 			int requiredStateComplexity, RowShiftingCodeEnumerator rowCcEnum, int scale) {
-		super(requiredMinDistance, requiredStateComplexity);
+		//super(requiredMinDistance, requiredStateComplexity);
 		this.rowCcEnum = rowCcEnum;
 		this.candidateEnum = new TruncatedCodeEnumerator(rowCcEnum, scale, rowCcEnum.getN() * (rowCcEnum.getDegree() + scale));
 	}
 	
 	public RowShiftingZTCodeSearcher(int requiredMinDistance,
 			int requiredStateComplexity, ConvCode ccCode, int k, int n) {
-		super(requiredMinDistance, requiredStateComplexity);
+		//super(requiredMinDistance, requiredStateComplexity);
 
 		int scale1 = DZTCodeSearcher.getScale1(ccCode, k, n);
 

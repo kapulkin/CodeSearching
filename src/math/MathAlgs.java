@@ -1,10 +1,58 @@
 package math;
 
 import java.util.ArrayList;
-
-
+import java.util.HashMap;
 
 public class MathAlgs {
+	
+	public static Integer[] getPermutationSubmatrix(Matrix mat) {
+		HashMap<Integer, Integer> submatrix = new HashMap<Integer, Integer>();		
+		
+		for (int i = 0;i < mat.getColumnCount(); ++i) {
+			int firstSetBit = 0;
+			int secondSetBit = mat.getRowCount() - 1;
+			
+			for (int j = 0;j < mat.getRowCount(); ++j) {
+				if (mat.get(i, j)) {
+					firstSetBit = j;
+					break;
+				}
+			}
+			
+			for (int j = mat.getRowCount() - 1;j >= 0; --j) {
+				if (mat.get(i, j)) {
+					secondSetBit = j;
+					break;
+				}
+			}
+			
+			if (firstSetBit == secondSetBit) {
+				submatrix.put(firstSetBit, i);
+			}
+		}
+		
+		return submatrix.values().toArray(new Integer[0]);
+	}
+	
+	public static HashMap<Integer, Integer> extractPermutationSubmatrix(Matrix mat) {				
+		HashMap<Integer, Integer> submatrix = new HashMap<Integer, Integer>();		
+		
+		for(int i = 0;i < mat.getRowCount();i ++) {
+			int uniqueInd = mat.getRow(i).nextSetBit(0);
+			
+			for(int j = 0;j < mat.getRowCount();j ++) {
+				if(i == j) continue;
+				
+				if(mat.get(j, uniqueInd) == true) {
+					mat.getRow(j).xor(mat.getRow(i));
+				}
+			}
+						
+			submatrix.put(uniqueInd, i);
+		}		
+		
+		return submatrix;	
+	}
 	
 	/**
 	 * Ищет матрицу, порождающую ортогональное дополнение к пространству, порожденному матрицей mat.
@@ -20,13 +68,6 @@ public class MathAlgs {
 		Matrix ortMat = new Matrix(mat.getColumnCount() - mat.getRowCount(), mat.getColumnCount());
 		//Позиции единичек в строчках перестановочной подматрицы 
 		int[] permutationRows = new int[mat.getRowCount()];
-		//Позиции единичек в столбцах перестановочной подматрицы и -1 в остальных столбцах  
-		int[] permutationColumns = new int[mat.getColumnCount()];
-		
-		for(int i = 0;i < mat.getColumnCount();i ++)
-		{
-			permutationColumns[i] = -1;
-		}
 		
 		if(allowModifications)
 		{
@@ -35,62 +76,41 @@ public class MathAlgs {
 			workingMat = (Matrix)mat.clone();
 		}
 		
-		for(int i = 0;i < workingMat.getRowCount();i ++)
-		{
-			int uniqueInd = workingMat.getRow(i).nextSetBit(0);
-			for(int j = 0;j < workingMat.getRowCount();j ++)
-			{
-				if(i == j) continue;
-				
-				if(workingMat.get(j, uniqueInd) == true)
-				{
-					workingMat.getRow(j).xor(workingMat.getRow(i));
-				}
-			}
-			permutationColumns[uniqueInd] = i; 			
-		}		
+		HashMap<Integer, Integer> permSubmatrix = extractPermutationSubmatrix(workingMat);
 		
-		int permColumnsViwed = 0;
+		int permColumnsViwed = 0;	
 		
-		for(int i = 0;i < workingMat.getColumnCount();i ++)
-		{
-			if(permutationColumns[i] != -1)
-			{
-				permutationRows[permutationColumns[i]] = permColumnsViwed;
+		for(int i = 0;i < workingMat.getColumnCount();i ++) {
+			if(permSubmatrix.containsKey(i)) {
+				permutationRows[permSubmatrix.get(i)] = permColumnsViwed;
 				permColumnsViwed ++;
 			}
 		}
 		
 		permColumnsViwed = 0;
-		for(int i = 0;i < ortMat.getColumnCount();i ++)
-		{
-			if(permutationColumns[i] == -1)
-			{
+		for(int i = 0;i < ortMat.getColumnCount();i ++) {
+			if(!permSubmatrix.containsKey(i)) {			
 				// заполнение строки единичной подматрицы
-				for(int j = 0;j < ortMat.getRowCount();j ++)
-				{
+				for(int j = 0;j < ortMat.getRowCount();j ++) {
 					// если диагональный элемент
-					if(j == i - permColumnsViwed)
-					{
+					if(j == i - permColumnsViwed) {
 						ortMat.set(j, i, true);
-					}else{
+					}else {
 						ortMat.set(j, i, false);
 					}
-				}
-			}else{
+				}				
+			}else {
 				int j = 0;
 				// Расчет произведений permColumnsViwed-й строки транспонированной перестановочной матрицы
 				// на столбцы неперестановочной подматрицы исходной матрицы. Эти произведения по сути 
 				// представляют собой строчку исходной матрицы с номером permutationRows[permColumnsViwed]. 
-				for(int k = 0;k < workingMat.getColumnCount();k ++)
-				{
-					if(permutationColumns[k] == -1)
-					{
+				for(int k = 0;k < workingMat.getColumnCount();k ++) {
+					if(!permSubmatrix.containsKey(k)) {
 						ortMat.set(j, i, workingMat.get(permutationRows[permColumnsViwed], k));
-						j++;
+						++ j;
 					}
 				}
-				permColumnsViwed ++;
+				++ permColumnsViwed;
 			}
 		}		
 		
@@ -152,5 +172,5 @@ public class MathAlgs {
 		
 		return new int[0];
 	}
-	
+		
 }

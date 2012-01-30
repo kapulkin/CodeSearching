@@ -178,4 +178,14 @@ public class MinDistance {
 		
 		return minDist;
 	}
+	
+	public static int minN(int k, int minDist) {
+		int n = 0;
+		
+		for (int j = 0; j < k; ++j) {
+			n += Math.ceil((double)minDist / (1<<j));
+		}
+		
+		return n;
+	}
 }

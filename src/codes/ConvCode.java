@@ -5,12 +5,15 @@ import org.slf4j.LoggerFactory;
 
 import trellises.ConvCodeTrellis;
 import trellises.ITrellis;
+import trellises.Trellis;
+import trellises.Trellises;
 import trellises.LightTrellis;
 import math.BitArray;
 import math.BlockMatrix;
 import math.ConvCodeAlgs;
 import math.ConvCodeSpanForm;
 import math.Matrix;
+import math.MinDistance;
 import math.PolyMatrix;
 import math.SmithDecomposition;
 
@@ -211,18 +214,26 @@ public class ConvCode implements Code{
 	
 	public ITrellis getTrellis() {
 		if (trellis == null) {
-			ITrellis implicitTrellis = new ConvCodeTrellis(spanForm());
-			try {
-				trellis = new LightTrellis(implicitTrellis);
-			} catch (IllegalArgumentException e) {
-				logger.debug("Failed to build explicit trellis, implicit will be used: {}", e.getMessage());
-				trellis = implicitTrellis;
+			if (genMatr != null) {
+				ITrellis implicitTrellis = new ConvCodeTrellis(spanForm());
+				try {
+					trellis = new LightTrellis(implicitTrellis);
+				} catch (IllegalArgumentException e) {
+					logger.debug("Failed to build explicit trellis, implicit will be used: {}", e.getMessage());
+					trellis = implicitTrellis;
+				}
+			}else {				
+				trellis = Trellises.trellisFromParityCheckHR(checkMatr);
+				MinDistance.computeDistanceMetrics((Trellis)trellis);
 			}
 		}
 		return trellis;
 	}
 	
 	public int getFreeDist() {
+		if (freeDist == -1) {
+			freeDist = MinDistance.findFreeDist(this);
+		}
 		return freeDist;
 	}
 	

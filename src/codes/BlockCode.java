@@ -176,6 +176,10 @@ public class BlockCode implements Code {
 		this.minDist = minDist;
 	}
 	
+	public void setTrellis(ITrellis trellis) {
+		this.trellis = trellis;		
+	}
+	
 	/**
 	 * 
 	 * @return Минимальное расстояние кода

@@ -157,7 +157,7 @@ public class Matrix implements Cloneable {
 		return res;
 	}
 	
-	public Matrix Transpose()
+	public Matrix transpose()
 	{
 		Matrix tr = new Matrix(getColumnCount(), getRowCount());
 		

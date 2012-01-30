@@ -1,10 +1,8 @@
 package codes;
 
-import math.ConvCodeAlgs;
 import math.MinDistance;
 import trellises.ITrellis;
 import trellises.TailbitingCodeTrellis;
-import trellises.Trellis;
 
 /**
  * Tailbiting код. Усеченый код при L0 = 0.
@@ -36,7 +34,7 @@ public class TBCode extends TruncatedCode {
 	
 	public int getMinDist() {
 		if (minDist == -1) {
-			minDist = MinDistance.findMinDist(this);
+			minDist = MinDistance.findMinDist(this);		
 		}
 		
 		return minDist;

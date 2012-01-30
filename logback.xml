@@ -10,6 +10,7 @@
   </appender>
 
   <logger name="trellises" level="INFO"/>
+  <logger name="math" level="INFO"/>
 
   <root level="debug">
     <appender-ref ref="STDOUT" />

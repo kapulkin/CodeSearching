@@ -1,5 +1,6 @@
 package in_out_interfaces;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Scanner;
 
@@ -10,36 +11,32 @@ import math.Matrix;
 
 public class IOConvCode {
 
-	public static ConvCode readConvCode(Scanner scanner) throws IOException
-	{
+	public static ConvCode readConvCode(Scanner scanner) throws IOException {
 		int delay;		
 		int rows;
+		String type;
 	
+		type = scanner.next();
 		delay = scanner.nextInt();
 		rows = scanner.nextInt();
 		
-		Matrix polyGen = IOMatrix.readMatrix(scanner, rows);
-		BlockMatrix dividedPolyGen = new BlockMatrix(polyGen, 1, delay+1);
+		Matrix polyMat = IOMatrix.readMatrix(scanner, rows);
+		BlockMatrix dividedPolyMat = new BlockMatrix(polyMat, 1, delay+1);
 		
-		return new ConvCode(dividedPolyGen, true);
-		/*int regCount = polyGen.getRowCount();
-		int adderCount = polyGen.getColumnCount() / (delay+1);
-		
-		genMatr = new Matrix[regCount];
-		for(int reg = 0;reg < polyGen.getRowCount();reg ++)
-		{
-			genMatr[reg] = new Matrix(adderCount, delay+1);
-			
-			for(int adder = 0;adder < adderCount;adder ++)
-			{
-				for(int cell = 0;cell < delay + 1;cell ++)
-				{
-					genMatr[reg].set(adder, cell, polyGen.get(reg, (delay+1)*adder+cell));
-				}
-			}
-		}
-		
-		return new ConvCode(genMatr);/**/		
+		return new ConvCode(dividedPolyMat, type.contains("g"));		
 	}
 	
+	public static void writeConvCode(ConvCode code, BufferedWriter writer, String type) throws IOException {
+		writer.write(type + "\n");
+		writer.write(code.getDelay() + "\n");
+		writer.write(code.getK() + "\n");
+		
+		if (type == "g") {
+			writer.write("oct\n" + (code.getDelay()+1) + "\n");
+			IOPolyMatrix.writeMatrix(code.generator(), 8, writer);
+		} else {
+			writer.write("oct\n" + (code.getDelay()+1) + "\n");
+			IOPolyMatrix.writeMatrix(code.parityCheck(), 8, writer);
+		}
+	}
 }
