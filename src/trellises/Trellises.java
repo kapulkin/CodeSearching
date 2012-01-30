@@ -261,30 +261,41 @@ public class Trellises {
 	}
 
 	/**
+	 * Создает решетку в явном виде, эквивалентную исходной. Если <code>trellis</code> - и есть решетка в явном виде, то возвращает ее.  
+	 * @param trellis решетка
+	 * @return <code>trellis</code>, если <code>trellis</code> - решетка в явном виде.
+	 */
+	public static Trellis getExplicitTrellisOf(ITrellis trellis) {
+		if (trellis instanceof Trellis) {
+			return (Trellis)trellis;
+		}
+
+		return buildExplicitTrellis(trellis);
+	}
+	
+	/**
 	 * Строит решетку в явном виде эквивалентную исходной. Входная решетка
 	 * должна удовлетворять ограничениям создаваемой решетки класса Trellis. 
 	 * @param trellis решетка кода.
 	 * @return решетка кода, эквивалентная исходной.
 	 */
 	public static Trellis buildExplicitTrellis(ITrellis trellis) {
-		if (trellis instanceof Trellis) {
-			return (Trellis)trellis;
-		}
-
 		Trellis newTrellis = new Trellis();
-		
+
 		newTrellis.Layers = new Vertex[trellis.layersCount()][];
+		
 		for (int layer = 0; layer < newTrellis.Layers.length; ++layer) {
-			if (trellis.layerSize(layer) > Integer.MAX_VALUE) {
-				throw new IllegalArgumentException("Trellises with more then " + Integer.MAX_VALUE +
-						" vertices in a layer are not supported: " + layer);
+			long layerSize = trellis.layerSize(layer);
+			if (layerSize > Integer.MAX_VALUE) {
+				throw new IllegalArgumentException("Trellis contains layers of length more, then " + Integer.MAX_VALUE);
 			}
-			newTrellis.Layers[layer] = new Vertex[(int)trellis.layerSize(layer)];
+			newTrellis.Layers[layer] = new Vertex[(int)layerSize];
 			for (int vertexIndex = 0; vertexIndex < newTrellis.Layers[layer].length; ++vertexIndex) {
-				newTrellis.Layers[layer][vertexIndex] = new Vertex();
+				Vertex vertex = newTrellis.Layers[layer][vertexIndex] = new Vertex();
 				
-				ITrellisEdge accessors[] = trellis.iterator(layer, vertexIndex).getAccessors();
-				newTrellis.Layers[layer][vertexIndex].Accessors = new IntEdge[accessors.length];
+				ITrellisIterator iterator = trellis.iterator(layer, vertexIndex);
+				ITrellisEdge accessors[] = iterator.getAccessors();
+				vertex.Accessors = new IntEdge[accessors.length];
 				for (int e = 0; e < accessors.length; ++e) {
 					if (accessors[e].src() != vertexIndex) {
 						throw new IllegalArgumentException("Wrong src index on the edge: " + layer + ", " + vertexIndex + ", " + e);
@@ -293,14 +304,17 @@ public class Trellises {
 						throw new IllegalArgumentException("A dst index on the edge is not inside [0, " + Integer.MAX_VALUE + "]:" +
 								layer + ", " + vertexIndex + ", " + e);
 					}
-					newTrellis.Layers[layer][vertexIndex].Accessors[e] = new IntEdge(
-							(int)accessors[e].src(), (int)accessors[e].dst(), 
-							accessors[e].bits(), accessors[e].metrics());
+
+					vertex.Accessors[e] = new IntEdge(accessors[e]);
+				}
+				
+				ITrellisEdge predecessors[] = iterator.getPredecessors();
+				vertex.Predecessors = new IntEdge[predecessors.length];
+				for (int i = 0; i < predecessors.length; ++i) {
+					vertex.Predecessors[i] = new IntEdge(predecessors[i]);
 				}
 			}
 		}
-
-		TrellisUtils.buildPredcessors(newTrellis);
 				
 		return newTrellis;
 	}
