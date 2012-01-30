@@ -52,28 +52,18 @@ public class ConvCodeTrellis  implements ITrellis {
 		@Override
 		public ITrellisEdge[] getAccessors() {
 			// получаем следующие активные ряды: добавляем к текущим начавшийся активный ряд и удаляем завершившийся
-			for (Boundary spanHead : sections[layer].spanHeads) {
-				currentActiveRows.add(spanHead.row);
-			}
-			for (Boundary spanTail : sections[layer].spanTails) {
-				currentActiveRows.remove(spanTail.row);
-			}
 
 			int nextLayer = (layer + 1) % sections.length;
 			
 			int fromIndex = (layer == 0) ? 0 : sections[layer].beginColumn();
 			int toIndex = (nextLayer == 0) ? c : sections[nextLayer].beginColumn();
-			ITrellisEdge edges[] = TrellisUtils.buildAccessorsEdges(spanForm.matrix, vertexIndex, 
-					currentSum, currentSumRows, currentActiveRows, 
-					sections[layer].spanHeads, fromIndex, toIndex);
+//			ITrellisEdge edges[] = TrellisUtils.buildAccessorsEdges(spanForm.matrix, vertexIndex, 
+//					currentSum, currentSumRows, currentActiveRows, 
+//					sections[layer].spanHeads, fromIndex, toIndex);
+			ITrellisEdge edges[] = TrellisUtils.buildAccessorsEdges(spanForm.matrix,
+					vertexIndex, currentSum, currentActiveRows,
+					sections[layer].spanHeads, sections[layer].spanTails, fromIndex, toIndex);
 
-			// восстанавливаем значение текущих активных рядов
-			for (Boundary spanHead : sections[layer].spanHeads) {
-				currentActiveRows.remove(spanHead.row);
-			}
-			for (Boundary spanTail : sections[layer].spanTails) {
-				currentActiveRows.add(spanTail.row);
-			}
 			
 			return edges;
 		}
@@ -103,28 +93,11 @@ public class ConvCodeTrellis  implements ITrellis {
 				sum = currentSum;
 			}
 
-			// получаем предыдущие активные ряды
-			for (Boundary spanTail : sections[prevLayer].spanTails) {
-				activeRows.add(spanTail.row);
-			}
-			for (Boundary spanHead : sections[prevLayer].spanHeads) {
-				activeRows.remove(spanHead.row);
-			}
-
 			int fromIndex = (prevLayer == 0) ? 0 : sections[prevLayer].beginColumn();
 			int toIndex = (layer == 0) ? c : sections[layer].beginColumn();
-			ITrellisEdge edges[] = TrellisUtils.buildPredcessorsEdges(spanForm.matrix, vertexIndex, 
-					sum, sumRows, activeRows, 
-//					sections[prevLayer].spanTails, sections[prevLayer].beginColumn(), sections[layer].beginColumn()); 
-					sections[prevLayer].spanTails, fromIndex, toIndex); 
-
-			// восстанавливаем значение текущих активных рядов
-			for (Boundary spanTail : sections[prevLayer].spanTails) {
-				activeRows.remove(spanTail.row);
-			}
-			for (Boundary spanHead : sections[prevLayer].spanHeads) {
-				activeRows.add(spanHead.row);
-			}
+			ITrellisEdge edges[] = TrellisUtils.buildPredcessorsEdges(spanForm.matrix,
+					vertexIndex, sum, activeRows,
+					sections[prevLayer].spanHeads, sections[prevLayer].spanTails, fromIndex, toIndex);
 			
 			for (int i = 0; i < edges.length; ++i) {
 				logger.debug("edge " + i + ": " + edges[i]);
@@ -170,6 +143,7 @@ public class ConvCodeTrellis  implements ITrellis {
 			for (int i = 0; i < sections[prevLayer].spanTails.size(); i++) {
 				Boundary spanTail = sections[prevLayer].spanTails.get(i);
 
+				vertexIndex = TrellisUtils.getNextVertexByAdding(vertexIndex, currentActiveRows, spanTail.row, (edgeIndex & (1 << i)) != 0);
 				currentActiveRows.add(spanTail.row);
 				if ((edgeIndex & (1 << i)) != 0) {
 					currentSumRows.add(spanTail.row);
@@ -178,6 +152,7 @@ public class ConvCodeTrellis  implements ITrellis {
 			}
 
 			for (Boundary spanHead : sections[prevLayer].spanHeads) {
+				vertexIndex = TrellisUtils.getNextVertexByRemoving(vertexIndex, currentActiveRows, spanHead.row);
 				currentActiveRows.remove(spanHead.row);
 				if (currentSumRows.contains(spanHead.row)) {
 					currentSum.xor(spanForm.matrix.getRow(spanHead.row));
@@ -185,7 +160,7 @@ public class ConvCodeTrellis  implements ITrellis {
 				}
 			}
 			
-			vertexIndex = TrellisUtils.getVertexIndex(currentSumRows, currentActiveRows);
+//			vertexIndex = TrellisUtils.getVertexIndex(currentSumRows, currentActiveRows);
 
 			layer = prevLayer;
 		}
@@ -199,6 +174,7 @@ public class ConvCodeTrellis  implements ITrellis {
 			for (int i = 0; i < sections[layer].spanHeads.size(); ++i) {
 				Boundary spanHead = sections[layer].spanHeads.get(i);
 				
+				vertexIndex = TrellisUtils.getNextVertexByAdding(vertexIndex, currentActiveRows, spanHead.row, (edgeIndex & (1 << i)) != 0);
 				currentActiveRows.add(spanHead.row);
 				if ((edgeIndex & (1 << i)) != 0) {
 					currentSumRows.add(spanHead.row);
@@ -207,6 +183,7 @@ public class ConvCodeTrellis  implements ITrellis {
 			}
 			
 			for (Boundary spanTail : sections[layer].spanTails) {
+				vertexIndex = TrellisUtils.getNextVertexByRemoving(vertexIndex, currentActiveRows, spanTail.row);
 				currentActiveRows.remove(spanTail.row);
 				if (currentSumRows.contains(spanTail.row)) {
 					currentSum.xor(spanForm.matrix.getRow(spanTail.row));
@@ -214,7 +191,7 @@ public class ConvCodeTrellis  implements ITrellis {
 				}
 			}
 
-			vertexIndex = TrellisUtils.getVertexIndex(currentSumRows, currentActiveRows);
+//			vertexIndex = TrellisUtils.getVertexIndex(currentSumRows, currentActiveRows);
 
 			layer = (layer + 1) % sections.length;
 			

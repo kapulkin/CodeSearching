@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.Iterator;
 
-import trellises.PathTracker;
+import trellises.algorithms.PathTracker;
 
 public class PathTrackerTest {
 	void checkConsistency(PathTracker tracker) {

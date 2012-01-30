@@ -8,7 +8,6 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 
-import trellises.Trellis.Edge;
 import trellises.TrellisSection.Boundary;
 
 import math.BitArray;
@@ -140,7 +139,69 @@ public class TrellisUtils {
 		return edges;
 	}
 	
+	public static long getNextVertexByAdding(long vertexIndex, SortedSet<Integer> activeRows, int newRow, boolean isNewRowInSum) {
+		int position = activeRows.headSet(newRow).size();
 
+		long nextVertex = insertBit(vertexIndex, position);
+		if (isNewRowInSum) {
+			nextVertex |= 1 << position;
+		}
+		
+		return nextVertex;
+	}
+	
+	public static long getNextVertexByAdding(long vertexIndex, SortedSet<Integer> activeRows, int newRow, BitArray sum, Matrix matrix, boolean isNewRowInSum) {
+		int position = activeRows.headSet(newRow).size();
+
+		long nextVertex = insertBit(vertexIndex, position);
+		if (isNewRowInSum) {
+			nextVertex |= 1 << position;
+			sum.xor(matrix.getRow(newRow));
+		}
+		
+		return nextVertex;
+	}
+
+	private static long insertBit(long vertexIndex, int position) {
+		// -1L >>> 64 has no effect, so we need process case of position == 0 separately
+		if (position == 0) {
+			return vertexIndex << 1;
+		}
+		
+		long nextVertex = vertexIndex & (-1L >>> (Long.SIZE - position));
+		nextVertex |= (vertexIndex & (-1L << (position))) << 1;
+
+		return nextVertex;
+	}
+	
+	public static long getNextVertexByRemoving(long vertexIndex, SortedSet<Integer> activeRows, int oldRow) {
+		int position = activeRows.headSet(oldRow).size();
+		
+		return removeBit(vertexIndex, position);
+	}
+	
+	public static long getNextVertexByRemoving(long vertexIndex, SortedSet<Integer> activeRows, int oldRow, BitArray sum, Matrix matrix) {
+		int position = activeRows.headSet(oldRow).size();
+
+		if ((vertexIndex & (1 << position)) != 0) {
+			sum.xor(matrix.getRow(oldRow));
+		}
+		
+		return removeBit(vertexIndex, position);
+	}
+
+	private static long removeBit(long vertexIndex, int position) {
+		// -1L >>> 64 has no effect, so we need process case of position == 0 separately
+		if (position == 0) {
+			return vertexIndex >>> 1;
+		}
+		
+		long nextVertex = vertexIndex & (-1L >>> (Long.SIZE - position));
+		nextVertex |= (vertexIndex & (-1L << (position+1))) >>> 1;
+		
+		return nextVertex;
+	}
+	
 	/**
 	 * Метод строит ребра, приходящие в вершину <code>vertexIndex</code> с 
 	 * использованием избыточных данных ради оптимизации.
@@ -150,10 +211,10 @@ public class TrellisUtils {
 	 * @param sum сумма активных рядов, соотвествующих <code>vertexIndex</code>
 	 * @param sumRows активные ряды, участвующие в сумме, соотвествуют <code>vertexIndex</code>   
 	 * @param activeRows активные ряды яруса
-	 * @param spanHeads границы начинающихся в секции строк
+	 * @param spanTails границы заканчивающихся в секции строк
 	 * @param fromIndex начальная граница секции
 	 * @param toIndex конечная граница секции
-	 * @return ребра, идущие из
+	 * @return ребра, приходящие в
 	 */
 	public static ITrellisEdge[] buildPredcessorsEdges(Matrix matrix, long vertexIndex,
 			BitArray sum, Set<Integer> sumRows, SortedSet<Integer> activeRows, 
@@ -237,18 +298,18 @@ public class TrellisUtils {
 	 */
 	public static void buildPredcessors(Trellis trellis) {
 		for (int layer = 0; layer < trellis.Layers.length; ++layer) {
+			int nextLayer = (layer + 1) % trellis.Layers.length;
 			for (int vertexIndex = 0; vertexIndex < trellis.Layers[layer].length; ++vertexIndex) {
 				// строим обратные ребра. Если на последнем ярусе нет прямых ребер, то нет и обратных. 
-				for (Edge edge : trellis.Layers[layer][vertexIndex].Accessors) {
-					int vertex = edge.Dst;
-					int nextLayer = (layer + 1) % trellis.Layers.length;
+				for (IntEdge edge : trellis.Layers[layer][vertexIndex].Accessors) {
+					int vertex = edge.dst;
 					
-					Edge predcessors[] = trellis.Layers[nextLayer][vertex].Predecessors;
-					Edge newPredecessors[];
+					IntEdge predcessors[] = trellis.Layers[nextLayer][vertex].Predecessors;
+					IntEdge newPredecessors[];
 					if (predcessors == null) {
-						newPredecessors = new Edge[] {edge};
+						newPredecessors = new IntEdge[] {edge};
 					} else {
-						newPredecessors = new Edge[predcessors.length + 1];
+						newPredecessors = new IntEdge[predcessors.length + 1];
 						System.arraycopy(predcessors, 0, newPredecessors, 0, predcessors.length);
 						newPredecessors[predcessors.length] = edge;
 					}
@@ -259,7 +320,7 @@ public class TrellisUtils {
 	
 		for (int vertexIndex = 0; vertexIndex < trellis.Layers[0].length; ++vertexIndex) {
 			if (trellis.Layers[0][vertexIndex].Predecessors == null) {
-				trellis.Layers[0][0].Predecessors = new Edge[0];
+				trellis.Layers[0][0].Predecessors = new IntEdge[0];
 			}
 		}
 	}
@@ -276,5 +337,111 @@ public class TrellisUtils {
 		}
 		
 		return max_s;
+	}
+
+	public static ITrellisEdge[] buildAccessorsEdges(Matrix matrix,
+			long vertexIndex, BitArray sum, SortedSet<Integer> activeRows,
+			ArrayList<Boundary> spanHeads, ArrayList<Boundary> spanTails, int fromIndex, int toIndex) {
+		LongEdge edges[] = new LongEdge[1 << spanHeads.size()];
+		BitArray bits;
+			
+		// получаем следующие активные ряды: добавляем к текущим начавшийся активный ряд и удаляем завершившийся
+		// вычисляем вершину предыдущего яруса, соотвествующую переходу по нулевому ребру
+		long nextVertex = vertexIndex;		
+		for (Boundary spanTail : spanTails) {
+			nextVertex = getNextVertexByRemoving(nextVertex, activeRows, spanTail.row);
+			activeRows.remove(spanTail.row);
+		}
+		
+		for (Boundary spanHead : spanHeads) {
+			nextVertex = getNextVertexByAdding(nextVertex, activeRows, spanHead.row, false);
+			activeRows.add(spanHead.row);
+		}
+		
+		// ребро нулевого пути.
+		bits = sum.get(fromIndex, toIndex);
+		edges[0] = new LongEdge(vertexIndex, nextVertex, bits);
+	
+		for (int e = 1; e < edges.length; ++e) {
+			int edgeIndex = GrayCode.getWord(e);
+			int bitPos = GrayCode.getChangedPosition(e);
+			int newRow = spanHeads.get(bitPos).row;
+	
+			int position = activeRows.headSet(newRow).size();
+			nextVertex ^= (1 << position);
+			sum.xor(matrix.getRow(newRow));
+			
+			// ребро единичного пути.
+			bits = sum.get(fromIndex, toIndex);
+			edges[edgeIndex] = new LongEdge(vertexIndex, nextVertex, bits);
+		}
+		if (edges.length > 1) {
+			// восстанавливаем значение текущей суммы
+			int lastRow = spanHeads.get(spanHeads.size()-1).row;
+			sum.xor(matrix.getRow(lastRow));
+		}
+		
+		// восстанавливаем значение текущих активных рядов
+		for (Boundary spanHead : spanHeads) {
+			activeRows.remove(spanHead.row);
+		}
+		for (Boundary spanTail : spanTails) {
+			activeRows.add(spanTail.row);
+		}
+
+		return edges;
+	}
+
+	public static ITrellisEdge[] buildPredcessorsEdges(Matrix matrix,
+			long vertexIndex, BitArray sum, SortedSet<Integer> activeRows,
+			ArrayList<Boundary> spanHeads, ArrayList<Boundary> spanTails, int fromIndex, int toIndex) {
+		LongEdge edges[] = new LongEdge[1 << spanTails.size()];
+		
+		// получаем предыдущие активные ряды и вычисляем вершину предыдущего яруса, соотвествующую переходу по нулевому ребру
+		long prevVertex = vertexIndex;
+		for (Boundary spanHead : spanHeads) {
+			prevVertex = getNextVertexByRemoving(prevVertex, activeRows, spanHead.row);
+			activeRows.remove(spanHead.row);
+		}
+		
+		for (Boundary spanTail : spanTails) {
+			prevVertex = getNextVertexByAdding(prevVertex, activeRows, spanTail.row, false);
+			activeRows.add(spanTail.row);
+		}
+		
+		BitArray bits;
+		
+		// ребро нулевого пути.
+		bits = sum.get(fromIndex, toIndex);
+		edges[0] = new LongEdge(prevVertex, vertexIndex, bits);
+	
+		for (int e = 1; e < edges.length; ++e) {
+			int edgeIndex = GrayCode.getWord(e);
+			int bitPos = GrayCode.getChangedPosition(e);
+			int delRow = spanTails.get(bitPos).row;
+	
+			int position = activeRows.headSet(delRow).size();
+			prevVertex ^= (1 << position);
+			sum.xor(matrix.getRow(delRow));
+			
+			// ребро единичного пути.
+			bits = sum.get(fromIndex, toIndex);
+			edges[edgeIndex] = new LongEdge(prevVertex, vertexIndex, bits);
+		}
+		if (edges.length > 1) {
+			// восстанавливаем значение текущей суммы
+			int lastRow = spanTails.get(spanTails.size()-1).row;
+			sum.xor(matrix.getRow(lastRow));
+		}
+		
+		// восстанавливаем значение текущих активных рядов
+		for (Boundary spanTail : spanTails) {
+			activeRows.remove(spanTail.row);
+		}
+		for (Boundary spanHead : spanHeads) {
+			activeRows.add(spanHead.row);
+		}
+
+		return edges;
 	}
 }

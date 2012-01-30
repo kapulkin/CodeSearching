@@ -16,10 +16,10 @@ import codes.TBCode;
 import codes.TruncatedCode;
 import codes.ZTCode;
 
+import trellises.IntEdge;
 import trellises.Trellis;
 import trellises.TrellisSection;
 import trellises.TrellisUtils;
-import trellises.Trellis.Edge;
 import trellises.Trellis.Vertex;
 import trellises.TrellisSection.Boundary;
 
@@ -425,17 +425,17 @@ public class ConvCodeAlgs {
 					sum.xor(rows[row].get(from, to)); // прибавляем/вычитаем ряд
 				}
 				
-				Edge edges[] = new Edge[1 << sections[layer].spanHeads.size()];
+				IntEdge edges[] = new IntEdge[1 << sections[layer].spanHeads.size()];
 				for (int j = 0; j < edges.length; ++j) {
-					edges[j] = new Edge();
-					edges[j].Metrics = new double[0];
+					edges[j] = new IntEdge();
+					edges[j].metrics = new int[0];
 
-					edges[j].Src = vertexIndex;
-					edges[j].Bits = sum.clone();
+					edges[j].src = vertexIndex;
+					edges[j].bits = sum.clone();
 					for (int bit = 0; bit < sections[layer].spanHeads.size(); ++bit) {
 						if ((j & (1 << bit)) != 0) {
 							int row = sections[layer].spanHeads.get(bit).row;
-							edges[j].Bits.xor(rows[row].get(from, to));
+							edges[j].bits.xor(rows[row].get(from, to));
 							sumRows.add(row);
 						}
 					}
@@ -444,7 +444,7 @@ public class ConvCodeAlgs {
 						throw new IllegalArgumentException("Dst index is not in [0, " + Integer.MAX_VALUE + "]: " +
 								layer + ", " + vertexIndex + ", " + j);
 					}
-					edges[j].Dst = (int)dstLong;
+					edges[j].dst = (int)dstLong;
 					for (int bit = 0; bit < sections[layer].spanHeads.size(); ++bit) {
 						if ((j & (1 << bit)) != 0) {
 							int row = sections[layer].spanHeads.get(bit).row;

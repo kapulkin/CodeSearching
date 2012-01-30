@@ -3,15 +3,15 @@ package search_procedures.tests;
 import static org.junit.Assert.*;
 import in_out_interfaces.IOConvCode;
 import in_out_interfaces.IOMatrix;
-import in_out_interfaces.IOTrellis;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
+
+import math.MinDistance;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -96,6 +96,7 @@ public class BasicBlockCodeSearcherTest {
 				
 		start = System.currentTimeMillis();
 		
+//		int d = MinDistance.findMinDist(tbCode);
 		int d = tbCode.getMinDist();
 		
 		end = System.currentTimeMillis();
@@ -108,7 +109,7 @@ public class BasicBlockCodeSearcherTest {
 		
 		logger.debug("layers: " + trellis.layersCount());
 		
-		IOTrellis.writeTrellisInGVZFormat(trellis, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
+//		IOTrellis.writeTrellisInGVZFormat(trellis, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
 		
 		logger.debug(" s = " + s + "(" + s_paper + ")" + " d = " + d + "(" + d_paper + ")");
 		

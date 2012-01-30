@@ -1,6 +1,5 @@
 package trellises;
 
-import math.BitArray;
 
 /**
  * 
@@ -9,66 +8,17 @@ import math.BitArray;
  */
 public class Trellis implements ITrellis{
 	
-	static public class Edge implements ITrellisEdge {
-		/**
-		 * Индекс начала ребра в слое 
-		 */
-		public int Src;
-		/**
-		 * Индекс конца ребра в слое
-		 */
-		public int Dst;
-		/**
-		 * Метрики ребра (кол-во единичек, вероятность и т.д.)
-		 */
-		public double[] Metrics;
-		/**
-		 * Кодовые символы на ребре
-		 */
-		public BitArray Bits;
-
-		public Edge() {}
-		
-		public Edge(int src, int dst, BitArray bits, double metrics[]) {
-			this.Src = src;
-			this.Dst = dst;
-			this.Bits = bits;
-			this.Metrics = metrics;
-		}
-		
-		@Override
-		public long src() {
-			return Src;
-		}
-		@Override
-		public long dst() {
-			return Dst;
-		}
-		@Override
-		public BitArray bits() {
-			return Bits;
-		}
-		@Override
-		public double[] metrics() {
-			return Metrics;
-		}
-		@Override
-		public String toString() {
-			return Src + "‒" + Bits + "→" + Dst;
-		}
-	} 
-	
 	static public class Vertex{
 		
 		/**
 		 * Ребра с началом в данной вершине
 		 */
-		public Edge[] Accessors;
+		public IntEdge[] Accessors;
 		
 		/**
 		 * Ребра с концом в данной вершине
 		 */
-		public Edge[] Predecessors;
+		public IntEdge[] Predecessors;
 				
 	}
 	

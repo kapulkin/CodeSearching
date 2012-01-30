@@ -6,13 +6,11 @@ import org.slf4j.LoggerFactory;
 import codes.BlockCode;
 import codes.ConvCode;
 import codes.TBCode;
-import codes.TruncatedCode;
-import trellises.BeastAlgorithm;
-import trellises.BlockCodeTrellis;
 import trellises.ITrellis;
 import trellises.ITrellisIterator;
 import trellises.Trellis;
-import trellises.ViterbiAlgorithm;
+import trellises.algorithms.BeastAlgorithm;
+import trellises.algorithms.ViterbiAlgorithm;
 
 public class MinDistance {
 	static private Logger logger = LoggerFactory.getLogger(MinDistance.class);
@@ -30,13 +28,13 @@ public class MinDistance {
 			{
 				for(int k = 0; k < trellis.Layers[i][j].Accessors.length; k++)
 				{
-					double[] oldMetrics = trellis.Layers[i][j].Accessors[k].Metrics;
+					int[] oldMetrics = trellis.Layers[i][j].Accessors[k].metrics;
 					
-					trellis.Layers[i][j].Accessors[k].Metrics = new double[oldMetrics.length + 1];
-					trellis.Layers[i][j].Accessors[k].Metrics[0] = trellis.Layers[i][j].Accessors[k].Bits.cardinality(); 
+					trellis.Layers[i][j].Accessors[k].metrics = new int[oldMetrics.length + 1];
+					trellis.Layers[i][j].Accessors[k].metrics[0] = trellis.Layers[i][j].Accessors[k].bits.cardinality(); 
 					for(int m = 1; m < oldMetrics.length + 1; m++)
 					{
-						trellis.Layers[i][j].Accessors[k].Metrics[m] = oldMetrics[m - 1];
+						trellis.Layers[i][j].Accessors[k].metrics[m] = oldMetrics[m - 1];
 					}
 				}
 			}			
@@ -89,7 +87,7 @@ public class MinDistance {
 	public static int findMinDist(BlockCode code) {
 //		code.setMinDist(findMinDistWithBEAST(new BlockCodeTrellis(code.getGeneratorSpanForm()), 0, code.getN()));
 //		return code.getMinDist();
-		return findMinDistWithBEAST(new BlockCodeTrellis(code.getGeneratorSpanForm()), 0, code.getN());
+		return findMinDistWithBEAST(code.getTrellis(), 0, code.getN());
 	}
 	
 	/**
@@ -98,9 +96,6 @@ public class MinDistance {
 	 * @return свободное расстояние сверточного кода
 	 */
 	public static int findFreeDist(ConvCode code) {
-		//PolyMatrix minBaseGen = ConvCodeAlgs.getMinimalBaseGenerator(code.generator());
-		//Trellis trellis = ConvCodeAlgs.buildTrellis(ConvCodeAlgs.buildSpanForm(minBaseGen));
-		//computeDistanceMetrics(trellis);
 //		code.setFreeDist(findMinDistWithBEAST(trellis, 0, code.getN() * (code.getDelay() + 1)));
 //		return code.getFreeDist();
 		return findMinDistWithBEAST(code.getTrellis(), 0, code.getN() * (code.getDelay() + 1));

@@ -3,6 +3,7 @@ package trellises;
 import java.util.ArrayList;
 
 import trellises.Trellis.Vertex;
+import trellises.algorithms.TrellisScanner;
 
 import math.BitArray;
 import math.BlockCodeAlgs;
@@ -42,8 +43,8 @@ public class Trellises {
 			return cycledTrellis; 
 		}
 					
-		firstLayer[0].Predecessors = new Trellis.Edge[0];
-		lastLayer[0].Accessors = new Trellis.Edge[0];
+		firstLayer[0].Predecessors = new IntEdge[0];
+		lastLayer[0].Accessors = new IntEdge[0];
 				
 		return trellis;
 	}
@@ -116,8 +117,8 @@ public class Trellises {
 		for(int v = 0;v < firstLayer.length;v ++)
 		{
 			firstLayer[v] = new Vertex();
-			firstLayer[v].Accessors = new Trellis.Edge[2];
-			firstLayer[v].Predecessors = new Trellis.Edge[2];
+			firstLayer[v].Accessors = new IntEdge[2];
+			firstLayer[v].Predecessors = new IntEdge[2];
 		}
 		layers.add(firstLayer);
 		
@@ -129,25 +130,25 @@ public class Trellises {
 			for(int v = 0;v < newLayer.length;v ++)
 			{
 				newLayer[v] = new Vertex();
-				newLayer[v].Accessors = new Trellis.Edge[2];
-				newLayer[v].Predecessors = new Trellis.Edge[2];
+				newLayer[v].Accessors = new IntEdge[2];
+				newLayer[v].Predecessors = new IntEdge[2];
 				
 				// индекс ребра соответствует значению l-ого бита кодового слова.
-				Trellis.Edge edge0 = new Trellis.Edge();
-				Trellis.Edge edge1 = new Trellis.Edge();
+				IntEdge edge0 = new IntEdge();
+				IntEdge edge1 = new IntEdge();
 				
-				edge0.Bits = new BitArray(1);
-				edge0.Src = v;	// при переходе из lastLayer по нулевому ребру содержимое памяти не менялось
-				edge0.Dst = v;
-				edge0.Metrics = new double[0];
+				edge0.bits = new BitArray(1);
+				edge0.src = v;	// при переходе из lastLayer по нулевому ребру содержимое памяти не менялось
+				edge0.dst = v;
+				edge0.metrics = new int[0];
 				
 				newLayer[v].Predecessors[0] = edge0;				
 				
-				if(lastLayer[edge0.Src].Accessors[0] == null)
+				if(lastLayer[edge0.src].Accessors[0] == null)
 				{
-					lastLayer[edge0.Src].Accessors[0] = edge0;
+					lastLayer[edge0.src].Accessors[0] = edge0;
 				}else{
-					lastLayer[edge0.Src].Accessors[1] = edge0;
+					lastLayer[edge0.src].Accessors[1] = edge0;
 				}
 				
 				// при переходе из lastLayer по единичному ребру содержимое памяти изменилось в соотв. с H[l]
@@ -161,19 +162,19 @@ public class Trellises {
 					}
 				}
 				
-				edge1.Bits = new BitArray(1);
-				edge1.Bits.set(0, true);
-				edge1.Src = v ^ h;
-				edge1.Dst = v;
-				edge1.Metrics = new double[0];
+				edge1.bits = new BitArray(1);
+				edge1.bits.set(0, true);
+				edge1.src = v ^ h;
+				edge1.dst = v;
+				edge1.metrics = new int[0];
 				
 				newLayer[v].Predecessors[1] = edge1;
 				
-				if(lastLayer[edge1.Src].Accessors[0] == null)
+				if(lastLayer[edge1.src].Accessors[0] == null)
 				{
-					lastLayer[edge1.Src].Accessors[0] = edge1;
+					lastLayer[edge1.src].Accessors[0] = edge1;
 				}else{
-					lastLayer[edge1.Src].Accessors[1] = edge1;
+					lastLayer[edge1.src].Accessors[1] = edge1;
 				}
 			}
 			
@@ -203,51 +204,51 @@ public class Trellises {
 				}
 			}
 			
-			Trellis.Edge edge0 = new Trellis.Edge();
-			Trellis.Edge edge1 = new Trellis.Edge();
+			IntEdge edge0 = new IntEdge();
+			IntEdge edge1 = new IntEdge();
 			
 			// нулевое ребро соотв. нулевому значению предпоследнего бита кодового слова. 
-			edge0.Bits = new BitArray(2);
-			edge0.Src = v;
-			edge0.Metrics = new double[0];
+			edge0.bits = new BitArray(2);
+			edge0.src = v;
+			edge0.metrics = new int[0];
 			
 			if((v & 1) == 0)
 			{	
-				edge0.Dst = (v >> 1);				
+				edge0.dst = (v >> 1);				
 			}else{
-				edge0.Dst = ((v ^ h2) >> 1);
-				edge0.Bits.set(1, true);
+				edge0.dst = ((v ^ h2) >> 1);
+				edge0.bits.set(1, true);
 			}
 			
 			finalLayer[v].Accessors[0] = edge0;				
 			
-			if(firstLayer[edge0.Dst].Predecessors[0] == null)
+			if(firstLayer[edge0.dst].Predecessors[0] == null)
 			{
-				firstLayer[edge0.Dst].Predecessors[0] = edge0;
+				firstLayer[edge0.dst].Predecessors[0] = edge0;
 			}else{
-				firstLayer[edge0.Dst].Predecessors[1] = edge0;
+				firstLayer[edge0.dst].Predecessors[1] = edge0;
 			}			
 			// единичное ребро соотв. единичному значению предпоследнего бита кодового слова. 
-			edge1.Bits = new BitArray(2);
-			edge1.Bits.set(0, true);
-			edge1.Src = v;
-			edge1.Metrics = new double[0];
+			edge1.bits = new BitArray(2);
+			edge1.bits.set(0, true);
+			edge1.src = v;
+			edge1.metrics = new int[0];
 			
 			if(((v ^ h1) & 1) == 0)
 			{	
-				edge1.Dst = ((v ^ h1) >> 1);				
+				edge1.dst = ((v ^ h1) >> 1);				
 			}else{
-				edge1.Dst = (((v ^ h1) ^ h2) >> 1);
-				edge1.Bits.set(1, true);
+				edge1.dst = (((v ^ h1) ^ h2) >> 1);
+				edge1.bits.set(1, true);
 			}
 			
 			finalLayer[v].Accessors[1] = edge1;				
 			
-			if(firstLayer[edge1.Dst].Predecessors[0] == null)
+			if(firstLayer[edge1.dst].Predecessors[0] == null)
 			{
-				firstLayer[edge1.Dst].Predecessors[0] = edge1;
+				firstLayer[edge1.dst].Predecessors[0] = edge1;
 			}else{
-				firstLayer[edge1.Dst].Predecessors[1] = edge1;
+				firstLayer[edge1.dst].Predecessors[1] = edge1;
 			}
 		}
 		
@@ -266,6 +267,10 @@ public class Trellises {
 	 * @return решетка кода, эквивалентная исходной.
 	 */
 	public static Trellis buildExplicitTrellis(ITrellis trellis) {
+		if (trellis instanceof Trellis) {
+			return (Trellis)trellis;
+		}
+
 		Trellis newTrellis = new Trellis();
 		
 		newTrellis.Layers = new Vertex[trellis.layersCount()][];
@@ -279,7 +284,7 @@ public class Trellises {
 				newTrellis.Layers[layer][vertexIndex] = new Vertex();
 				
 				ITrellisEdge accessors[] = trellis.iterator(layer, vertexIndex).getAccessors();
-				newTrellis.Layers[layer][vertexIndex].Accessors = new Trellis.Edge[accessors.length];
+				newTrellis.Layers[layer][vertexIndex].Accessors = new IntEdge[accessors.length];
 				for (int e = 0; e < accessors.length; ++e) {
 					if (accessors[e].src() != vertexIndex) {
 						throw new IllegalArgumentException("Wrong src index on the edge: " + layer + ", " + vertexIndex + ", " + e);
@@ -288,7 +293,7 @@ public class Trellises {
 						throw new IllegalArgumentException("A dst index on the edge is not inside [0, " + Integer.MAX_VALUE + "]:" +
 								layer + ", " + vertexIndex + ", " + e);
 					}
-					newTrellis.Layers[layer][vertexIndex].Accessors[e] = new Trellis.Edge(
+					newTrellis.Layers[layer][vertexIndex].Accessors[e] = new IntEdge(
 							(int)accessors[e].src(), (int)accessors[e].dst(), 
 							accessors[e].bits(), accessors[e].metrics());
 				}

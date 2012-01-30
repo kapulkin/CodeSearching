@@ -48,18 +48,18 @@ public class ConvCodeTrellisIterator implements ITrellisIterator {
 	}
 	
 	@Override
-	public Trellis.Edge[] getAccessors() {
+	public IntEdge[] getAccessors() {
 		return trellis.Layers[layer()][vertexIndex].Accessors;
 	}
 	
 	@Override
-	public Trellis.Edge[] getPredecessors() {
+	public IntEdge[] getPredecessors() {
 		return trellis.Layers[layer()][vertexIndex].Predecessors;
 	}
 	
 	@Override
 	public void moveForward(int edgeIndex) {
-		vertexIndex = getAccessors()[edgeIndex].Dst;
+		vertexIndex = getAccessors()[edgeIndex].dst;
 		++depth;
 	}
 	
@@ -68,7 +68,7 @@ public class ConvCodeTrellisIterator implements ITrellisIterator {
 		if (!hasBackward()) {
 			throw new NoSuchElementException("The iterator points to the root of nodes tree.");
 		}
-		vertexIndex = getPredecessors()[edgeIndex].Src;
+		vertexIndex = getPredecessors()[edgeIndex].src;
 		--depth;
 	}
 	

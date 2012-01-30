@@ -34,13 +34,12 @@ public class BlockCodeTrellis implements ITrellis {
 		 */
 		SortedSet<Integer> currentActiveRows;
 		/**
-		 * Номера рядов, определяющих номер вершины в ярусе. Так же данные ряды складываются при вычислении меток на ребрах. 
-		 */
-		Set<Integer> currentSumRows;
-		/**
-		 * Кодовое слово, полученное, как сумма рядов из currentSumRows
+		 * Кодовое слово, полученное, как сумма рядов матрицы, соотвествующих единичным битам номера вершины
 		 */
 		BitArray currentSum;
+		
+		Iterator() {
+		}
 		
 		Iterator(int layer, long vertexIndex) {
 			logger = LoggerFactory.getLogger(this.getClass());
@@ -49,8 +48,8 @@ public class BlockCodeTrellis implements ITrellis {
 			this.vertexIndex = vertexIndex;
 		
 			currentActiveRows = spanForm.getActiveRowsBefore(sections[layer].beginColumn());
-			currentSumRows = TrellisUtils.getSumRows(vertexIndex, currentActiveRows);
-			currentSum = TrellisUtils.getEdgeBits(spanForm.Matr, currentSumRows, 0, spanForm.Matr.getColumnCount());
+			Set<Integer> sumRows = TrellisUtils.getSumRows(vertexIndex, currentActiveRows);
+			currentSum = TrellisUtils.getEdgeBits(spanForm.Matr, sumRows, 0, spanForm.Matr.getColumnCount());
 		}
 
 		@Override
@@ -59,28 +58,13 @@ public class BlockCodeTrellis implements ITrellis {
 				return new LongEdge[0];
 			}
 
-			// получаем следующие активные ряды: добавляем к текущим начавшийся активный ряд и удаляем завершившийся
-			for (Boundary spanHead : sections[layer].spanHeads) {
-				currentActiveRows.add(spanHead.row);
-			}
-			for (Boundary spanTail : sections[layer].spanTails) {
-				currentActiveRows.remove(spanTail.row);
-			}
 
 			int nextLayer = layer + 1;
-			
-			ITrellisEdge edges[] = TrellisUtils.buildAccessorsEdges(spanForm.Matr, vertexIndex, 
-					currentSum, currentSumRows, currentActiveRows,
-					sections[layer].spanHeads, sections[layer].beginColumn(), sections[nextLayer].beginColumn());
-			
-			// восстанавливаем значение текущих активных рядов
-			for (Boundary spanHead : sections[layer].spanHeads) {
-				currentActiveRows.remove(spanHead.row);
-			}
-			for (Boundary spanTail : sections[layer].spanTails) {
-				currentActiveRows.add(spanTail.row);
-			}
 
+			ITrellisEdge edges[] = TrellisUtils.buildAccessorsEdges(spanForm.Matr,
+					vertexIndex, currentSum, currentActiveRows,
+					sections[layer].spanHeads, sections[layer].spanTails, sections[layer].beginColumn(), sections[nextLayer].beginColumn());
+			
 			for (int i = 0; i < edges.length; ++i) {
 				logger.debug("edge " + i + ": " + edges[i]);
 			}
@@ -96,25 +80,9 @@ public class BlockCodeTrellis implements ITrellis {
 			
 			int prevLayer = layer - 1;
 			
-			// получаем предыдущие активные ряды
-			for (Boundary spanTail : sections[prevLayer].spanTails) {
-				currentActiveRows.add(spanTail.row);
-			}
-			for (Boundary spanHead : sections[prevLayer].spanHeads) {
-				currentActiveRows.remove(spanHead.row);
-			}
-			
-			ITrellisEdge edges[] = TrellisUtils.buildPredcessorsEdges(spanForm.Matr, vertexIndex, 
-					currentSum, currentSumRows, currentActiveRows, 
-					sections[prevLayer].spanTails, sections[prevLayer].beginColumn(), sections[layer].beginColumn());
-			
-			// восстанавливаем значение текущих активных рядов
-			for (Boundary spanTail : sections[prevLayer].spanTails) {
-				currentActiveRows.remove(spanTail.row);
-			}
-			for (Boundary spanHead : sections[prevLayer].spanHeads) {
-				currentActiveRows.add(spanHead.row);
-			}
+			ITrellisEdge edges[] = TrellisUtils.buildPredcessorsEdges(spanForm.Matr,
+					vertexIndex, currentSum, currentActiveRows,
+					sections[prevLayer].spanHeads, sections[prevLayer].spanTails, sections[prevLayer].beginColumn(), sections[layer].beginColumn());
 			
 			for (int i = 0; i < edges.length; ++i) {
 				logger.debug("edge " + i + ": " + edges[i]);
@@ -153,22 +121,18 @@ public class BlockCodeTrellis implements ITrellis {
 			for (int i = 0; i < sections[prevLayer].spanTails.size(); ++i) {
 				Boundary spanTail = sections[prevLayer].spanTails.get(i);
 				
+				vertexIndex = TrellisUtils.getNextVertexByAdding(vertexIndex, currentActiveRows, spanTail.row, currentSum, spanForm.Matr, (edgeIndex & (1 << i)) != 0);
 				currentActiveRows.add(spanTail.row);
-				if ((edgeIndex & (1 << i)) != 0) {
-					currentSumRows.add(spanTail.row);
-					currentSum.xor(spanForm.Matr.getRow(spanTail.row));
-				}
 			}
 
 			for (Boundary spanHead : sections[prevLayer].spanHeads) {
-				currentActiveRows.remove(spanHead.row);
-				if (currentSumRows.contains(spanHead.row)) {
+				int position = currentActiveRows.headSet(spanHead.row).size();
+				if ((vertexIndex & (1 << position)) != 0) {
 					currentSum.xor(spanForm.Matr.getRow(spanHead.row));
-					currentSumRows.remove(spanHead.row);
 				}
+				vertexIndex = TrellisUtils.getNextVertexByRemoving(vertexIndex, currentActiveRows, spanHead.row, currentSum, spanForm.Matr);
+				currentActiveRows.remove(spanHead.row);
 			}
-			
-			vertexIndex = TrellisUtils.getVertexIndex(currentSumRows, currentActiveRows);
 
 			layer = prevLayer;
 		}
@@ -186,22 +150,18 @@ public class BlockCodeTrellis implements ITrellis {
 			for (int i = 0; i < sections[layer].spanHeads.size(); ++i) {
 				Boundary spanHead = sections[layer].spanHeads.get(i);
 				
+				vertexIndex = TrellisUtils.getNextVertexByAdding(vertexIndex, currentActiveRows, spanHead.row, (edgeIndex & (1 << i)) != 0);
 				currentActiveRows.add(spanHead.row);
 				if ((edgeIndex & (1 << i)) != 0) {
-					currentSumRows.add(spanHead.row);
+//					currentSumRows.add(spanHead.row);
 					currentSum.xor(spanForm.Matr.getRow(spanHead.row));
 				}
 			}
 			
 			for (Boundary spanTail : sections[layer].spanTails) {
+				vertexIndex = TrellisUtils.getNextVertexByRemoving(vertexIndex, currentActiveRows, spanTail.row, currentSum, spanForm.Matr);
 				currentActiveRows.remove(spanTail.row);
-				if (currentSumRows.contains(spanTail.row)) {
-					currentSum.xor(spanForm.Matr.getRow(spanTail.row));
-					currentSumRows.remove(spanTail.row);
-				}
 			}
-
-			vertexIndex = TrellisUtils.getVertexIndex(currentSumRows, currentActiveRows);
 
 			layer = (layer + 1) % sections.length;
 		}

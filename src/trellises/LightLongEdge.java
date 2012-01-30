@@ -2,11 +2,10 @@ package trellises;
 
 import math.BitArray;
 
-public class LongEdge implements ITrellisEdge {
+public class LightLongEdge implements ITrellisEdge {
 	private long src;
 	private long dst;
-	private BitArray bits;
-	private int metrics[];
+	private int metric;
 	
 	/**
 	 * Создает ребро, где в качестве метрики берется вес ребра.
@@ -14,11 +13,10 @@ public class LongEdge implements ITrellisEdge {
 	 * @param dst индекс вершины, в которую ведет ребро
 	 * @param bits кодовые символы на ребре
 	 */
-	public LongEdge(long src, long dst, BitArray bits) {
+	public LightLongEdge(long src, long dst, BitArray bits) {
 		this.src = src;
 		this.dst = dst;
-		this.bits = bits;
-		metrics = new int[] { bits.cardinality() };
+		metric = bits.cardinality();
 	}
 	/**
 	 * Создает ребро с заданными метриками
@@ -27,11 +25,10 @@ public class LongEdge implements ITrellisEdge {
 	 * @param bits метка из битов на ребре
 	 * @param metrics метрики ребра
 	 */
-	public LongEdge(long src, long dst, BitArray bits, int metrics[]) {
+	public LightLongEdge(long src, long dst, int metric) {
 		this.src = src;
 		this.dst = dst;
-		this.bits = bits;
-		this.metrics = metrics;
+		this.metric = metric;
 	}
 
 	@Override
@@ -44,18 +41,18 @@ public class LongEdge implements ITrellisEdge {
 	}
 	@Override
 	public BitArray bits() {
-		return bits;
+		return null;
 	}
 	@Override
 	public int metric(int i) {
-		return metrics[i];
+		return metric;
 	}
 	@Override
 	public int[] metrics() {
-		return metrics;
+		return new int[] {metric};
 	}
 	@Override
 	public String toString() {
-		return src + "‒" + bits + "→" + dst;
+		return src + "‒" + metric + "→" + dst;
 	}
 }

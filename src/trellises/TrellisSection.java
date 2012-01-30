@@ -22,8 +22,8 @@ public class TrellisSection {
 		}
 	}
 
-	public ArrayList<Boundary> spanHeads = new ArrayList<Boundary>();
-	public ArrayList<Boundary> spanTails = new ArrayList<Boundary>();
+	public ArrayList<Boundary> spanHeads = new ArrayList<Boundary>(1); // capacity 1 is enough for most cases
+	public ArrayList<Boundary> spanTails = new ArrayList<Boundary>(1);
 	
 	public int beginColumn() {
 		int minColumn = Integer.MAX_VALUE;

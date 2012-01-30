@@ -1,4 +1,4 @@
-package trellises;
+package trellises.algorithms;
 
 import java.util.NoSuchElementException;
 
@@ -46,7 +46,7 @@ public class TrellisPath {
 	/**
 	 * Вес пути
 	 */
-	private double weight;
+	private int weight;
 
 	private PathTail tail;
 	
@@ -66,11 +66,11 @@ public class TrellisPath {
 		return length;
 	}
 	
-	public double weight() {
+	public int weight() {
 		return weight;
 	}
 	
-	public void addVertex(long vertexIndex, double delta_weight) {
+	public void addVertex(long vertexIndex, int delta_weight) {
 		PathTail newTail = new PathTail(vertexIndex, tail);
 		tail = newTail;
 		
