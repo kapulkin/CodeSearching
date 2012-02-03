@@ -4,13 +4,13 @@ import java.util.Iterator;
 import java.util.TreeSet;
 
 
-public class TreeSetFront extends TreeSet<PathTracker> implements Front<PathTracker> {
+public class TreeSetFront extends TreeSet<PathTracker<?>> implements Front<PathTracker<?>> {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -7982211384892302419L;
 
-	static class MockTracker implements PathTracker, Comparable<PathTracker> {
+	static class MockTracker implements PathTracker<MockTracker>, Comparable<PathTracker<?>> {
 		int layer;
 		long vertexIndex;
 		
@@ -45,12 +45,12 @@ public class TreeSetFront extends TreeSet<PathTracker> implements Front<PathTrac
 		}
 
 		@Override
-		public Iterator<PathTracker> forwardIterator() {
+		public Iterator<MockTracker> forwardIterator() {
 			return null;
 		}
 
 		@Override
-		public Iterator<PathTracker> backwardIterator() {
+		public Iterator<MockTracker> backwardIterator() {
 			return null;
 		}
 		
@@ -59,7 +59,7 @@ public class TreeSetFront extends TreeSet<PathTracker> implements Front<PathTrac
 			if (obj == this) {
 				return true;
 			}
-			PathTracker vertex = (PathTracker) obj;
+			PathTracker<?> vertex = (PathTracker<?>) obj;
 			if (vertex == null) {
 				return false;
 			}
@@ -68,21 +68,21 @@ public class TreeSetFront extends TreeSet<PathTracker> implements Front<PathTrac
 		}
 
 		@Override
-		public int compareTo(PathTracker tracker) {
+		public int compareTo(PathTracker<?> tracker) {
 			return BeastAlgorithm.comparePathTrackers(this, tracker);
 		}
 
 	}
 	
 	@Override
-	public PathTracker get(int layer, long vertexIndex) {
+	public PathTracker<?> get(int layer, long vertexIndex) {
 		MockTracker tracker = new MockTracker(layer, vertexIndex);
-		PathTracker t = floor(tracker);
+		PathTracker<?> t = floor(tracker);
 		return tracker.equals(t) ? t : null;
 	}
 
 	@Override
-	public Iterable<PathTracker> getLayer(int layer) {
+	public Iterable<PathTracker<?>> getLayer(int layer) {
 		MockTracker low = new MockTracker(layer, 0);
 		MockTracker high = new MockTracker(layer + 1, 0);
 		return subSet(low, high);

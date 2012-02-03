@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class HashMapLayeredFront<T extends PathTracker> extends AbstractFront<T> implements Front<T> {
+public class HashMapLayeredFront<T extends PathTracker<T>> extends AbstractFront<T> implements Front<T> {
 	HashMap<Integer, Map<Long, T>> layers = new HashMap<Integer, Map<Long,T>>();
 	
 	public HashMapLayeredFront() {

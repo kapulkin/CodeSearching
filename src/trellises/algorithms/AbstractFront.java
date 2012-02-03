@@ -2,7 +2,7 @@ package trellises.algorithms;
 
 import java.util.AbstractSet;
 
-abstract public class AbstractFront<T extends PathTracker> extends AbstractSet<T> implements Front<T> {
+abstract public class AbstractFront<T extends PathTracker<T>> extends AbstractSet<T> implements Front<T> {
 	protected int size;
 
 	@Override

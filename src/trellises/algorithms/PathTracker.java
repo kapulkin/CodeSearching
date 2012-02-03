@@ -9,7 +9,7 @@ import java.util.Iterator;
  * @author stas
  *
  */
-public interface PathTracker {
+public interface PathTracker<T extends PathTracker<T>> {
 	public int layer();
 	public long vertexIndex();
 	/**
@@ -30,12 +30,12 @@ public interface PathTracker {
 	 * переходе по ребру нулевого веса.
 	 * @return итератор на следующие вершины в решетке 
 	 */
-	Iterator<PathTracker> forwardIterator();
+	Iterator<T> forwardIterator();
 	/**
 	 * Метод возвращает итератор на множество предыдущих вершин в решетке. Первой
 	 * вершиной, возвращаемой итератором, должна быть вершина, полученная при 
 	 * переходе по ребру нулевого веса.
 	 * @return итератор на предыдущие вершины в решетке
 	 */
-	Iterator<PathTracker> backwardIterator();
+	Iterator<T> backwardIterator();
 }

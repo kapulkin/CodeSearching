@@ -11,20 +11,20 @@ import trellises.ITrellisIterator;
  * @author stas
  *
  */
-public class PathPicker implements PathTracker, Comparable<PathPicker> {
+public class PathPicker implements PathTracker<PathPicker>, Comparable<PathTracker<?>> {
 	//TODO: после рефакторинга сделать 3 поля ниже приватными 
 	/**
 	 * Итератор, указывающий на последнюю вершину в пути
 	 */
-	ITrellisIterator iterator;
+	final ITrellisIterator iterator;
 	/**
 	 * Номер метрики на ребрах, используемой для вычисления длины пути
 	 */
-	int metric;
+	final int metric;
 	/**
 	 * Собираемый путь
 	 */
-	TrellisPath path;
+	final TrellisPath path;
 	
 	public PathPicker(ITrellisIterator iterator, int metric) {
 		this.iterator = iterator;
@@ -49,10 +49,10 @@ public class PathPicker implements PathTracker, Comparable<PathPicker> {
 	}
 
 	@Override
-	public Iterator<PathTracker> forwardIterator() {
+	public Iterator<PathPicker> forwardIterator() {
 		ITrellisEdge edges[] = iterator.getAccessors();
 		
-		ArrayList<PathTracker> trackers = new ArrayList<PathTracker>(edges.length);
+		ArrayList<PathPicker> trackers = new ArrayList<PathPicker>(edges.length);
 		for (int i = 0; i < edges.length; ++i) {
 			PathPicker tracker = this.clone();
 			tracker.iterator.moveForward(i);
@@ -64,10 +64,10 @@ public class PathPicker implements PathTracker, Comparable<PathPicker> {
 	}
 
 	@Override
-	public Iterator<PathTracker> backwardIterator() {
+	public Iterator<PathPicker> backwardIterator() {
 		ITrellisEdge edges[] = iterator.getPredecessors();
 		
-		ArrayList<PathTracker> trackers = new ArrayList<PathTracker>(edges.length);
+		ArrayList<PathPicker> trackers = new ArrayList<PathPicker>(edges.length);
 		for (int i = 0; i < edges.length; ++i) {
 			PathPicker tracker = this.clone();
 			tracker.iterator.moveBackward(i);
@@ -113,13 +113,13 @@ public class PathPicker implements PathTracker, Comparable<PathPicker> {
 			return true;
 		}
 		
-		PathTracker picker = (PathTracker) obj;
+		PathTracker<?> picker = (PathTracker<?>) obj;
 		
 		return iterator.layer() == picker.layer() &&
 			iterator.vertexIndex() == picker.vertexIndex();
 	}
 
-	public int compareTo(PathPicker tracker) {
+	public int compareTo(PathTracker<?> tracker) {
 		return BeastAlgorithm.comparePathTrackers(this, tracker);
 	}
 	

@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public class ArrayLayeredFront<T extends PathTracker> extends AbstractFront<T> implements Front<T> {
+public class ArrayLayeredFront<T extends PathTracker<T>> extends AbstractFront<T> implements Front<T> {
 	public static int LAYERS_MAX = 512;
 	protected Map<Long, T> layers[];
 	/**
