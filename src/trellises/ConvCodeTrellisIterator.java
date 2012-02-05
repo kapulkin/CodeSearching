@@ -13,7 +13,7 @@ import java.util.NoSuchElementException;
  *
  */
 public class ConvCodeTrellisIterator implements ITrellisIterator {
-	Trellis trellis;
+	final Trellis trellis;
 	int depth;
 	int vertexIndex;
 	

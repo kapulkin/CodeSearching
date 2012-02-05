@@ -17,10 +17,9 @@ import trellises.TrellisSection.Boundary;
 
 public class ConvCodeTrellis  implements ITrellis {
 	static final private Logger logger = LoggerFactory.getLogger(ConvCodeTrellis.class);
+	static final private Logger iterLogger = LoggerFactory.getLogger(Iterator.class);
 
 	public class Iterator implements ITrellisIterator {
-		Logger logger;
-
 		int layer;
 		long vertexIndex;
 
@@ -39,8 +38,6 @@ public class ConvCodeTrellis  implements ITrellis {
 		
 
 		Iterator(int layer, long vertexIndex) {
-			logger = LoggerFactory.getLogger(this.getClass());
-			
 			this.layer = layer;
 			this.vertexIndex = vertexIndex;
 
@@ -100,7 +97,7 @@ public class ConvCodeTrellis  implements ITrellis {
 					sections[prevLayer].spanHeads, sections[prevLayer].spanTails, fromIndex, toIndex);
 			
 			for (int i = 0; i < edges.length; ++i) {
-				logger.debug("edge " + i + ": " + edges[i]);
+				iterLogger.debug("edge " + i + ": " + edges[i]);
 			}
 
 			return edges;

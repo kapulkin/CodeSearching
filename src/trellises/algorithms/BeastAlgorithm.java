@@ -46,9 +46,9 @@ public class BeastAlgorithm {
 	 *  В целом работа алгоритма предполагает, что вершины <code>root</code> и 
 	 *  <code>toor</code> лежат на нулевом пути, и ищутся все ненулевые пути между ними.  
 	 */
-	public static int countMinDist(ITrellisIterator root, ITrellisIterator toor, int metric, int upperBound) {
-		PathWeightCounter rootPath = new PathWeightCounter(root, metric);
-		PathWeightCounter toorPath = new PathWeightCounter(toor, metric);
+	public static int countMinDist(final ITrellisIterator root, final ITrellisIterator toor, int metric, int upperBound) {
+		final PathWeightCounter rootPath = new PathWeightCounter(root, metric);
+		final PathWeightCounter toorPath = new PathWeightCounter(toor, metric);
 
 		MinWeightCounter<PathWeightCounter> trackProcessor = new MinWeightCounter<PathWeightCounter>(); 
 		findOptimalTrack(rootPath, toorPath, upperBound, trackProcessor);
@@ -81,9 +81,9 @@ public class BeastAlgorithm {
 	 * сколь угодно большой, используется лишь для контроля на случай возможной ошбики в коде. 
 	 * @return множество путей, содержащее кратчайший ненулевой путь между вершинами root и toor
 	 */
-	public static ArrayList<TrellisPath> findOptimalPaths(ITrellisIterator root, ITrellisIterator toor, int metric, int upperBound) {
-		PathPicker rootPath = new PathPicker(root, metric);
-		PathPicker toorPath = new PathPicker(toor, metric);
+	public static ArrayList<TrellisPath> findOptimalPaths(final ITrellisIterator root, final ITrellisIterator toor, int metric, int upperBound) {
+		final PathPicker rootPath = new PathPicker(root, metric);
+		final PathPicker toorPath = new PathPicker(toor, metric);
 
 		MinPathPicker trackProcessor = new MinPathPicker();
 		
@@ -398,7 +398,7 @@ public class BeastAlgorithm {
 		Front<T> newForward = getBestFront();
 		
 		while (!Forward.isEmpty()) {
-			Front<T> oldForward = getBestFront();
+			final Front<T> oldForward = getBestFront();
 			
 			for (Iterator<T> iterator = Forward.iterator(); iterator.hasNext();) {
 				final T vertex = iterator.next();
@@ -455,9 +455,8 @@ public class BeastAlgorithm {
 	 * @param newForward
 	 * @param oldForward
 	 */
-	private static <T extends PathTracker<T>> void addToForwardFrontByTreshold(T vertex,
-			int tresholdForward, Front<T> newForward,
-			Front<T> oldForward) {
+	private static <T extends PathTracker<T>> void addToForwardFrontByTreshold(final T vertex,
+			final int tresholdForward, final Front<T> newForward, final Front<T> oldForward) {
 		if (vertex.weight() >= tresholdForward) {
 			addTheLeastPath(newForward, vertex);
 		} else {
@@ -472,7 +471,7 @@ public class BeastAlgorithm {
 		Front<T> newBackward = getBestFront();
 		
 		while (!Backward.isEmpty()) {
-			Front<T> oldBackward = getBestFront();
+			final Front<T> oldBackward = getBestFront();
 			
 			for (Iterator<T> iterator = Backward.iterator(); iterator.hasNext();) {
 				final T vertex = iterator.next();
@@ -542,7 +541,7 @@ public class BeastAlgorithm {
 	 * @param pathes множество путей
 	 * @param path добавляемый путь
 	 */
-	private static <T extends PathTracker<T>> void addTheLeastPath(Front<T> trackers, T tracker) {
+	private static <T extends PathTracker<T>> void addTheLeastPath(final Front<T> trackers, final T tracker) {
 		T tracker2 = trackers.get(tracker.layer(), tracker.vertexIndex());
 		if (tracker2 != null) {
 			if (tracker2.weight() > tracker.weight()) {

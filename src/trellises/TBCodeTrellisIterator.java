@@ -8,10 +8,16 @@ import java.util.NoSuchElementException;
  *
  */
 public class TBCodeTrellisIterator implements ITrellisIterator {
-	ITrellisIterator iter;
-	int layersCount;
+	final ITrellisIterator iter;
+	final int layersCount;
 	int layer;
 
+	private TBCodeTrellisIterator(final ITrellisIterator iter, final int layersCount, int layer) {
+		this.iter = iter;
+		this.layersCount = layersCount;
+		this.layer = layer;
+	}
+	
 	/**
 	 * Создает итератор для tailbiting кода на основе циклической решетки. 
 	 *   
@@ -83,13 +89,6 @@ public class TBCodeTrellisIterator implements ITrellisIterator {
 
 	@Override
 	public ITrellisIterator clone() {
-		TBCodeTrellisIterator tbIter;
-		try {
-			tbIter = (TBCodeTrellisIterator) super.clone();
-			tbIter.iter = iter.clone();
-			return tbIter;
-		} catch (CloneNotSupportedException e) {
-			throw new InternalError();
-		}
+		return new TBCodeTrellisIterator(iter.clone(), layersCount, layer);
 	}
 }

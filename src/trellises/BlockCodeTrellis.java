@@ -22,9 +22,9 @@ import trellises.TrellisSection.Boundary;
  */
 public class BlockCodeTrellis implements ITrellis {
 	static private Logger logger = LoggerFactory.getLogger(BlockCodeTrellis.class);
+	static private Logger iterLogger = LoggerFactory.getLogger(Iterator.class);
 
 	public class Iterator implements ITrellisIterator {
-		private Logger logger;
 		
 		private int layer;
 		private long vertexIndex;
@@ -42,8 +42,6 @@ public class BlockCodeTrellis implements ITrellis {
 		}
 		
 		Iterator(int layer, long vertexIndex) {
-			logger = LoggerFactory.getLogger(this.getClass());
-			
 			this.layer = layer;
 			this.vertexIndex = vertexIndex;
 		
@@ -66,7 +64,7 @@ public class BlockCodeTrellis implements ITrellis {
 					sections[layer].spanHeads, sections[layer].spanTails, sections[layer].beginColumn(), sections[nextLayer].beginColumn());
 			
 			for (int i = 0; i < edges.length; ++i) {
-				logger.debug("edge " + i + ": " + edges[i]);
+				iterLogger.debug("edge " + i + ": " + edges[i]);
 			}
 			
 			return edges;
@@ -85,7 +83,7 @@ public class BlockCodeTrellis implements ITrellis {
 					sections[prevLayer].spanHeads, sections[prevLayer].spanTails, sections[prevLayer].beginColumn(), sections[layer].beginColumn());
 			
 			for (int i = 0; i < edges.length; ++i) {
-				logger.debug("edge " + i + ": " + edges[i]);
+				iterLogger.debug("edge " + i + ": " + edges[i]);
 			}
 
 			return edges;
