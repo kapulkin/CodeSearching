@@ -4,11 +4,11 @@ import java.util.NoSuchElementException;
 
 
 public class TrellisIterator implements ITrellisIterator {
-	Trellis trellis;
+	final Trellis trellis;
 	int layer;
 	int vertexIndex;
 	
-	public TrellisIterator(Trellis trellis, int layer, int vertexIndex) {
+	public TrellisIterator(final Trellis trellis, int layer, int vertexIndex) {
 		this.trellis = trellis;
 		this.layer = layer;
 		this.vertexIndex = vertexIndex;

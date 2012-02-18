@@ -5,75 +5,18 @@ import java.util.NoSuchElementException;
 import trellises.ITrellisEdge;
 import trellises.ITrellisIterator;
 
-class PathCounter implements PathTracker, Comparable<PathTracker> {
-	//TODO: после рефакторинга сделать 4 поля ниже приватными 
-	/**
-	 * Итератор текущей вершины
-	 */
-	final ITrellisIterator iterator;
-	/**
-	 * Номер метрики на ребрах, используемой для вычисления длины пути
-	 */
-	final int metric;
-	/**
-	 * Вес пройденнного пути
-	 */
-	int weight;
-	/**
-	 * Колличество путей до текущей вершины
-	 */
+class PathCounter extends AbstractPathTracker<PathCounter> {
+	//TODO: после рефакторинга сделать поле ниже приватными 
 	long pathNumber;
 	
 	public PathCounter(ITrellisIterator iterator, int metric) {
-		this.iterator = iterator;
-		this.metric = metric;
-		this.weight = 0;
+		super(iterator, metric);
 		this.pathNumber = 1;
 	}
 	
 	public PathCounter(PathCounter vertex) {
-		iterator = vertex.iterator.clone();
-		metric = vertex.metric;
-		weight = vertex.weight;
+		super(vertex);
 		pathNumber = vertex.pathNumber;
-	}
-
-	@Override
-	public boolean hasForward() {
-		return iterator.hasForward();
-	}
-
-	@Override
-	public boolean hasBackward() {
-		return iterator.hasBackward();
-	}
-	
-	@Override
-	public java.util.Iterator<PathTracker> forwardIterator() {
-		final ITrellisEdge edges[] = iterator.getAccessors();
-		
-		return new ForwardIterator(edges);
-	}
-
-	@Override
-	public java.util.Iterator<PathTracker> backwardIterator() {
-		final ITrellisEdge edges[] = iterator.getPredecessors();
-		
-		return new BackwardIterator(edges);
-	}
-
-	@Override
-	public int layer() {
-		return iterator.layer();
-	}
-
-	@Override
-	public long vertexIndex() {
-		return iterator.vertexIndex();
-	}
-
-	public int weight() {
-		return weight;
 	}
 
 	public PathCounter clone() {
@@ -85,7 +28,7 @@ class PathCounter implements PathTracker, Comparable<PathTracker> {
 		if (obj == this) {
 			return true;
 		}
-		PathTracker vertex = (PathTracker) obj;
+		PathTracker<?> vertex = (PathTracker<?>) obj;
 		if (vertex == null) {
 			return false;
 		}
@@ -94,7 +37,7 @@ class PathCounter implements PathTracker, Comparable<PathTracker> {
 			iterator.vertexIndex() == vertex.vertexIndex();
 	}
 
-	public int compareTo(PathTracker tracker) {
+	public int compareTo(PathTracker<?> tracker) {
 		return BeastAlgorithm.comparePathTrackers(this, tracker);
 	}
 
@@ -103,7 +46,7 @@ class PathCounter implements PathTracker, Comparable<PathTracker> {
 		return "(" + iterator.layer() + ", " + iterator.vertexIndex() + ", w: " + weight + ")";
 	}
 	
-	private class ForwardIterator implements java.util.Iterator<PathTracker> {
+	private class ForwardIterator implements java.util.Iterator<PathCounter> {
 		int i;
 		final ITrellisEdge edges[];
 		
@@ -117,7 +60,7 @@ class PathCounter implements PathTracker, Comparable<PathTracker> {
 		}
 
 		@Override
-		public PathTracker next() {
+		public PathCounter next() {
 			try {
 				PathCounter tracker = PathCounter.this.clone();
 				tracker.iterator.moveForward(i);

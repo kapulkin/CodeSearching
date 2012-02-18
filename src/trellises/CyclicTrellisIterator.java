@@ -4,7 +4,7 @@ import java.util.NoSuchElementException;
 
 
 public class CyclicTrellisIterator implements ITrellisIterator {
-	Trellis trellis;
+	final Trellis trellis;
 	int layer;
 	int vertexIndex;
 	

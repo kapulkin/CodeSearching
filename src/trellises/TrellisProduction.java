@@ -5,10 +5,10 @@ import java.util.NoSuchElementException;
 import math.BitArray;
 
 public class TrellisProduction implements ITrellis {
-	ITrellis trellis1, trellis2;
+	final ITrellis trellis1, trellis2;
 
 	public class Iterator implements ITrellisIterator {
-		ITrellisIterator iter1, iter2;
+		final ITrellisIterator iter1, iter2;
 		
 		public Iterator(int layer, long vertexIndex) {
 			iter1 = trellis1.iterator(layer, vertexIndex % trellis1.layerSize(layer));
@@ -124,7 +124,7 @@ public class TrellisProduction implements ITrellis {
 	 * @param trellis1
 	 * @param trellis2
 	 */
-	public TrellisProduction(ITrellis trellis1, ITrellis trellis2) {
+	public TrellisProduction(final ITrellis trellis1, final ITrellis trellis2) {
 		if (trellis1.layersCount() != trellis2.layersCount()) {
 			throw new IllegalArgumentException("Trellises have different layers counts: " + trellis1.layersCount() + ", " + trellis2.layersCount());
 		}
