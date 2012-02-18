@@ -551,7 +551,7 @@ public class ConvCodeAlgs {
 		L0 = L - k / convCode.getK();
 		
 		if (L0 < 0) {
-			return null;
+			throw new IllegalArgumentException("cann't truncate conv code in such way");
 		}
 		
 		if (L0 == 0) {

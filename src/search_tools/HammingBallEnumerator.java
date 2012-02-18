@@ -19,7 +19,7 @@ public class HammingBallEnumerator {
 		for (int r = 1;r <= k; ++r) {
 			cnt = cnt.add(sphereEnum.count());
 		}
-		
+				
 		return cnt;
 	}
 	

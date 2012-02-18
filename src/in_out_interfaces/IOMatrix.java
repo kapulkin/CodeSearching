@@ -23,7 +23,7 @@ public class IOMatrix {
 		boolean octValues = false;
 		int binaryBitsInBlock = 0;
 		
-		if(line.equals("oct"))
+		if(line.trim().equals("oct"))
 		{
 			octValues = true;			
 			binaryBitsInBlock = scanner.nextInt();

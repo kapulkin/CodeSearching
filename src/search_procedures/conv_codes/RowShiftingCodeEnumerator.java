@@ -1,6 +1,9 @@
 package search_procedures.conv_codes;
 
+import java.math.BigInteger;
+
 import math.PolyMatrix;
+import search_procedures.CodesCounter;
 import search_procedures.ICodeEnumerator;
 import search_tools.CEnumerator;
 import codes.ConvCode;
@@ -74,6 +77,11 @@ public class RowShiftingCodeEnumerator implements ICodeEnumerator<ConvCode> {
 		
 		ConvCode code = new ConvCode(generator, true);
 		return code;
+	}
+
+	@Override
+	public BigInteger count() {		
+		return CodesCounter.count(new RowShiftingCodeEnumerator(weight, length, shift, start));
 	}
 
 }

@@ -7,6 +7,7 @@ import java.util.Comparator;
 import search_tools.CEnumerator;
 
 public class MaximalLinearSubspace {
+	private final int MAX_SETSIZE = 10 * (1 << 30);
 	private int dim;
 	
 	private class BitVectorComp implements Comparator<BitArray> {
@@ -51,9 +52,15 @@ public class MaximalLinearSubspace {
 		
 		dim = vectorSet[0].getFixedSize();
 		
+		int subsetsViewed = 0;
 		while (qDiv3SubsetsEnum.hasNext()) {
 			long[] qDiv3Subset = qDiv3SubsetsEnum.next();			
 			BitArray[] qDiv3Sequence = new BitArray[qDiv3];
+			
+			++subsetsViewed;
+			if (subsetsViewed > (1 << 25)) {
+				break;
+			}
 			
 			for (int i = 0;i < qDiv3; ++i) {
 				qDiv3Sequence[i] = vectorSet[(int)qDiv3Subset[i]];
@@ -61,11 +68,20 @@ public class MaximalLinearSubspace {
 			
 			if (checkCompleteness(qDiv3Sequence, vectorSet)) {
 				qDiv3IndependentSequences.add(qDiv3Subset);
+				if (qDiv3IndependentSequences.size() > MAX_SETSIZE) {
+					break;
+				}
 			}
 		}
 		
 		int subsetsCount = qDiv3IndependentSequences.size();
-		double[][] graphOfSubsets = new double[subsetsCount][subsetsCount];
+		
+		if (subsetsCount < q) {
+			return null;
+		}
+		
+		int nearestPowerOfTwo = (subsetsCount & (subsetsCount - 1)) == 0 ? subsetsCount : 1 << (Integer.highestOneBit(subsetsCount) + 1); 
+		double[][] graphOfSubsets = new double[nearestPowerOfTwo][nearestPowerOfTwo];
 		boolean[][] independenceFlags = new boolean[subsetsCount][subsetsCount];
 		
 		for (int indA = 0;indA < subsetsCount; ++indA){

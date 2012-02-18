@@ -8,6 +8,8 @@ import math.Matrix;
 import math.Poly;
 import math.PolyMatrix;
 import codes.ConvCode;
+import search_heuristics.IHeuristic;
+import search_procedures.CodesCounter;
 import search_procedures.ICodeEnumerator;
 import search_tools.HammingBallEnumerator;
 import search_tools.MatrixEnumerator;
@@ -18,16 +20,19 @@ public class ExhaustiveHRCCEnumByCheckMatr implements ICodeEnumerator<ConvCode> 
 	private MatrixEnumerator parityCheckEnum;
 	private HammingBallEnumerator topRowEnum;
 	private PolyMatrix currentParityCheck;
+	private IHeuristic checker;
 	
-	public ExhaustiveHRCCEnumByCheckMatr(int k, int delay) {
+	public ExhaustiveHRCCEnumByCheckMatr(int k, int delay, IHeuristic checker) {
 		this.k = k;
 		this.delay = delay;
+		this.checker = checker;
 		
 		reset();
 	}
 	
 	public BigInteger count() {
 		return (new HammingBallEnumerator(k + 1, 2)).count().multiply(parityCheckEnum.count());
+		//return CodesCounter.count(this);
 	}
 	
 	@Override
@@ -47,6 +52,28 @@ public class ExhaustiveHRCCEnumByCheckMatr implements ICodeEnumerator<ConvCode> 
 			}
 		}
 	}
+	
+	private int checkSubmatrices() {
+		for (int i = 1;i < k + 1; ++i) {
+			PolyMatrix subMatrix = new PolyMatrix(1, i + 1);
+			
+			for (int j = 0;j <= i; ++j) {
+				Poly p = new Poly();
+				
+				for (int c = 0;c < delay; ++c) {
+					p.setCoeff(c, currentParityCheck.get(0, j).getCoeff(c));
+				}
+				
+				subMatrix.set(0, j, p);
+			}
+			
+			if (!checker.check(new ConvCode(subMatrix, false))) {
+				return i;
+			}
+		}
+		
+		return -1;
+	}
 
 	@Override
 	public ConvCode next() {
@@ -59,22 +86,30 @@ public class ExhaustiveHRCCEnumByCheckMatr implements ICodeEnumerator<ConvCode> 
 			return new ConvCode(parityCheck, false);
 		}
 		
-		if (!parityCheckEnum.hasNext())
-			return null;
-		
-		Matrix content = parityCheckEnum.getNext();
-		
-		currentParityCheck = new PolyMatrix(1, k + 1);
-		
-		for (int i = 0;i < k + 1; ++i) {
-			Poly p = new Poly();
+		int badColumn = -1;
+		while (true) {
+			if (!parityCheckEnum.hasNext())
+				return null;
 			
-			p.setCoeff(0, true);
-			for (int c = 1;c < delay; ++c) {
-				p.setCoeff(c, content.get(c - 1, i));
+			Matrix content = badColumn == -1 ? parityCheckEnum.getNext() : parityCheckEnum.getNext(badColumn);
+			
+			currentParityCheck = new PolyMatrix(1, k + 1);
+			
+			for (int i = 0;i < k + 1; ++i) {
+				Poly p = new Poly();
+				
+				p.setCoeff(0, true);
+				for (int c = 1;c < delay; ++c) {
+					p.setCoeff(c, content.get(c - 1, i));
+				}
+				
+				currentParityCheck.set(0, i, p);
 			}
 			
-			currentParityCheck.set(0, i, p);
+			//badColumn = checkSubmatrices(); 
+			//if (badColumn == -1) {
+				break;
+			//}
 		}
 		
 		topRowEnum = new HammingBallEnumerator(k + 1, 2);

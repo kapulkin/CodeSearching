@@ -73,10 +73,17 @@ public class BlockCodeAlgs {
 					
 					if (spanTails[currentUniqueRow] == spanTails[i]) {
 						spanTails[i] = matr.getRow(i).previousSetBit(matr.getColumnCount() - 1);
+						if (spanTails[i] == -1) {
+							throw new IllegalArgumentException("Строки линейно зависимы");
+						}
 					}else if (spanTails[currentUniqueRow] > spanTails[i]) {
 						spanTails[i] = spanTails[currentUniqueRow];
 					}
-					spanHeads[i] = matr.getRow(i).nextSetBit(0);					
+					
+					spanHeads[i] = matr.getRow(i).nextSetBit(0);
+					if (spanHeads[i] == -1) {
+						throw new IllegalArgumentException("Строки линейно зависимы");
+					}
 				}else{
 					headUniqueIndices[currentHead] = i;
 					break;
@@ -99,6 +106,9 @@ public class BlockCodeAlgs {
 						matr.getRow(indexToVerify).xor(smallerRow);
 												
 						spanTails[indexToVerify] = matr.getRow(indexToVerify).previousSetBit(matr.getColumnCount()-1);
+						if (spanTails[indexToVerify] == -1) {
+							throw new IllegalArgumentException("Строки линейно зависимы");
+						}
 					}else{
 						int shift = (spanTails[currentUniqueRow] - currentTail);
 						BitArray smallerRow = rowCyclicShift(matr.getRow(indexToVerify), shift);
@@ -107,6 +117,10 @@ public class BlockCodeAlgs {
 						
 						matr.getRow(currentUniqueRow).xor(smallerRow);						
 						spanTails[currentUniqueRow] = matr.getRow(currentUniqueRow).previousSetBit(matr.getColumnCount()-1);
+						
+						if (spanTails[currentUniqueRow] == -1) {
+							throw new IllegalArgumentException("Строки линейно зависимы");
+						}
 						
 						indexToVerify = currentUniqueRow;						
 					}
@@ -226,7 +240,7 @@ public class BlockCodeAlgs {
 				BitArray coset = new BitArray(code.getN() - code.getK());
 				
 				for (int i = 0;i < code.getN() - code.getK(); ++i) {
-					coset.set(i, cosetIndex & (1 << i));
+					coset.set(i, (cosetIndex & (1 << i)) != 0);
 				}
 				
 				cosets.add(coset);
@@ -265,8 +279,6 @@ public class BlockCodeAlgs {
 				cosetWord.set(permSubmatrix[i]);
 			}
 		}
-		
-		
 		
 		return cosetWord;
 	}

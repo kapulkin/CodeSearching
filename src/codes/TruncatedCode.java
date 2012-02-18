@@ -45,14 +45,22 @@ public class TruncatedCode extends BlockCode {
 	}
 	
 	@Override
-	public Matrix generator()
-	{
-		if(genMatr == null)
-		{
+	public Matrix generator() {
+		if(genMatr == null) {
 			genMatr = blockGenMatrix().breakBlockStructure();
 		}
 		
 		return genMatr;
+	}
+	
+	@Override
+	public Matrix parityCheck() {
+		if(checkMatr == null) {
+			generator();
+			return super.parityCheck();
+		}
+		
+		return checkMatr;
 	}
 
 	/**
@@ -92,11 +100,11 @@ public class TruncatedCode extends BlockCode {
 		return minDist;
 	}
 
-	@Override
+	/*@Override
 	public SpanForm getGeneratorSpanForm() {
 		if (genSpanForm != null) {
 			return genSpanForm;
-		}
+		}		
 		
 		// матрица вида Go...Gm - паттерн, циклическими сдвигами которого получается порождающая матрица
 		Matrix pattern = (new BlockMatrix(parentCode.getGenBlocks())).breakBlockStructure();
@@ -123,9 +131,8 @@ public class TruncatedCode extends BlockCode {
 		}
 		
 		genMatr = blockGenMatrix().breakBlockStructure();
-		genSpanForm = new SpanForm(genMatr, spanHeads, spanTails);
-		genSpanForm.IsTailbiting = true;
+		genSpanForm = new SpanForm(genMatr, spanHeads, spanTails);		
 
 		return genSpanForm;
-	}
+	}/**/
 }

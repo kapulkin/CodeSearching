@@ -10,11 +10,11 @@ class PathCounter implements PathTracker, Comparable<PathTracker> {
 	/**
 	 * Итератор текущей вершины
 	 */
-	ITrellisIterator iterator;
+	final ITrellisIterator iterator;
 	/**
 	 * Номер метрики на ребрах, используемой для вычисления длины пути
 	 */
-	int metric;
+	final int metric;
 	/**
 	 * Вес пройденнного пути
 	 */
@@ -104,17 +104,16 @@ class PathCounter implements PathTracker, Comparable<PathTracker> {
 	}
 	
 	private class ForwardIterator implements java.util.Iterator<PathTracker> {
-		int i, length;
-		ITrellisEdge edges[];
+		int i;
+		final ITrellisEdge edges[];
 		
 		ForwardIterator(ITrellisEdge edges[]) {
 			this.i = 0;
-			this.length = edges.length;
 			this.edges = edges;
 		}
 		@Override
 		public boolean hasNext() {
-			return i < length;
+			return i < edges.length;
 		}
 
 		@Override
@@ -136,17 +135,16 @@ class PathCounter implements PathTracker, Comparable<PathTracker> {
 	}
 
 	private class BackwardIterator implements java.util.Iterator<PathTracker> {
-		int i, length;
-		ITrellisEdge edges[];
+		int i;
+		final ITrellisEdge edges[];
 		
 		BackwardIterator(ITrellisEdge edges[]) {
 			this.i = 0;
-			this.length = edges.length;
 			this.edges = edges;
 		}
 		@Override
 		public boolean hasNext() {
-			return i < length;
+			return i < edges.length;
 		}
 
 		@Override

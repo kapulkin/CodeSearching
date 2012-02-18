@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Scanner;
 
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import codes.ConvCode;
 import codes.tests.ConvCodeTest;
+import search_procedures.CodesCounter;
 import search_procedures.ICodeEnumerator;
 
 public class FileCCEnumerator implements ICodeEnumerator<ConvCode> {
@@ -23,6 +25,7 @@ public class FileCCEnumerator implements ICodeEnumerator<ConvCode> {
 	
 	public FileCCEnumerator(String fileName) throws FileNotFoundException{
 		this.filename = fileName;
+		reset();
 	}
 
 	@Override
@@ -50,6 +53,17 @@ public class FileCCEnumerator implements ICodeEnumerator<ConvCode> {
 		} catch (FileNotFoundException e) {		
 			e.printStackTrace();
 		}		
+	}
+
+	@Override
+	public BigInteger count() {		
+		try {
+			return CodesCounter.count(new FileCCEnumerator(filename));
+		} catch (FileNotFoundException e) {			
+			e.printStackTrace();
+		}
+		
+		return BigInteger.valueOf(0);
 	}
 
 }

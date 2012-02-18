@@ -79,14 +79,22 @@ public class Main {
 	 * @param args
 	 * @throws IOException 
 	 */
-	public static void main(String[] args) throws IOException {		
+	public static void main(String[] args) throws IOException {
 		int[][] lowerBounds = DistanceBoundsParser.parse(false);
 		int[][] upperBounds = DistanceBoundsParser.parse(true);
 		
-		for (int k = 1;k <= 30; ++k) {
-			for (int n = 1;n <= 2 * k; ++n) {
-				if (lowerBounds[k][n] != upperBounds[k][n]) {
-					System.out.println("k=" + k + "n=" + n + " " + lowerBounds[k][n] + "-" + upperBounds[k][n]);
+		BlockCodesTable.createTables(256, 256);
+		BlockCodesTable.distanceUpperBounds = upperBounds;
+		
+		int b = 2;
+		
+		BlockCodesTable.computeTBStateLowerBounds(b, b + 1);
+		
+		for (int k = 1;k <= 100; ++k) {
+			for (int n = b + 1;n <= 2 * k; n += b + 1) {
+				if (lowerBounds[k][n] != upperBounds[k][n] && b * (n / (b + 1)) <= k) {
+					System.out.println("k=" + k + " n=" + n + " s=" + BlockCodesTable.complexityLowerBounds[b * (n / (b + 1))][n] + " " + lowerBounds[k][n] + "-" + upperBounds[k][n]);
+					break;
 				}
 			}			
 		}		

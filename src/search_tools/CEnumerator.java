@@ -25,14 +25,6 @@ public class CEnumerator {
 		if (n < k) {
 			throw new IllegalArgumentException("There is no combinations with n < k.");
 		}
-
-		if (logger.isDebugEnabled()) {
-			double combinations = 1; // = n!/k!/(n-k)! = (k+1)*..*n/(n-k)!
-			for (long i = k + 1; i <= n; ++i) {
-				combinations *= i;
-				combinations /= (n - i + 1);
-			}
-		}
 		
 		this.n = n;
 		this.k = k;			
@@ -68,6 +60,23 @@ public class CEnumerator {
 	
 	public boolean hasNext() {
 		return sequence == null || (k > 0 && sequence[0] != (n-k));
+	}
+	
+	public long[] current() {
+		return sequence;
+	}
+	
+	public long[] shift(int index) {
+		if (sequence[index] == n-1-(k-1-index)) {
+			return next();
+		}
+		
+		++sequence[index];
+		for (int i = index + 1;i < k; ++i) {
+			sequence[i] = sequence[index] + (i - index);
+		}
+		
+		return sequence;
 	}
 	
 	public long[] next() {

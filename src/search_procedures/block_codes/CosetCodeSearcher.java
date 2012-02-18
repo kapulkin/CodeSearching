@@ -26,6 +26,11 @@ public class CosetCodeSearcher extends BasicBlockCodesSearcher<BlockCode> {
 		
 		MaximalLinearSubspace basisSearcher = new MaximalLinearSubspace();		
 		int q = k - subcode.getK();
+		
+		if (q == 0) {
+			return subcode;
+		}
+		
 		BitArray[] syndroms = basisSearcher.findBasis(BlockCodeAlgs.buildCosetsWithBigWeight(subcode, d), q);
 		
 		if (syndroms == null) {
@@ -43,7 +48,13 @@ public class CosetCodeSearcher extends BasicBlockCodesSearcher<BlockCode> {
 			newGenerator.setRow(i, cosetLeader);
 		}
 		
-		return new BlockCode(newGenerator, true);
+		BlockCode extendedCode = new BlockCode(newGenerator, true); 
+		
+		if (heuristic != null && !heuristic.check(extendedCode)) {
+			return null;
+		}		
+		
+		return extendedCode;
 	}
 
 }

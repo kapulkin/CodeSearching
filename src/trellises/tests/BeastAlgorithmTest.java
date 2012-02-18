@@ -43,6 +43,20 @@ public class BeastAlgorithmTest {
 	static final private Logger logger = LoggerFactory.getLogger(BeastAlgorithmTest.class);
 
 	@Test
+	public void beastInfiniteEvaluation() throws IOException {
+		PolyMatrix mat = new PolyMatrix(1, 2);
+		
+		mat.set(0, 0, new Poly(new boolean[] {true, false, true}));
+		mat.set(0, 1, new Poly(new boolean[] {true, true, true}));
+		
+		ConvCode code = new ConvCode(mat, false);
+		
+		IOTrellis.writeTrellisInGVZFormat(code.getTrellis(), new BufferedWriter(new FileWriter(new File("trellis.dot"))));
+		
+		code.getFreeDist();
+	}
+	
+	//@Test
 	public void testHighRateConvCodeDistanceSearch() {
 		FreeDist4CCEnumerator codeEnumerator = new FreeDist4CCEnumerator(5, 9);
 		
@@ -63,7 +77,7 @@ public class BeastAlgorithmTest {
 		}
 	}
 	
-	@Test
+	//@Test
 	public void testLowRateConvCodeDistanceSearch() {
 		// code of rate 1/3 with m=6 from page 357;
 		String g[] = {"574", "664", "774"};
@@ -115,7 +129,7 @@ public class BeastAlgorithmTest {
 		assertEquals(VDminDist, BEASTminDist);
 	}
 	
-	@Test
+	//@Test
 	public void testBlockCodeDistanceSearch() {
 		BitArray row0 = new BitArray(6); row0.set(0); row0.set(1); row0.set(3);
 		BitArray row1 = new BitArray(6); row1.set(1); row1.set(4); row1.set(5);
@@ -134,7 +148,7 @@ public class BeastAlgorithmTest {
 		assertEquals(VDminDist, BEASTminDist);
 	}
 	
-	@Test
+	//@Test
 	public void testTailbitingCodeDistanceSearch() {
 		String strCode = "131, 117";
 		

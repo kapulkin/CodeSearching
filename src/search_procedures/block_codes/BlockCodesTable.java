@@ -1,5 +1,7 @@
 package search_procedures.block_codes;
 
+import in_out_interfaces.IOMatrix;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -83,15 +85,8 @@ public class BlockCodesTable {
 				writer.write("k = " + codes[i].getK());
 				writer.write(", n = " + codes[i].getN());
 				writer.write(", d = " + codes[i].getMinDist());
-				if(codes[i].getN() < distanceUpperBounds[codes[i].getK()].length){
-					writer.write("(" + distanceUpperBounds[codes[i].getK()][codes[i].getN()] + "," + distancesInPaper[codes[i].getK()][codes[i].getN()] + ")");
-				}
-					writer.write(", s = " + TrellisUtils.stateComplexity(codes[i].getTrellis()));
-				if(codes[i].getN() < distanceUpperBounds[codes[i].getK()].length){
-					writer.write("(" + complexityLowerBounds[codes[i].getK()][codes[i].getN()] + "," + complexitiesInPaper[codes[i].getK()][codes[i].getN()] + ")");
-				}
 				writer.newLine();
-				writer.write(MinDistance.findMinDist(codes[i].generator()));				
+				IOMatrix.writeMatrix(codes[i].generator(), writer);				
 			}else{
 				writer.write("null");
 			}
