@@ -171,6 +171,22 @@ public class BeastAlgorithmTest {
 		assertEquals(VDminDist, BEASTminDist);
 	}
 	
+	@Test(timeout=1000)
+	public void shouldNotLoop() {
+		Poly poly0 = new Poly(new boolean[] {true, false, true});//new int[] {0, 2});
+		Poly poly1 = new Poly(new boolean[] {true, true, true});//int[] {0, 1, 2});
+		
+		PolyMatrix generator = new PolyMatrix(1, 2);
+		generator.set(0, 0, poly0);
+		generator.set(0, 1, poly1);
+		
+		ConvCode code = new ConvCode(generator, false);
+		
+		long start = System.currentTimeMillis();
+		System.out.println("BEAST: " + code.getFreeDist());
+		System.out.println("time: " + (double) (System.currentTimeMillis() - start) / 1000 + "s");
+	}
+	
 //	@Test
 	public void testConvCodeSpectrumSearch() {
 //		String codeStr = "601, 615, 753, 705, 537, 567, 551, 443, 635, 1161, 1067";
