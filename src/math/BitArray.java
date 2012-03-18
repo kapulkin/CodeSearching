@@ -25,6 +25,14 @@ public class BitArray implements Cloneable{
 		this.bitSet = new BitSet(fixedSize);
 		this.fixedSize = fixedSize;
 	}
+
+	public BitArray(int fixedSize, int bitIndices[]) {
+		this.bitSet = new BitSet(fixedSize);
+		for (int bitIndex : bitIndices) {
+			this.bitSet.set(bitIndex);
+		}
+		this.fixedSize = fixedSize;
+	}
 	
 	public BitArray(BitArray array) {
 		this.bitSet = (BitSet) array.bitSet.clone();

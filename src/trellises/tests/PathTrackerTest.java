@@ -7,7 +7,7 @@ import java.util.Iterator;
 import trellises.algorithms.PathTracker;
 
 public class PathTrackerTest {
-	void checkConsistency(PathTracker tracker) {
+	void checkConsistency(PathTracker<?> tracker) {
 		assertEquals(tracker.hasForward(), tracker.forwardIterator().hasNext());
 		assertEquals(tracker.hasBackward(), tracker.backwardIterator().hasNext());
 	}
