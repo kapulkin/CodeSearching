@@ -3,7 +3,7 @@ package math;
 public class Strassen {
 	
 	public static double[][] multiply(double[][] A, double[][] B)
-	{
+	{	
 		try
 		{
 			checkInputStrassen(A,B);
@@ -14,6 +14,27 @@ public class Strassen {
 		}
 		return strassenRecursive(A,B);
 	}
+	
+	/*private static double[][] makeSizePowerOfTwo(double[][] M) {
+		if ((M.length & (M.length - 1)) == 0) {
+			return M;
+		}
+		
+		int nearestPowerOfTwo = Integer.highestOneBit(M.length) + 1;
+		double[][] _M = new double[nearestPowerOfTwo][nearestPowerOfTwo];
+		
+		for (int i = 0;i < nearestPowerOfTwo; ++i) {
+			for (int j = 0;j < nearestPowerOfTwo; ++j) {
+				if (i < M.length && j < M.length) {
+					_M[i][j] = M[i][j];
+				}else{
+					_M[i][j] = 0.0;
+				}
+			}
+		}
+		
+		return _M;
+	}/**/
 	
 	private static double[][] reconstructAnswer(double[][] r, double[][] s,
 			double[][] t, double[][] u) 

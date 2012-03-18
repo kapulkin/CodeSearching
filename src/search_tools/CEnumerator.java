@@ -25,14 +25,6 @@ public class CEnumerator {
 		if (n < k) {
 			throw new IllegalArgumentException("There is no combinations with n < k.");
 		}
-
-		if (logger.isDebugEnabled()) {
-			double combinations = 1; // = n!/k!/(n-k)! = (k+1)*..*n/(n-k)!
-			for (long i = k + 1; i <= n; ++i) {
-				combinations *= i;
-				combinations /= (n - i + 1);
-			}
-		}
 		
 		this.n = n;
 		this.k = k;			
@@ -70,6 +62,23 @@ public class CEnumerator {
 		return sequence == null || (k > 0 && sequence[0] != (n-k));
 	}
 	
+	public long[] current() {
+		return sequence;
+	}
+	
+	public long[] shift(int index) {
+		if (sequence[index] == n-1-(k-1-index)) {
+			return next();
+		}
+		
+		++sequence[index];
+		for (int i = index + 1;i < k; ++i) {
+			sequence[i] = sequence[index] + (i - index);
+		}
+		
+		return sequence.clone();
+	}
+	
 	public long[] next() {
 		if (!hasNext()) {
 			throw new NoSuchElementException("There is no next combination.");
@@ -77,12 +86,12 @@ public class CEnumerator {
 		
 		if (sequence == null) {
 			initSequence();
-			return sequence;
+			return sequence.clone();
 		}
 		
 		if (sequence[k-1] < n-1) {
 			sequence[k-1] ++;
-			return sequence;
+			return sequence.clone();
 		}
 		
 		int indFromEnd = 1;
@@ -98,7 +107,7 @@ public class CEnumerator {
 			sequence[i] = sequence[k-1-indFromEnd] + (i - (k-1-indFromEnd));
 		}
 		
-		return sequence;
+		return sequence.clone();
 	}
 	
 	public long[] getByIndex(BigInteger index) {

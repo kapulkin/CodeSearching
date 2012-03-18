@@ -1,5 +1,7 @@
 package search_procedures.conv_codes;
 
+import java.math.BigInteger;
+
 import math.Matrix;
 import math.Poly;
 import math.PolyMatrix;
@@ -46,6 +48,11 @@ public class ExhaustiveCCEnumByGenMatr implements ICodeEnumerator<ConvCode> {
 	@Override
 	public void reset() {
 		matEnum = new MatrixEnumerator(k, n * (delay + 1));
+	}
+
+	@Override
+	public BigInteger count() {		
+		return matEnum.count();
 	}
 
 }

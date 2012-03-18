@@ -1,36 +1,35 @@
 package search_procedures.block_codes;
 
 import in_out_interfaces.DistanceBoundsParser;
+import in_out_interfaces.IOMatrix;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
 
+import math.BitArray;
+import math.BlockCodeAlgs;
 import math.ConvCodeAlgs;
-import math.EuclidAlgorithm;
+import math.Matrix;
+import math.MaximalLinearSubspace;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import search_heuristics.BCPreciseMinDist;
 import search_heuristics.BCPreciseStateComplexity;
-import search_heuristics.CCFirstLastBlockStateHeur;
-import search_heuristics.CCGenRowsSumHeur;
 import search_heuristics.CCPreciseFreeDist;
-import search_heuristics.CCWeightsDistHeur;
 import search_heuristics.CombinedHeuristic;
 import search_heuristics.IHeuristic;
-import search_heuristics.LRCCGreismerDistHeur;
-import search_heuristics.TBWeightDistHeur;
-import search_procedures.block_codes.HighRateFieldSearcher.LinearDependenceCashingHeur;
-import search_procedures.block_codes.HighRateFieldSearcher.PolyLinearDependenceDataBase;
-import search_procedures.conv_codes.ExhaustiveCCEnumByGenMatr;
+import search_heuristics.LinearDependenceCashingHeur;
+import search_procedures.EnumeratorLogger;
+import search_procedures.ICodeEnumerator;
 import search_procedures.conv_codes.ExhaustiveHRCCEnumByCheckMatr;
+import search_procedures.conv_codes.FileCCEnumerator;
 import search_procedures.conv_codes.SiftingCCEnumerator;
-import search_procedures.tests.BasicBlockCodeSearcherTest;
 import codes.BlockCode;
 import codes.ConvCode;
 import codes.TruncatedCode;
@@ -40,7 +39,7 @@ public class SearchMain {
 	private static final int freqCPU = (int)2400e6;
 	static final private Logger logger = LoggerFactory.getLogger(SearchMain.class);
 	
-	private static int estimateTaskTime(BlockCodesSearcher.SearchTask task, ExhaustiveHRCCEnumByCheckMatr ccEnum, IHeuristic ccHeur) {
+	public static int estimateTaskTime(BlockCodesSearcher.SearchTask task, ExhaustiveHRCCEnumByCheckMatr ccEnum, IHeuristic ccHeur) {
 		int attempts = 10000;		
 		long avgTime = 1;
 		
@@ -70,81 +69,141 @@ public class SearchMain {
 		return time.intValue();
 	} 
 	
-	public static void main(String[] args) throws IOException {
+	private static void searchSingleCode(int k, int n, int s, int d, int kTrunc, ICodeEnumerator<ConvCode> ccEnum) throws IOException {
+		BlockCodesSearcher.SearchTask task = new BlockCodesSearcher.SearchTask();
+		BlockCodesSearcher.TaskPool pool = new BlockCodesSearcher.TaskPool();				
+		
+		task.K = k;
+		task.N = n;
+		task.MinDist = d;
+		task.StateComplexity = s;
+		
+		TruncatedCodeEnumerator truncEnum = new TruncatedCodeEnumerator(ccEnum, kTrunc, n);
+		
+		CombinedHeuristic tb_heuristic = new CombinedHeuristic();
+		
+		tb_heuristic.addHeuristic(1, new BCPreciseStateComplexity(s, false));
+		tb_heuristic.addHeuristic(0, new BCPreciseMinDist(d, false));
+		
+		CosetCodeSearcher cosetSearcher = new CosetCodeSearcher(k, d);
+		
+		cosetSearcher.setHeuristic(tb_heuristic);
+		cosetSearcher.setCandidateEnumerator(truncEnum);
+		
+		task.Algorithm = cosetSearcher;
+		pool.Tasks.add(task);
+		
+		BlockCodesSearcher searcher = new BlockCodesSearcher();
+		BlockCode[] codes = searcher.searchTruncatedCodes(new BlockCodesSearcher.TaskPool[] { pool });
+		
+		BlockCodesTable.writeCodes(codes, new BufferedWriter(new FileWriter(new File("TBCodes.txt"))));
+	}
+	
+	private static void findGoodTruncatedCodes(ICodeEnumerator<ConvCode> ccEnum) throws IOException {
+		ConvCode code;
+		BufferedWriter writer = new BufferedWriter(new FileWriter(new File("truncated_codes.txt")));
+		
+		int code_number = 0;
+		while ((code = ccEnum.next()) != null) {
+			for (int n = (int)Math.ceil((double)30 / code.getN()) * code.getN(); n < 100; n += code.getN()) {
+				for (int k = (int)Math.ceil((double)10 / code.getK()) * code.getK(); k <= n * code.getK() / code.getN(); k += code.getK()) {
+					if (n - k > 20) {
+						continue;
+					}
+					
+					logger.info("code={}", code_number);
+					logger.info("k={},n={}", k, n);
+					
+					TruncatedCode truncCode = ConvCodeAlgs.truncate(k, n, code);
+					BitArray[] fatSyndroms = BlockCodeAlgs.buildCosetsWithBigWeight(truncCode, truncCode.getMinDist());
+					
+					if(fatSyndroms.length != 0) {
+						writer.write(Integer.toString(truncCode.getK()));
+						writer.newLine();
+						IOMatrix.writeMatrix(truncCode.generator(), writer);
+						writer.flush();
+					}
+				}
+			}
+			++code_number;
+		}
+	}
+	
+	private static void searchNewCodes() throws IOException {
+		FileBCEnumerator bcEnum = new FileBCEnumerator("truncated_codes.txt");
+		BufferedWriter writer = new BufferedWriter(new FileWriter(new File("new_codes.txt")));
+		
 		int[][] lowerBounds = DistanceBoundsParser.parse(false);
 		int[][] upperBounds = DistanceBoundsParser.parse(true);
-				
+		
 		BlockCodesTable.createTables(256, 256);
 		BlockCodesTable.distanceUpperBounds = upperBounds;
 		
-		BlockCodesSearcher searcher = new BlockCodesSearcher();
-		ArrayList<BlockCodesSearcher.TaskPool> pools = new ArrayList<BlockCodesSearcher.TaskPool>();
-		PolyLinearDependenceDataBase parityCheckDataBase = new PolyLinearDependenceDataBase();
+		int b = 2;
 		
-		for (int k = 1;k <= 40; ++k) {
-			for (int n = 1;n <= Math.min(2 * k, 256); ++n) {
-				if (lowerBounds[k][n] == upperBounds[k][n]) {
-					continue;
-				}
-				
-				int gcd = EuclidAlgorithm.gcd(k, n);
-				int b = k / gcd;
-				
-				if (n / gcd != b + 1) {
-					continue;
-				}
-				
-				ArrayList<BlockCodesSearcher.SearchTask> tasks = new ArrayList<BlockCodesSearcher.SearchTask>();			
-				
-				BlockCodesTable.computeTBStateLowerBounds(b, b + 1);
-				
-				for (int d = upperBounds[k][n];d >= lowerBounds[k][n]; --d) {
-					for (int sdelta = 0;sdelta < 3; ++sdelta) {					
-						BlockCodesSearcher.SearchTask task = new BlockCodesSearcher.SearchTask();						
-						
-						task.K = k;
-						task.N = n;
-						task.MinDist = d;
-						task.StateComplexity = Math.max(BlockCodesTable.complexityLowerBounds[k][n] + sdelta, 1);
-				
-						CombinedHeuristic heuristic = new CombinedHeuristic();
-				
-						/*heuristic.addHeuristic(3, new CCWeightsDistHeur(task.MinDist));
-						heuristic.addHeuristic(2, new CCFirstLastBlockStateHeur());
-						heuristic.addHeuristic(1, new LRCCGreismerDistHeur(task.MinDist));
-						//heuristic.addHeuristic(3, new CCGenRowsSumHeur(task.MinDist, 5));
-						heuristic.addHeuristic(0, new CCPreciseFreeDist(task.MinDist));/**/
-						
-						heuristic.addHeuristic(1, new LinearDependenceCashingHeur(task.MinDist, Math.min(task.StateComplexity, 4), parityCheckDataBase));
-						heuristic.addHeuristic(0, new CCPreciseFreeDist(task.MinDist));
-				
-						//task.ConvCodeEnum = new SiftingCCEnumerator(new ExhaustiveCCEnumByGenMatr(1, 2, task.StateComplexity), heuristic);
-						ExhaustiveHRCCEnumByCheckMatr exhaustiveEnum = new ExhaustiveHRCCEnumByCheckMatr(b, task.StateComplexity);
-						
-						logger.debug("k=" + k + "n=" + n + ",s=" + task.StateComplexity + ",d=" + task.MinDist + ",count=" + exhaustiveEnum.count());					
-						task.ConvCodeEnum = new SiftingCCEnumerator(exhaustiveEnum, heuristic);
-						
-						CombinedHeuristic tb_heuristic = new CombinedHeuristic();
-						
-						//tb_heuristic.addHeuristic(2, new TBWeightDistHeur(task.MinDist));
-						tb_heuristic.addHeuristic(1, new BCPreciseStateComplexity(task.StateComplexity, false));
-						tb_heuristic.addHeuristic(0, new BCPreciseMinDist(task.MinDist, false));
-						
-						task.Heuristic = tb_heuristic;
-						task.ExpectedTime = estimateTaskTime(task, exhaustiveEnum, heuristic);//exhaustiveEnum.count().divide(BigInteger.valueOf(freqCPU)).intValue();
-						
-						logger.debug("time=" + task.ExpectedTime + "s");
-						
-						tasks.add(task);
+		BlockCodesTable.computeTBStateLowerBounds(b, b + 1);
+		
+		MaximalLinearSubspace basisSearcher = new MaximalLinearSubspace();
+		BlockCode code;
+		while ((code = bcEnum.next()) != null) {
+			logger.info("d={},lb={}", code.getMinDist(), lowerBounds[code.getK()][code.getN()]);
+			logger.info("k={},n={}", code.getK(), code.getN());
+			if (code.getMinDist() > lowerBounds[code.getK()][code.getN()]) {
+				writer.write(Integer.toString(code.getK()));
+				writer.newLine();
+				IOMatrix.writeMatrix(code.generator(), writer);
+				writer.flush();
+			}
+			
+			for (int q = 1;q <= 3; ++q) {
+				logger.info("q={},lb={}", q, lowerBounds[code.getK() + q][code.getN()]);
+				if (code.getMinDist() > lowerBounds[code.getK() + q][code.getN()]) {
+					logger.info("found");
+					BitArray[] fatSyndroms = BlockCodeAlgs.buildCosetsWithBigWeight(code, code.getMinDist());
+					BitArray[] syndroms = basisSearcher.findBasis(fatSyndroms, q);
+					
+					if (syndroms == null) {
+						break;
 					}
+					
+					Matrix newGenerator = new Matrix(code.getK() + q, code.getN());
+					
+					for (int i = 0;i < code.getK(); ++i) {
+						newGenerator.setRow(i, code.generator().getRow(i));
+					}		
+					
+					for (int i = code.getK();i < code.getK() + q; ++i) {
+						BitArray cosetLeader = BlockCodeAlgs.findCosetLeader(code, syndroms[i - code.getK()]); 
+						newGenerator.setRow(i, cosetLeader);
+					}
+					
+					BlockCode extendedCode = new BlockCode(newGenerator, true);
+					
+					logger.info("writing");
+					writer.write(Integer.toString(code.getK()));
+					writer.newLine();
+					IOMatrix.writeMatrix(extendedCode.generator(), writer);
+					writer.flush();
 				}
 				
-				pools.add(new BlockCodesSearcher.TaskPool(tasks));
 			}
 		}
 				
-		BlockCode[] codes = searcher.searchTruncatedCodes(pools.toArray(new BlockCodesSearcher.TaskPool[0]));
+	}
+	
+	public static void main(String[] args) throws IOException {
+		/*CombinedHeuristic heuristic = new CombinedHeuristic();		
 		
-		BlockCodesTable.writeCodes(codes, new BufferedWriter(new FileWriter(new File("TBCodes.txt"))));
+		heuristic.addHeuristic(1, new LinearDependenceCashingHeur(task.MinDist, Math.min(task.StateComplexity, 4), new LinearDependenceCashingHeur.PolyLinearDependenceDataBase()));
+		heuristic.addHeuristic(0, new CCPreciseFreeDist(task.MinDist));
+
+		ExhaustiveHRCCEnumByCheckMatr exhaustiveEnum = new ExhaustiveHRCCEnumByCheckMatr(6, task.StateComplexity, heuristic);
+		SiftingCCEnumerator ccEnum = new SiftingCCEnumerator(new EnumeratorLogger<ConvCode>(exhaustiveEnum), heuristic);
+		logger.info("count=" + exhaustiveEnum.count());/**/
+		FileCCEnumerator ccEnum = new FileCCEnumerator("2&5&6.txt");
+		
+		searchSingleCode(34, 51, 140, 6, 34, ccEnum);
+		//findGoodTruncatedCodes(ccEnum);
+		//searchNewCodes();
 	}
 }

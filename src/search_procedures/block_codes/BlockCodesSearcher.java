@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import codes.BlockCode;
 import codes.ConvCode;
 import search_heuristics.IHeuristic;
+import search_procedures.CodesBaseSearchScheme;
 import search_procedures.ICodeEnumerator;
 import search_procedures.tests.BasicBlockCodeSearcherTest;
 
@@ -25,13 +26,18 @@ public class BlockCodesSearcher {
 		public int ExpectedTime = -1;
 		public ICodeEnumerator<ConvCode> ConvCodeEnum;
 		public IHeuristic Heuristic;
+		public CodesBaseSearchScheme<BlockCode> Algorithm;
 	}
 	
 	public static class TaskPool {
-		public ArrayList<SearchTask> Tasks;
+		public ArrayList<SearchTask> Tasks = new ArrayList<BlockCodesSearcher.SearchTask>();
 		
 		public TaskPool(ArrayList<SearchTask> tasks) {
 			Tasks = tasks;
+		}
+
+		public TaskPool() {
+			
 		}
 	}
 	
@@ -50,11 +56,13 @@ public class BlockCodesSearcher {
 					continue;
 				}
 				
-				TruncatedCodeEnumerator truncEnum = new TruncatedCodeEnumerator(task.ConvCodeEnum, task.K, task.N);				
+				/*TruncatedCodeEnumerator truncEnum = new TruncatedCodeEnumerator(task.ConvCodeEnum, task.K, task.N);				
 				BasicBlockCodesSearcher<BlockCode> searcher = new BasicBlockCodesSearcher<BlockCode>();
 			
 				searcher.setCandidateEnumerator(truncEnum);
-				searcher.setHeuristic(task.Heuristic);
+				searcher.setHeuristic(task.Heuristic);/**/
+				
+				CodesBaseSearchScheme<BlockCode> searcher = task.Algorithm;
 			
 				if (task.ExpectedTime > 0) {
 					logger.info("expected time " + task.ExpectedTime + "s");

@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import codes.ConvCode;
 
+import search_heuristics.CombinedHeuristic;
+import search_heuristics.LinearDependenceCashingHeur;
 import search_procedures.block_codes.BlockCodesTable;
 import search_procedures.block_codes.SearchMain;
 import search_procedures.conv_codes.ExhaustiveCCEnumByGenMatr;
@@ -57,7 +59,7 @@ public class MatrixEnumeratorTest {
 		
 		for (int k = minK;k <= maxK; k += 3) {			
 			int n = 4 * (k / 3);
-			ExhaustiveHRCCEnumByCheckMatr cc_enum = new ExhaustiveHRCCEnumByCheckMatr(3, BlockCodesTable.complexitiesInPaper[k][n]);
+			ExhaustiveHRCCEnumByCheckMatr cc_enum = new ExhaustiveHRCCEnumByCheckMatr(3, BlockCodesTable.complexitiesInPaper[k][n], new CombinedHeuristic());
 			int cnt = 0;
 						
 			while (cc_enum.next() != null) {				
@@ -106,7 +108,7 @@ public class MatrixEnumeratorTest {
 		
 		for (int k = minK;k <= maxK; ++k) {
 			ConvCode gain_code = IOConvCode.readConvCode(scanner);
-			ExhaustiveHRCCEnumByCheckMatr cc_enum = new ExhaustiveHRCCEnumByCheckMatr(gain_code.getK(), gain_code.getDelay());
+			ExhaustiveHRCCEnumByCheckMatr cc_enum = new ExhaustiveHRCCEnumByCheckMatr(gain_code.getK(), gain_code.getDelay(), new CombinedHeuristic());
 			
 			gain_code.parityCheck().sortColumns();
 			

@@ -160,6 +160,7 @@ public class ConvCode implements Code{
 				genMatr = ConvCodeAlgs.buildPolyComposition(genBlocks);
 			} else {
 				genMatr = ConvCodeAlgs.getOrthogonalMatrix(new SmithDecomposition(checkMatr));
+				ConvCodeAlgs.toMinimalForm(genMatr);
 			}
 		}
 		return genMatr;
@@ -177,6 +178,7 @@ public class ConvCode implements Code{
 	{
 		if (checkMatr == null) {
 			checkMatr = ConvCodeAlgs.getOrthogonalMatrix(new SmithDecomposition(generator()));
+			ConvCodeAlgs.toMinimalForm(checkMatr);
 		}
 		return checkMatr;
 	}

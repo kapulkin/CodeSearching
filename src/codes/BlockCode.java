@@ -155,11 +155,11 @@ public class BlockCode implements Code {
 	public ITrellis getTrellis() {
 		if (trellis == null) {
 			ITrellis implicitTrellis = new BlockCodeTrellis(getGeneratorSpanForm());
-			try {
-				trellis = new LightTrellis(implicitTrellis);
-			} catch (IllegalArgumentException e) {
+		//	try {
+		//		trellis = new LightTrellis(implicitTrellis);
+		//	} catch (IllegalArgumentException e) {
 				trellis = implicitTrellis;
-			}
+		//	}
 		}
 		
 		return trellis; 

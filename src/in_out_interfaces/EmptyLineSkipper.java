@@ -15,7 +15,7 @@ public class EmptyLineSkipper {
 	{
 		String line;
 		
-		while((line = scanner.nextLine()).isEmpty()) {}
+		while((line = scanner.nextLine()).trim().isEmpty()) {}
 		
 		return line;
 	}

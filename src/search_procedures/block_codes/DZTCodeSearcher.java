@@ -1,5 +1,6 @@
 package search_procedures.block_codes;
 
+import java.math.BigInteger;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -82,7 +83,7 @@ public class DZTCodeSearcher extends BasicBlockCodesSearcher<BlockCode> {
 		return new BlockCode(generator, true);
 	}
 
-	private class DZTCandidateEnumerator implements ICandidateEnumerator<BlockCode> {
+	private class DZTCandidateEnumerator implements ICodeEnumerator<BlockCode> {
 		ICodeEnumerator<ConvCode> ccEnum;
 		ConvCode ccCode;
 		ZTCode zt1;
@@ -119,6 +120,17 @@ public class DZTCodeSearcher extends BasicBlockCodesSearcher<BlockCode> {
 			}
 			
 			return makeDZT(zt1, zt2);
+		}
+
+		@Override
+		public BigInteger count() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public void reset() {
+			ccEnum.reset();			
 		}
 	}
 }

@@ -1,115 +1,172 @@
 package trellises;
 
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 
 import trellises.Trellis.Vertex;
-import trellises.algorithms.TrellisScanner;
 
 import math.BitArray;
-import math.BlockCodeAlgs;
 import math.PolyMatrix;
-import math.SpanForm;
 
 public class Trellises {	
 	
-	/**
-	 * Строит секционированную решетку кода по спеновой форме порождающей матрицы. Реализация основывается
-	 * на проходе по столбцам матрицы сканирущей прямой, хранящей информацию об активных строках. Возможные 
-	 * положения прямой - в начале или в конце текущей активной строчки.   
-	 * @param sf спеновая форма порождающей матрицы
-	 * @return решетка кода
-	 */
-	public static Trellis trellisFromGenSF(SpanForm sf)
-	{	
-		Trellis trellis = trellisSegmentFromGenSF(sf, 0, sf.Matr.getRowCount());
-		Trellis.Vertex[] firstLayer = trellis.Layers[0];
-		Trellis.Vertex[] lastLayer = trellis.Layers[trellis.Layers.length-1];
+	public static class CosetTrellis implements ITrellis {
+		private ITrellis codeTrellis;
+		private BitArray cosetWord;
 		
-		if(sf.IsTailbiting)
-		{						
-			for(int i = 0;i < firstLayer.length;i ++)
-			{
-				firstLayer[i].Predecessors = lastLayer[i].Predecessors;
-			}
+		public class Iterator implements ITrellisIterator {
+			private ITrellisIterator iterator;
+			private int position;
 			
-			Trellis cycledTrellis = new Trellis();
-			
-			cycledTrellis.Layers = new Trellis.Vertex[trellis.Layers.length-1][];
-			for(int i = 0;i < cycledTrellis.Layers.length;i ++)
-			{
-				cycledTrellis.Layers[i] = trellis.Layers[i]; 
-			}
-			
-			return cycledTrellis; 
-		}
-					
-		firstLayer[0].Predecessors = new IntEdge[0];
-		lastLayer[0].Accessors = new IntEdge[0];
+			private class EdgeWrapper implements ITrellisEdge {
+				private ITrellisEdge edge;
 				
-		return trellis;
-	}
-	
-	/**
-	 * Строит сегмент секционированной решетки кода по спеновой форме порождающей матрицы. 
-	 * @param sf спеновая форма порождающей матрицы
-	 * @param begSeg начало сегмента
-	 * @param endSeg конец сегмента
-	 * @return решетка кода
-	 */
-	public static Trellis trellisSegmentFromGenSF(SpanForm sf, int begSeg, int endSeg)
-	{		
-		// слои решетки
-		ArrayList<Trellis.Vertex[]> layers = new ArrayList<Trellis.Vertex[]>();		
-		
-		BlockCodeAlgs.sortHeads(sf);
-						
-		int initialColumn = sf.getHead(begSeg);
-		ArrayList<Integer> activeRows = new ArrayList<Integer>();
-		Trellis.Vertex[] firstLayer;
-		
-		for(int i = 0;i < sf.Matr.getRowCount();i ++)
-		{
-			int shiftedColumn = initialColumn + sf.Matr.getColumnCount();
-			
-			if((sf.getHead(i) < initialColumn && initialColumn <= sf.getTail(i)) ||
-				(sf.getHead(i) < shiftedColumn && shiftedColumn <= sf.getUncycledTail(i)))
-			{
-				activeRows.add(i);			
+				public EdgeWrapper(ITrellisEdge edge) {
+					this.edge = edge;
+				}
+				
+				@Override
+				public long src() {					
+					return edge.src();
+				}
+
+				@Override
+				public long dst() {
+					return edge.dst();
+				}
+
+				@Override
+				public BitArray bits() {
+					BitArray bits = edge.bits();
+					
+					bits.and(cosetWord.get(position, position + bits.getFixedSize()));
+					return bits;
+				}
+
+				@Override
+				public int metric(int i) {					
+					return bits().cardinality();
+				}
+
+				@Override
+				public int[] metrics() {					
+					return new int[] { bits().cardinality() };
+				}
+				
 			}
+			
+			public Iterator(ITrellisIterator iterator, int position) {
+				this.iterator = iterator;
+				this.position = position;
+			}
+			
+			@Override
+			public boolean hasForward() {				
+				return iterator.hasForward();
+			}
+
+			@Override
+			public boolean hasBackward() {				
+				return iterator.hasBackward();
+			}
+
+			@Override
+			public void moveForward(int edgeIndex)
+					throws NoSuchElementException {
+				position += iterator.getAccessors()[0].bits().getFixedSize();
+				iterator.moveForward(edgeIndex);				
+			}
+
+			@Override
+			public void moveBackward(int edgeIndex)
+					throws NoSuchElementException {
+				position -= iterator.getPredecessors()[0].bits().getFixedSize();
+				iterator.moveBackward(edgeIndex);
+			}
+
+			@Override
+			public ITrellisEdge[] getAccessors() {
+				ITrellisEdge[] accessors = iterator.getAccessors();
+				EdgeWrapper[] _accessors = new EdgeWrapper[accessors.length];
+				
+				for (int i = 0;i < accessors.length; ++i) {
+					_accessors[i] = new EdgeWrapper(accessors[i]);					
+				}
+				
+				return _accessors;
+			}
+
+			@Override
+			public ITrellisEdge[] getPredecessors() {
+				ITrellisEdge[] predecessors = iterator.getPredecessors();
+				EdgeWrapper[] _predecessors = new EdgeWrapper[predecessors.length];
+				
+				for (int i = 0;i < predecessors.length; ++i) {
+					_predecessors[i] = new EdgeWrapper(predecessors[i]);					
+				}
+				
+				return _predecessors;
+			}
+
+			@Override
+			public int layer() {				
+				return iterator.layer();
+			}
+
+			@Override
+			public long vertexIndex() { 
+				return iterator.vertexIndex();
+			}
+			
+			@Override
+			public Iterator clone() {
+				return new Iterator(iterator.clone(), position);
+			}
+			
 		}
 		
-		firstLayer = new Trellis.Vertex[1 << activeRows.size()];
-		for(int i = 0;i < firstLayer.length;i ++)
-		{
-			firstLayer[i] = new Vertex();
-		}					
-		
-		layers.add(firstLayer);
-		
-		TrellisScanner scanner = new TrellisScanner(sf, firstLayer, begSeg, endSeg);
-		
-		while(scanner.hasNextLayer())
-		{									
-			layers.add(scanner.buildNextLayer());
-		}		
-		
-		Trellis trellis = new Trellis();
-		
-		trellis.Layers = new Trellis.Vertex[layers.size()][];
-		
-		for(int i = 0;i < layers.size();i ++)
-		{
-			trellis.Layers[i] = layers.get(i);
+		public CosetTrellis(ITrellis codeTrellis, BitArray cosetWord) {
+			this.codeTrellis = codeTrellis;
+			this.cosetWord = cosetWord;
 		}
 		
-		return trellis;
-	}
+		@Override
+		public int layersCount() {			
+			return codeTrellis.layersCount();
+		}
+
+		@Override
+		public long layerSize(int layer) {			
+			return codeTrellis.layerSize(layer);
+		}
+
+		@Override
+		public ITrellisIterator iterator(int layer, long vertexIndex) {	
+			int position = 0;
+			
+			for (int l = 0;l < layer; ++l) {
+				position += codeTrellis.iterator(l, 0).getAccessors()[0].bits().getFixedSize();
+			}
+			
+			return new Iterator(codeTrellis.iterator(layer, vertexIndex), position);
+		}
+		
+	} 
+	
 	
 	public static Trellis trellisFromParityCheckHR(PolyMatrix parityCheck)
 	{
 		int degree = parityCheck.get(0, parityCheck.getColumnCount() - 1).getDegree();
-
 		int levels = parityCheck.getColumnCount() - 1;		
+		boolean mergeLastLayers = true;
+		
+		if (parityCheck.get(0, parityCheck.getColumnCount() - 2).getDegree() == degree &&
+				(parityCheck.getColumnCount() > 2 && parityCheck.get(0, parityCheck.getColumnCount() - 3).getDegree() == degree)) {
+			++degree;
+			levels += 2;
+			mergeLastLayers = false;
+		}
+		
 		ArrayList<Trellis.Vertex[]> layers = new ArrayList<Trellis.Vertex[]>();
 		Trellis.Vertex[] firstLayer = new Trellis.Vertex[1<<degree];
 	
@@ -186,6 +243,11 @@ public class Trellises {
 		// основное требование при переходе: младший регистр памяти должен стать равен нулю, т.к. это бит синдрома
 		for(int v = 0;v < finalLayer.length;v ++)
 		{	
+			if (!mergeLastLayers) {
+				firstLayer[v].Predecessors = finalLayer[v].Predecessors;
+				continue;
+			}
+			
 			int h1 = 0, h2 = 0;
 			
 			for(int i = 0;i < parityCheck.get(0, levels-1).getDegree() + 1;i ++)
@@ -250,6 +312,10 @@ public class Trellises {
 			}else{
 				firstLayer[edge1.dst].Predecessors[1] = edge1;
 			}
+		}
+		
+		if (!mergeLastLayers) {
+			layers.remove(levels - 1);
 		}
 		
 		Trellis trellis = new Trellis();
