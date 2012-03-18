@@ -76,7 +76,7 @@ public class CEnumerator {
 			sequence[i] = sequence[index] + (i - index);
 		}
 		
-		return sequence;
+		return sequence.clone();
 	}
 	
 	public long[] next() {
@@ -86,12 +86,12 @@ public class CEnumerator {
 		
 		if (sequence == null) {
 			initSequence();
-			return sequence;
+			return sequence.clone();
 		}
 		
 		if (sequence[k-1] < n-1) {
 			sequence[k-1] ++;
-			return sequence;
+			return sequence.clone();
 		}
 		
 		int indFromEnd = 1;
@@ -107,7 +107,7 @@ public class CEnumerator {
 			sequence[i] = sequence[k-1-indFromEnd] + (i - (k-1-indFromEnd));
 		}
 		
-		return sequence;
+		return sequence.clone();
 	}
 	
 	public long[] getByIndex(BigInteger index) {

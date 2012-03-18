@@ -84,7 +84,8 @@ public class IOMatrix {
 			if(!scanner.hasNext())
 				break;
 			
-			line = scanner.nextLine();
+			if (data.size() != rows)
+				line = scanner.nextLine();
 			
 			if(line.isEmpty())
 				break;

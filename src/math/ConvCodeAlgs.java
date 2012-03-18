@@ -514,14 +514,15 @@ public class ConvCodeAlgs {
 	 */
 	public static PolyMatrix getOrthogonalMatrix(SmithDecomposition decomp) {
 		if (!decomp.isBasic()) {
-			throw new IllegalArgumentException("Impossible to find orthogonal matrix because matrix is not basic!");
+			//throw new IllegalArgumentException("Impossible to find orthogonal matrix because matrix is not basic!");
+			decomp = new SmithDecomposition(ConvCodeAlgs.getMinimalBaseGenerator(decomp));
 		}
 		
 		int k = decomp.getD().getRowCount();
 		int n = decomp.getD().getColumnCount();
 		int r = n - k;
 		PolyMatrix ort = new PolyMatrix(r, n);
-		PolyMatrix invB = decomp.getInvB();
+		/*PolyMatrix invB = decomp.getInvB();
 		PolyMatrix gamma = decomp.getD();
 		
 		for (int i = 0; i < n;i ++) {
@@ -535,7 +536,18 @@ public class ConvCodeAlgs {
 				sum.add(invB.get(i, k + j));
 				ort.set(j, i, sum);
 			}			
+		}/**/
+		
+		for (int i = 0;i < r; ++i) {
+			for (int j = 0;j < k; ++j) {
+				ort.set(i, j, decomp.getD().get(j, i + k));
+			}
+			for (int j = k;j < n; ++j) {
+				ort.set(i, j, j - k == i ? Poly.getUnitPoly() : new Poly());
+			}
 		}
+		
+		ort = ort.mul(decomp.getInvB().transpose());
 		
 		return ort;
 	}

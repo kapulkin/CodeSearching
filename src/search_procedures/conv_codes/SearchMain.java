@@ -59,8 +59,8 @@ public class SearchMain {
 		LinearDependenceCashingHeur.PolyLinearDependenceDataBase parityCheckDataBase = new LinearDependenceCashingHeur.PolyLinearDependenceDataBase();
 		CombinedHeuristic heuristic = new CombinedHeuristic();		
 		
-		heuristic.addHeuristic(1, new LinearDependenceCashingHeur(d, Math.min(v, 4), parityCheckDataBase));
-		heuristic.addHeuristic(0, new CCPreciseFreeDist(d));
+//		heuristic.addHeuristic(1, new LinearDependenceCashingHeur(d, Math.min(v, 4), parityCheckDataBase));
+//		heuristic.addHeuristic(0, new CCPreciseFreeDist(d));
 		
 		BufferedWriter writer = new BufferedWriter(new FileWriter(new File(k + "&" + v + "&" + d + ".txt")));
 		ExhaustiveHRCCEnumByCheckMatr ccEnum = new ExhaustiveHRCCEnumByCheckMatr(k, v, heuristic);
@@ -68,10 +68,10 @@ public class SearchMain {
 		ConvCode code;
 		
 		while ((code = _ccEnum.next()) != null) {
-			if (heuristic.check(code)){
+			/*if (heuristic.check(code)){
 				IOConvCode.writeConvCode(code, writer, "pc");
 				writer.close();
-			}
+			}/**/
 		}
 		
 		writer.close();
@@ -83,7 +83,7 @@ public class SearchMain {
 	 */
 	public static void main(String[] args) throws IOException {
 		
-		highRateCCSearch(3, 10, 8);
+		highRateCCSearch(2, 13, 11);
 		
 		/*ConvCode convCode = IOConvCode.readConvCode(new Scanner(new FileReader(new File("3&10&10.txt"))));		
 

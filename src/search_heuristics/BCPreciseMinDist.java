@@ -29,13 +29,13 @@ public class BCPreciseMinDist implements IHeuristic {
 			}
 		}
 		
-		System.out.println(_code.getMinDist());
+		/*System.out.println(_code.getMinDist());
 		try {
 			IOMatrix.writeMatrix(_code.generator(), new BufferedWriter(new OutputStreamWriter(System.out)));
 			System.in.read();
 		} catch (IOException e) {			
 			e.printStackTrace();
-		}		
+		}/**/		
 		
 		return _code.getMinDist() >= minDist;
 	}

@@ -90,6 +90,18 @@ public class PolyMatrix {
 		return res;
 	}
 	
+	public PolyMatrix transpose() {
+		PolyMatrix tr = new PolyMatrix(getColumnCount(), getRowCount());
+		
+		for (int i = 0;i < getColumnCount(); ++i) {
+			for (int j = 0;j < getRowCount(); ++j) {
+				tr.set(i, j, get(j, i));
+			}
+		}
+		
+		return tr;
+	}
+	
 	public boolean isZero() {
 		for(int i = 0;i < getRowCount();i ++)
 		{

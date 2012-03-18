@@ -91,8 +91,8 @@ public class Main {
 		BlockCodesTable.computeTBStateLowerBounds(b, b + 1);
 		
 		for (int k = 1;k <= 100; ++k) {
-			for (int n = b + 1;n <= 2 * k; n += b + 1) {
-				if (lowerBounds[k][n] != upperBounds[k][n] && b * (n / (b + 1)) <= k) {
+			for (int n = b + 1;n <= 150; n += b + 1) {
+				if (lowerBounds[k][n] != upperBounds[k][n] && lowerBounds[k][n] == 8) {// && b * (n / (b + 1)) <= k) {
 					System.out.println("k=" + k + " n=" + n + " s=" + BlockCodesTable.complexityLowerBounds[b * (n / (b + 1))][n] + " " + lowerBounds[k][n] + "-" + upperBounds[k][n]);
 					break;
 				}

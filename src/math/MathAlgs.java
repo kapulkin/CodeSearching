@@ -13,14 +13,14 @@ public class MathAlgs {
 			int secondSetBit = mat.getRowCount() - 1;
 			
 			for (int j = 0;j < mat.getRowCount(); ++j) {
-				if (mat.get(i, j)) {
+				if (mat.get(j, i)) {
 					firstSetBit = j;
 					break;
 				}
 			}
 			
 			for (int j = mat.getRowCount() - 1;j >= 0; --j) {
-				if (mat.get(i, j)) {
+				if (mat.get(j, i)) {
 					secondSetBit = j;
 					break;
 				}

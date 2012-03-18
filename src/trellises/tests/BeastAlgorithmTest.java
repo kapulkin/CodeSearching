@@ -53,7 +53,9 @@ public class BeastAlgorithmTest {
 		
 		IOTrellis.writeTrellisInGVZFormat(code.getTrellis(), new BufferedWriter(new FileWriter(new File("trellis.dot"))));
 		
-		code.getFreeDist();
+		long start = System.currentTimeMillis();
+		logger.info("BEAST: {}", code.getFreeDist());
+		logger.info("time: {}ms", System.currentTimeMillis() - start);
 	}
 	
 	//@Test

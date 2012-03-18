@@ -32,7 +32,7 @@ public class ExhaustiveHRCCEnumByCheckMatr implements ICodeEnumerator<ConvCode> 
 	
 	public BigInteger count() {
 		return (new HammingBallEnumerator(k + 1, 2)).count().multiply(parityCheckEnum.count());
-		//return CodesCounter.count(this);
+	//	return CodesCounter.count(this);
 	}
 	
 	@Override
@@ -87,7 +87,7 @@ public class ExhaustiveHRCCEnumByCheckMatr implements ICodeEnumerator<ConvCode> 
 		}
 		
 		int badColumn = -1;
-		while (true) {
+		//while (true) {
 			if (!parityCheckEnum.hasNext())
 				return null;
 			
@@ -106,11 +106,11 @@ public class ExhaustiveHRCCEnumByCheckMatr implements ICodeEnumerator<ConvCode> 
 				currentParityCheck.set(0, i, p);
 			}
 			
-			//badColumn = checkSubmatrices(); 
-			//if (badColumn == -1) {
-				break;
-			//}
-		}
+		//	badColumn = checkSubmatrices(); 
+		//	if (badColumn == -1) {
+		//		break;
+		//	}
+		//}
 		
 		topRowEnum = new HammingBallEnumerator(k + 1, 2);
 		fillTopRow();		

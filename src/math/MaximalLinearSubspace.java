@@ -7,7 +7,7 @@ import java.util.Comparator;
 import search_tools.CEnumerator;
 
 public class MaximalLinearSubspace {
-	private final int MAX_SETSIZE = 10 * (1 << 30);
+	private final int MAX_SETSIZE = (1 << 8);
 	private int dim;
 	
 	private class BitVectorComp implements Comparator<BitArray> {
@@ -33,11 +33,11 @@ public class MaximalLinearSubspace {
 		BitArray combination = new BitArray(dim);
 		int q = qSubset.length;
 		
-		for (int n = 1;n <= (1 << q); ++n) {
+		for (int n = 1;n < (1 << q); ++n) {
 			int bit = GrayCode.getChangedPosition(n);
 			
-			combination.and(qSubset[bit]);
-			if (Arrays.binarySearch(vectorSet, combination, new BitVectorComp()) == -1) {
+			combination.xor(qSubset[bit]);
+			if (Arrays.binarySearch(vectorSet, combination, new BitVectorComp()) < 0) {
 				return false;
 			}
 		}
@@ -45,7 +45,42 @@ public class MaximalLinearSubspace {
 		return true;
 	}
 	
+	private BitArray[] findTwo(BitArray[] vectorSet) {				
+		for (int i = 0;i < vectorSet.length; ++i) {
+			if (i > MAX_SETSIZE) {
+				break;
+			}
+			
+			for (int j = 0;j < vectorSet.length; ++j) {
+				if (j > MAX_SETSIZE) {
+					break;
+				}
+				
+				BitArray[] basis = new BitArray[] { vectorSet[i], vectorSet[j] };
+				
+				if (checkCompleteness(basis, vectorSet)) {
+					return basis;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
 	public BitArray[] findBasis(BitArray[] vectorSet, int q) {
+		
+		if (vectorSet.length < q) {
+			return null;
+		}
+		
+		if (q == 1) {			
+			return new BitArray[] { vectorSet[0] };
+		}
+		
+		if (q == 2) {
+			return findTwo(vectorSet);
+		}
+		
 		int qDiv3 = (int)Math.ceil((double)q / 3);
 		CEnumerator qDiv3SubsetsEnum = new CEnumerator(vectorSet.length, qDiv3);
 		ArrayList<long[]> qDiv3IndependentSequences = new ArrayList<long[]>();
@@ -59,7 +94,7 @@ public class MaximalLinearSubspace {
 			
 			++subsetsViewed;
 			if (subsetsViewed > (1 << 25)) {
-				break;
+//				break;
 			}
 			
 			for (int i = 0;i < qDiv3; ++i) {
@@ -80,7 +115,7 @@ public class MaximalLinearSubspace {
 			return null;
 		}
 		
-		int nearestPowerOfTwo = (subsetsCount & (subsetsCount - 1)) == 0 ? subsetsCount : 1 << (Integer.highestOneBit(subsetsCount) + 1); 
+		int nearestPowerOfTwo = (subsetsCount & (subsetsCount - 1)) == 0 ? subsetsCount : Integer.highestOneBit(subsetsCount) * 2; 
 		double[][] graphOfSubsets = new double[nearestPowerOfTwo][nearestPowerOfTwo];
 		boolean[][] independenceFlags = new boolean[subsetsCount][subsetsCount];
 		
@@ -97,8 +132,10 @@ public class MaximalLinearSubspace {
 			for (int indB = indA + 1;indB < subsetsCount; ++indB) {
 				long[] qDiv3SubsetB = qDiv3IndependentSequences.get(indB);
 				
+				q2Div3Sequence = new ArrayList<BitArray>(q2Div3Sequence.subList(0, qDiv3));
+				
 				for (int i = 0;i < qDiv3; ++i) {
-					if (Arrays.binarySearch(qDiv3SubsetA, qDiv3SubsetB[i]) == -1) {
+					if (Arrays.binarySearch(qDiv3SubsetA, qDiv3SubsetB[i]) < 0) {
 						q2Div3Sequence.add(vectorSet[(int)qDiv3SubsetB[i]]);
 					}
 				}
@@ -140,7 +177,7 @@ public class MaximalLinearSubspace {
 			}		
 		}
 		
-		double[][] squaredGraphOfSubsets = Strassen.multiply(graphOfSubsets, graphOfSubsets);
+		double[][] squaredGraphOfSubsets = Strassen.multiply(graphOfSubsets, graphOfSubsets.clone());
 		
 		for (int indA = 0;indA < subsetsCount; ++indA) {
 			long[] qDiv3SubsetA = qDiv3IndependentSequences.get(indA);
@@ -154,19 +191,24 @@ public class MaximalLinearSubspace {
 				if (independenceFlags[indA][indB] && squaredGraphOfSubsets[indA][indB] == 1.0) {					
 					long[] qDiv3SubsetB = qDiv3IndependentSequences.get(indB);
 					
+					qBasis = new ArrayList<BitArray>(qBasis.subList(0, qDiv3));
+					
 					for (int i = 0;i < qDiv3; ++i) {
-						if (Arrays.binarySearch(qDiv3SubsetA, qDiv3SubsetB[i]) == -1) {
+						if (Arrays.binarySearch(qDiv3SubsetA, qDiv3SubsetB[i]) < 0) {
 							qBasis.add(vectorSet[(int)qDiv3SubsetB[i]]);
 						}
 					}
 					
+					int qBasisSize = qBasis.size();
 					for (int indC = 0;indC < subsetsCount; ++indC) {
 						if (graphOfSubsets[indA][indC] == 1.0 && graphOfSubsets[indC][indB] == 1.0) {
 							long[] qDiv3SubsetC = qDiv3IndependentSequences.get(indC);
 							
+							qBasis = new ArrayList<BitArray>(qBasis.subList(0, qBasisSize));
+							
 							for (int i = 0;i < qDiv3; ++i) {
-								if (Arrays.binarySearch(qDiv3SubsetA, qDiv3SubsetC[i]) == -1 &&
-										Arrays.binarySearch(qDiv3SubsetB, qDiv3SubsetC[i]) == -1) {
+								if (Arrays.binarySearch(qDiv3SubsetA, qDiv3SubsetC[i]) < 0 &&
+										Arrays.binarySearch(qDiv3SubsetB, qDiv3SubsetC[i]) < 0) {
 									qBasis.add(vectorSet[(int)qDiv3SubsetC[i]]);
 								}
 							}

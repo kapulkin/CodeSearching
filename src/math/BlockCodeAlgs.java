@@ -215,7 +215,7 @@ public class BlockCodeAlgs {
 				for (int i = 0;i < code.getN(); ++i) {
 					BitArray neighbour = new BitArray(coset);
 					
-					neighbour.and(parityCheck.getRow(i));
+					neighbour.xor(parityCheck.getRow(i));
 					int neighbourIndex = 0;
 					
 					for (int b = 0;b < code.getN() - code.getK(); ++b) {
@@ -233,6 +233,8 @@ public class BlockCodeAlgs {
 			
 			badCosetsFront = newFront;
 		}
+		
+		System.out.println(cosetCharacteristicVector.cardinality());
 		
 		ArrayList<BitArray> cosets = new ArrayList<BitArray>();
 		for (int cosetIndex = 0;cosetIndex < cosetCharacteristicVector.getFixedSize(); ++cosetIndex) {

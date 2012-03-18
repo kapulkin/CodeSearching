@@ -161,7 +161,7 @@ public class Trellises {
 		boolean mergeLastLayers = true;
 		
 		if (parityCheck.get(0, parityCheck.getColumnCount() - 2).getDegree() == degree &&
-				(parityCheck.getColumnCount() == 2 || parityCheck.get(0, parityCheck.getColumnCount() - 3).getDegree() == degree)) {
+				(parityCheck.getColumnCount() > 2 && parityCheck.get(0, parityCheck.getColumnCount() - 3).getDegree() == degree)) {
 			++degree;
 			levels += 2;
 			mergeLastLayers = false;
