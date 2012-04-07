@@ -154,12 +154,6 @@ public class MinDistance {
 	 * @return минимальное расстояния кода
 	 */
 	public static int findMinDistWithBEAST(ITrellis trellis, int distanceMetric, int upperBound) {
-		try {
-			IOTrellis.writeTrellisInGVZFormat(trellis, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
 		ITrellisIterator root = trellis.iterator(0, 0);
 		ITrellisIterator toor = trellis.iterator(trellis.layersCount() - 1, 0);
 		
