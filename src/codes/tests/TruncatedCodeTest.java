@@ -43,8 +43,7 @@ public class TruncatedCodeTest {
 			IOBlockMatrix.writeMatrix(tbCode.blockGenMatrix(), new BufferedWriter(new OutputStreamWriter(System.out)));
 			IOTrellis.writeTrellisInGVZFormat(trellis, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
 		} catch (IOException e) {
-			e.printStackTrace();
-			fail("Unexpected exception.");
+			fail("Unexpected exception: " + e);
 		}
 	}
 
@@ -62,8 +61,7 @@ public class TruncatedCodeTest {
 			logger.debug("Zero-tail code:");
 			IOBlockMatrix.writeMatrix(ztCode.blockGenMatrix(), new BufferedWriter(new OutputStreamWriter(System.out)));
 		} catch (IOException e) {
-			e.printStackTrace();
-			fail("Unexpected exception.");
+			fail("Unexpected exception: " + e);
 		}
 		
 		logger.debug("delay = " + convCode.getDelay());

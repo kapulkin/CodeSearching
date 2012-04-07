@@ -348,14 +348,16 @@ public class TrellisUtils {
 		// получаем следующие активные ряды: добавляем к текущим начавшийся активный ряд и удаляем завершившийся
 		// вычисляем вершину предыдущего яруса, соотвествующую переходу по нулевому ребру
 		long nextVertex = vertexIndex;		
-		for (Boundary spanTail : spanTails) {
-			nextVertex = getNextVertexByRemoving(nextVertex, activeRows, spanTail.row);
-			activeRows.remove(spanTail.row);
-		}
-		
 		for (Boundary spanHead : spanHeads) {
 			nextVertex = getNextVertexByAdding(nextVertex, activeRows, spanHead.row, false);
-			activeRows.add(spanHead.row);
+			boolean isAdded = activeRows.add(spanHead.row);
+			assert(isAdded);
+		}
+
+		for (Boundary spanTail : spanTails) {
+			nextVertex = getNextVertexByRemoving(nextVertex, activeRows, spanTail.row);
+			boolean isRemoved = activeRows.remove(spanTail.row);
+			assert(isRemoved);
 		}
 		
 		// ребро нулевого пути.
@@ -382,11 +384,11 @@ public class TrellisUtils {
 		}
 		
 		// восстанавливаем значение текущих активных рядов
-		for (Boundary spanHead : spanHeads) {
-			activeRows.remove(spanHead.row);
-		}
 		for (Boundary spanTail : spanTails) {
 			activeRows.add(spanTail.row);
+		}
+		for (Boundary spanHead : spanHeads) {
+			activeRows.remove(spanHead.row);
 		}
 
 		return edges;
@@ -399,14 +401,15 @@ public class TrellisUtils {
 		
 		// получаем предыдущие активные ряды и вычисляем вершину предыдущего яруса, соотвествующую переходу по нулевому ребру
 		long prevVertex = vertexIndex;
-		for (Boundary spanHead : spanHeads) {
-			prevVertex = getNextVertexByRemoving(prevVertex, activeRows, spanHead.row);
-			activeRows.remove(spanHead.row);
-		}
-		
 		for (Boundary spanTail : spanTails) {
 			prevVertex = getNextVertexByAdding(prevVertex, activeRows, spanTail.row, false);
-			activeRows.add(spanTail.row);
+			boolean isAdded = activeRows.add(spanTail.row);
+			assert(isAdded);
+		}
+		for (Boundary spanHead : spanHeads) {
+			prevVertex = getNextVertexByRemoving(prevVertex, activeRows, spanHead.row);
+			boolean isRemoved = activeRows.remove(spanHead.row);
+			assert(isRemoved);
 		}
 		
 		BitArray bits;
@@ -435,11 +438,11 @@ public class TrellisUtils {
 		}
 		
 		// восстанавливаем значение текущих активных рядов
-		for (Boundary spanTail : spanTails) {
-			activeRows.remove(spanTail.row);
-		}
 		for (Boundary spanHead : spanHeads) {
 			activeRows.add(spanHead.row);
+		}
+		for (Boundary spanTail : spanTails) {
+			activeRows.remove(spanTail.row);
 		}
 
 		return edges;
