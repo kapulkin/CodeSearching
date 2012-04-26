@@ -51,10 +51,14 @@ public class TruncatedCodeEnumerator implements ICodeEnumerator<TruncatedCode> {
 		/*try {			
 			PolyMatrix gen = code.getParentCode().generator();
 			PolyMatrix pc = code.getParentCode().parityCheck();
-			
+		
+			System.out.println("parent code generator:");
 			IOPolyMatrix.writeMatrix(code.getParentCode().generator(), new BufferedWriter(new OutputStreamWriter(System.out)));
+			System.out.println("parent code parity check:");
 			IOPolyMatrix.writeMatrix(code.getParentCode().parityCheck(), new BufferedWriter(new OutputStreamWriter(System.out)));
+			System.out.println("correctness test: production must be zero matrix:");
 			IOPolyMatrix.writeMatrix(gen.mul(pc.transpose()), new BufferedWriter(new OutputStreamWriter(System.out)));
+			System.out.println("truncated code generator:");
 			IOMatrix.writeMatrix(code.generator(), new BufferedWriter(new OutputStreamWriter(System.out)));
 			
 			System.out.println(code.getParentCode().getFreeDist());	

@@ -193,16 +193,34 @@ public class BeastAlgorithmTest {
 		Poly poly0 = new Poly(new boolean[] {true, false, true});//new int[] {0, 2});
 		Poly poly1 = new Poly(new boolean[] {true, true, true});//int[] {0, 1, 2});
 		
-		PolyMatrix generator = new PolyMatrix(1, 2);
-		generator.set(0, 0, poly0);
-		generator.set(0, 1, poly1);
+		PolyMatrix parityCheck = new PolyMatrix(1, 2);
+		parityCheck.set(0, 0, poly0);
+		parityCheck.set(0, 1, poly1);
 		
-		ConvCode code = new ConvCode(generator, false);
+		ConvCode code = new ConvCode(parityCheck, false);
 		
 		long start = System.currentTimeMillis();
 		System.out.println("BEAST: " + code.getFreeDist());
 		System.out.println("time: " + (double) (System.currentTimeMillis() - start) / 1000 + "s");
 	}
+
+	@Test
+	public void testCaseForFoundThrowingDownCode() throws SpanFormException {
+		Poly poly0 = new Poly(new int[] {0, 3});
+		Poly poly1 = new Poly(new int[] {0, 1, 2, 4, 5});
+		Poly poly2 = new Poly(new int[] {0, 1, 2, 4, 5});
+
+		PolyMatrix parityCheck = new PolyMatrix(1, 3);
+		parityCheck.set(0, 0, poly0);
+		parityCheck.set(0, 1, poly1);
+		parityCheck.set(0, 2, poly2);
+		
+		ConvCode code = new ConvCode(parityCheck, false);
+		// calculate generator to force the broken distance calculating method
+		code.generator();
+		int freeDist = code.getFreeDist();
+		System.out.println("freeDist: " + freeDist);
+	}	
 	
 //	@Test
 	public void testConvCodeSpectrumSearch() {
