@@ -76,7 +76,7 @@ public class Main {
 	}
 	
 	private static void patch() throws IOException {
-		Scanner scanner = new Scanner(new File("3&6&6.txt"));
+		Scanner scanner = new Scanner(new File("3&12&8.txt"));
 		StringBuilder modifiedContent = new StringBuilder();		
 		
 		while (scanner.hasNext()) {
@@ -99,10 +99,14 @@ public class Main {
 						modifiedContent.append(", ");
 					}
 					
-					if (digits == 2) {
+					if (digits == 4) {
 						modifiedContent.append("0" + gen);
-					} else if (digits == 1) {
+					} else if (digits == 3) {
 						modifiedContent.append("00" + gen);
+					} else if (digits == 2) {
+						modifiedContent.append("000" + gen);
+					} else if (digits == 1) {
+						modifiedContent.append("0000" + gen);
 					}
 					else {
 						modifiedContent.append(gen);
@@ -115,7 +119,7 @@ public class Main {
 			modifiedContent.append("\n");
 		}
 		
-		BufferedWriter writer = new BufferedWriter(new FileWriter(new File("_3&6&6.txt")));
+		BufferedWriter writer = new BufferedWriter(new FileWriter(new File("_3&12&8.txt")));
 		
 		writer.write(modifiedContent.toString());
 		writer.flush();

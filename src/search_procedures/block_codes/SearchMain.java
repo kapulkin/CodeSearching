@@ -63,8 +63,8 @@ public class SearchMain {
 			if (code != null) {
 				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(System.out));
 				logger.info("Code #" + count);
-				/*try {
-					IOMatrix.writeMatrix(code.generator(), writer);
+				try {
+				//	IOMatrix.writeMatrix(code.generator(), writer);
 					logger.info("Min. distance: " + code.getMinDist());
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -254,9 +254,9 @@ public class SearchMain {
 		ExhaustiveHRCCEnumByCheckMatr exhaustiveEnum = new ExhaustiveHRCCEnumByCheckMatr(6, task.StateComplexity, heuristic);
 		SiftingCCEnumerator ccEnum = new SiftingCCEnumerator(new EnumeratorLogger<ConvCode>(exhaustiveEnum), heuristic);
 		logger.info("count=" + exhaustiveEnum.count());/**/
-		FileCCEnumerator ccEnum = new FileCCEnumerator("3&10&7.txt");
+		FileCCEnumerator ccEnum = new FileCCEnumerator("_3&12&8.txt");
 		
-		searchSingleCode(48, 64, 140, 6, 48, ccEnum);
+		searchSingleCode(57, 76, 140, 8, 57, ccEnum);
 		//findGoodTruncatedCodes(ccEnum);
 		//searchNewCodes();
 	}

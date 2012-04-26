@@ -75,7 +75,7 @@ public class SearchMain {
 		BufferedWriter writer = new BufferedWriter(new FileWriter(new File(k + "&" + v + "&" + d + ".txt"), true));
 		ExhaustiveHRCCEnumByCheckMatr ccEnum = new ExhaustiveHRCCEnumByCheckMatr(k, v, heuristic);
 		RandomEnumerator randEnum = new RandomEnumerator(ccEnum);
-		EnumeratorLogger<ConvCode> _ccEnum = new EnumeratorLogger<ConvCode>(ccEnum, EnumeratorLogger.LoggingMode.TimeLogging);
+		EnumeratorLogger<ConvCode> _ccEnum = new EnumeratorLogger<ConvCode>(randEnum, EnumeratorLogger.LoggingMode.TimeLogging);
 		ConvCode code;
 		long lastTimestamp = System.currentTimeMillis();
 		int foundedCodes = 0;
