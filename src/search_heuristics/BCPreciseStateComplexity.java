@@ -25,7 +25,11 @@ public class BCPreciseStateComplexity implements IHeuristic {
 			}
 		}
 		
-		return TrellisUtils.stateComplexity(_code.getTrellis()) <= stateComplexity;
+		try {
+			return TrellisUtils.stateComplexity(_code.getTrellis()) <= stateComplexity;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 }

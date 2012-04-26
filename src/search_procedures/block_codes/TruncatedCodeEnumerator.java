@@ -48,7 +48,7 @@ public class TruncatedCodeEnumerator implements ICodeEnumerator<TruncatedCode> {
 		
 		TruncatedCode code = ConvCodeAlgs.truncate(k, n, convCode); 
 				
-		try {			
+		/*try {			
 			PolyMatrix gen = code.getParentCode().generator();
 			PolyMatrix pc = code.getParentCode().parityCheck();
 			
@@ -62,7 +62,7 @@ public class TruncatedCodeEnumerator implements ICodeEnumerator<TruncatedCode> {
 			e.printStackTrace();
 		}
 		
-		System.out.println(code.getMinDist());	
+		System.out.println(code.getMinDist());/**/	
 		
 		return code;
 	}

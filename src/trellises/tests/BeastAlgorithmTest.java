@@ -18,6 +18,7 @@ import math.BitArray;
 import math.BlockCodeAlgs;
 import math.ConvCodeAlgs;
 import math.ConvCodeSpanForm;
+import math.ConvCodeSpanForm.SpanFormException;
 import math.Matrix;
 import math.MinDistance;
 import math.Poly;
@@ -43,7 +44,7 @@ public class BeastAlgorithmTest {
 	static final private Logger logger = LoggerFactory.getLogger(BeastAlgorithmTest.class);
 
 	@Test
-	public void beastInfiniteEvaluation() throws IOException {
+	public void beastInfiniteEvaluation() throws IOException, SpanFormException {
 		PolyMatrix mat = new PolyMatrix(1, 2);
 		
 		mat.set(0, 0, new Poly(new boolean[] {true, false, true}));
@@ -81,54 +82,54 @@ public class BeastAlgorithmTest {
 	
 	//@Test
 	public void testLowRateConvCodeDistanceSearch() {
-		// code of rate 1/3 with m=6 from page 357;
-		String g[] = {"574", "664", "774"};
-
-		PolyMatrix G = new PolyMatrix(1, g.length);
-		for (int i = 0; i < g.length; ++i) {
-			boolean p[] = new boolean[3 * g[i].length()];
-			for (int j = 0; j < g[i].length(); ++j) {
-				boolean oct[] = null;
-				int digit = Integer.parseInt(g[i].substring(j, j+1), 8);
-				switch (digit) {
-				case 0: oct = new boolean[] {false, false, false}; break;
-				case 1: oct = new boolean[] {false, false, true};  break;
-				case 2: oct = new boolean[] {false, true, false};  break;
-				case 3: oct = new boolean[] {false, true, true};   break;
-				case 4: oct = new boolean[] {true, false, false};  break;
-				case 5: oct = new boolean[] {true, false, true};   break;
-				case 6: oct = new boolean[] {true, true, false};   break;
-				case 7: oct = new boolean[] {true, true, true};    break;
-				}
-				for (int k = 0; k < oct.length; ++k) {
-					p[3 * j + k] = oct[k];
-				}
-			}
-			G.set(0, i, new Poly(p));
-		}
-		
-		ConvCode code = new ConvCode(G, true);
-		ConvCodeSpanForm spanForm = ConvCodeAlgs.buildSpanForm(ConvCodeAlgs.getMinimalBaseGenerator(code.generator()));
-		Trellis trellis = ConvCodeAlgs.buildTrellis(spanForm);
-		MinDistance.computeDistanceMetrics(trellis);
-
 		try {
+			// code of rate 1/3 with m=6 from page 357;
+			String g[] = {"574", "664", "774"};
+	
+			PolyMatrix G = new PolyMatrix(1, g.length);
+			for (int i = 0; i < g.length; ++i) {
+				boolean p[] = new boolean[3 * g[i].length()];
+				for (int j = 0; j < g[i].length(); ++j) {
+					boolean oct[] = null;
+					int digit = Integer.parseInt(g[i].substring(j, j+1), 8);
+					switch (digit) {
+					case 0: oct = new boolean[] {false, false, false}; break;
+					case 1: oct = new boolean[] {false, false, true};  break;
+					case 2: oct = new boolean[] {false, true, false};  break;
+					case 3: oct = new boolean[] {false, true, true};   break;
+					case 4: oct = new boolean[] {true, false, false};  break;
+					case 5: oct = new boolean[] {true, false, true};   break;
+					case 6: oct = new boolean[] {true, true, false};   break;
+					case 7: oct = new boolean[] {true, true, true};    break;
+					}
+					for (int k = 0; k < oct.length; ++k) {
+						p[3 * j + k] = oct[k];
+					}
+				}
+				G.set(0, i, new Poly(p));
+			}
+		
+			ConvCode code = new ConvCode(G, true);
+			ConvCodeSpanForm spanForm = ConvCodeAlgs.buildSpanForm(ConvCodeAlgs.getMinimalBaseGenerator(code.generator()));
+			Trellis trellis = ConvCodeAlgs.buildTrellis(spanForm);
+			MinDistance.computeDistanceMetrics(trellis);
+
 			IOTrellis.writeTrellisInGVZFormat(trellis, new BufferedWriter(new FileWriter(new File("trellis.dot"))));
-		} catch (IOException e) {
+		
+			int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 2 * (code.getDelay() + 1), true);
+			int BEASTminDist = MinDistance.findMinDistWithBEAST(trellis, code.getN() * (code.getDelay() + 1));
+			int TrivialMinDist = MinDistance.findMinDist(new ZTCode(code, code.getDelay()).generator());
+	
+			System.out.println("Viterby: " + VDminDist);
+			System.out.println("BEAST: " + BEASTminDist);
+			System.out.println("Trivial: " + TrivialMinDist);
+			
+			assertEquals(TrivialMinDist, BEASTminDist);
+			assertEquals(VDminDist, BEASTminDist);
+		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Unexpected exception");
 		}
-		
-		int VDminDist = MinDistance.findMinDistWithViterby(trellis, 0, 2 * (code.getDelay() + 1), true);
-		int BEASTminDist = MinDistance.findMinDistWithBEAST(trellis, code.getN() * (code.getDelay() + 1));
-		int TrivialMinDist = MinDistance.findMinDist(new ZTCode(code, code.getDelay()).generator());
-
-		System.out.println("Viterby: " + VDminDist);
-		System.out.println("BEAST: " + BEASTminDist);
-		System.out.println("Trivial: " + TrivialMinDist);
-		
-		assertEquals(TrivialMinDist, BEASTminDist);
-		assertEquals(VDminDist, BEASTminDist);
 	}
 	
 	//@Test
@@ -151,7 +152,7 @@ public class BeastAlgorithmTest {
 	}
 	
 	//@Test
-	public void testTailbitingCodeDistanceSearch() {
+	public void testTailbitingCodeDistanceSearch() throws SpanFormException {
 		String strCode = "131, 117";
 		
 		PolyMatrix G = null;
@@ -188,7 +189,7 @@ public class BeastAlgorithmTest {
 	}
 	
 	@Test(timeout=1000)
-	public void shouldNotLoop() {
+	public void shouldNotLoop() throws SpanFormException {
 		Poly poly0 = new Poly(new boolean[] {true, false, true});//new int[] {0, 2});
 		Poly poly1 = new Poly(new boolean[] {true, true, true});//int[] {0, 1, 2});
 		

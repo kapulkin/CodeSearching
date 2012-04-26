@@ -27,6 +27,10 @@ public class HammingBallEnumerator {
 		return sphereEnum.getK() < k || sphereEnum.hasNext();
 	}
 	
+	public long[] current() {
+		return sphereEnum.current();
+	}
+	
 	public long[] next() {
 		if (sphereEnum.hasNext()) {
 			return sphereEnum.next();

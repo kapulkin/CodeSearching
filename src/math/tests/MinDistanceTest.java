@@ -11,6 +11,7 @@ import java.io.IOException;
 
 import math.ConvCodeAlgs;
 import math.ConvCodeSpanForm;
+import math.ConvCodeSpanForm.SpanFormException;
 import math.MinDistance;
 import math.Poly;
 import math.PolyMatrix;
@@ -25,7 +26,7 @@ import codes.ZTCode;
 
 public class MinDistanceTest {
 	@Test
-	public void freeDistanceComputingTimeScore() {
+	public void freeDistanceComputingTimeScore() throws SpanFormException {
 		PolyMatrix G = new PolyMatrix(2, 3);
 		// row 0
 		G.set(0, 0, new Poly(new int[] {1}));

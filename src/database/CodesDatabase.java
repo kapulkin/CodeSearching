@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Scanner;
 
+import math.ConvCodeSpanForm.SpanFormException;
 import math.Matrix;
 import math.PolyMatrix;
 
@@ -36,7 +37,7 @@ public class CodesDatabase {
 	
 	private static Logger logger = LoggerFactory.getLogger(CodesDatabase.class);
 	
-	public static void addConvCode(ConvCode code, String table) throws SQLException, IOException {
+	public static void addConvCode(ConvCode code, String table) throws SQLException, IOException, SpanFormException {
 		connection = getConnection();
 		
 		Statement stmt = null;
@@ -67,7 +68,7 @@ public class CodesDatabase {
 		stmt.executeUpdate(query);
 	}
 	
-	public static void addBlockCode(BlockCode code, String table) throws SQLException {
+	public static void addBlockCode(BlockCode code, String table) throws Exception {
 		connection = getConnection();
 		
 		Statement stmt = null;

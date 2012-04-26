@@ -77,7 +77,7 @@ public class TrellisesTest {
 	}
 
 	@Test
-	public void testConjunctedEdgesTrellis() {
+	public void testConjunctedEdgesTrellis() throws Exception {
 		int expectedMinDist = MinDistance.findMinDist(blockCode); 		
 		Trellis trellis = BlockCodeAlgs.buildExplicitTrellis(blockCode);
 		ConjunctedEdgesTrellis ceTrellis = new ConjunctedEdgesTrellis(trellis);

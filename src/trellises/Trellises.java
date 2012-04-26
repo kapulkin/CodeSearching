@@ -315,7 +315,7 @@ public class Trellises {
 		}
 		
 		if (!mergeLastLayers) {
-			layers.remove(levels - 1);
+			layers.remove(levels);
 		}
 		
 		Trellis trellis = new Trellis();

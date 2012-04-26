@@ -2,7 +2,7 @@ package common;
 
 import java.net.UnknownHostException;
 
-import com.mongodb.BasicDBObject;
+/*import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -25,4 +25,4 @@ public class MongoDBSample {
 			e.printStackTrace();
 		}
 	}
-}
+}/**/

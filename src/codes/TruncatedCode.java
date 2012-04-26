@@ -1,6 +1,7 @@
 package codes;
 
 import math.BlockMatrix;
+import math.ConvCodeSpanForm.SpanFormException;
 import math.Matrix;
 import math.MinDistance;
 
@@ -90,7 +91,7 @@ public class TruncatedCode extends BlockCode {
 		return parentCode;
 	}
 	
-	public int getMinDist() {
+	public int getMinDist() throws Exception {
 		if (minDist == -1) {
 			minDist = MinDistance.findMinDist(this);
 		}

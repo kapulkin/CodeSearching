@@ -12,7 +12,11 @@ public class CCPreciseFreeDist implements IHeuristic  {
 	
 	@Override
 	public boolean check(Code code) {
-		if (((ConvCode)code).getFreeDist() < freeDist) {
+		try {
+			if (((ConvCode)code).getFreeDist() < freeDist) {
+				return false;
+			}
+		} catch (Exception e) {
 			return false;
 		}
 		return true;

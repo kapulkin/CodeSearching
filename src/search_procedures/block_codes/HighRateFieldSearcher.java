@@ -27,6 +27,7 @@ import search_procedures.conv_codes.ExhaustiveHRCCEnumByCheckMatr;
 import search_procedures.conv_codes.SiftingCCEnumerator;
 import search_tools.CEnumerator;
 import trellises.BlockCodeTrellis;
+import trellises.ITrellis;
 import trellises.TrellisUtils;
 import codes.BlockCode;
 import codes.Code;
@@ -53,7 +54,15 @@ public class HighRateFieldSearcher {
 				return false;
 			}
 			
-			return TrellisUtils.stateComplexity(_code.getTrellis()) <= stateComplexity;
+			ITrellis trellis;
+			
+			try {
+				trellis = _code.getTrellis();				
+			} catch (Exception e) {
+				return false;
+			}
+			
+			return TrellisUtils.stateComplexity(trellis) <= stateComplexity;
 		}
 	} 
 	
@@ -137,7 +146,9 @@ public class HighRateFieldSearcher {
 				
 		BlockCode[] codes = searcher.searchTruncatedCodes(pools.toArray(new BlockCodesSearcher.TaskPool[0]));
 		
-		BlockCodesTable.writeCodes(codes, new BufferedWriter(new FileWriter(new File("TBCodes.txt"))));
+		try {
+			BlockCodesTable.writeCodes(codes, new BufferedWriter(new FileWriter(new File("TBCodes.txt"))));
+		} catch (Exception e) {}
 	}
 
 }

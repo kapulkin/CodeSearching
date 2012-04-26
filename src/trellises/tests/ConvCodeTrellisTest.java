@@ -20,6 +20,7 @@ import trellises.ITrellisIterator;
 import codes.ConvCode;
 import math.ConvCodeAlgs;
 import math.ConvCodeSpanForm;
+import math.ConvCodeSpanForm.SpanFormException;
 import math.Poly;
 import math.PolyMatrix;
 
@@ -43,7 +44,12 @@ public class ConvCodeTrellisTest {
 	
 	@Test
 	public void trellisShouldCorresponfToCodeWords() {
-		trellisShouldCorresponfToCodeWords(G);
+		try {
+			trellisShouldCorresponfToCodeWords(G);
+		} catch (SpanFormException e) {
+			e.printStackTrace();
+			fail("Unexpected exception");
+		}
 	}
 	
 	@Test
@@ -52,7 +58,12 @@ public class ConvCodeTrellisTest {
 		// row 0
 		generator.set(0, 0, new Poly(new boolean[] {false, true, true, true, true, true, true}));
 		generator.set(0, 1, new Poly(new boolean[] {true, true, true, true, true, true, true}));
-		trellisShouldCorresponfToCodeWords(generator);
+		try {
+			trellisShouldCorresponfToCodeWords(generator);
+		} catch (SpanFormException e) {
+			e.printStackTrace();
+			fail("Unexpected exception");
+		}
 		randomTraversalShouldBeEquivalentForTrellises(generator);
 	}
 
@@ -63,7 +74,13 @@ public class ConvCodeTrellisTest {
 
 	private void randomTraversalShouldBeEquivalentForTrellises(PolyMatrix generator) {
 		PolyMatrix minBaseG = ConvCodeAlgs.getMinimalBaseGenerator(generator);
-		ConvCodeSpanForm spanForm = ConvCodeAlgs.buildSpanForm(minBaseG); // should be done without exceptions
+		ConvCodeSpanForm spanForm = null;
+		try {
+			spanForm = ConvCodeAlgs.buildSpanForm(minBaseG); // should be done without exceptions
+		} catch (SpanFormException e) {
+			e.printStackTrace();
+			fail("Unexpected exception");
+		}
 
 		ITrellis explicitTrellis = ConvCodeAlgs.buildTrellis(spanForm);
 		ITrellis lightTrellis = new ConvCodeTrellis(spanForm);
@@ -126,7 +143,7 @@ public class ConvCodeTrellisTest {
 		}
 	}
 
-	private void trellisShouldCorresponfToCodeWords(PolyMatrix generator) {
+	private void trellisShouldCorresponfToCodeWords(PolyMatrix generator) throws SpanFormException {
 		PolyMatrix minBaseG = ConvCodeAlgs.getMinimalBaseGenerator(generator);
 		ConvCodeSpanForm spanForm = ConvCodeAlgs.buildSpanForm(minBaseG); // should be done without exceptions
 

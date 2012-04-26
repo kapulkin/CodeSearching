@@ -5,6 +5,7 @@ import trellises.ITrellis;
 import trellises.LightTrellis;
 import math.BitArray;
 import math.BlockCodeAlgs;
+import math.ConvCodeSpanForm.SpanFormException;
 import math.MathAlgs;
 import math.Matrix;
 import math.MinDistance;
@@ -151,8 +152,9 @@ public class BlockCode implements Code {
 	/**
 	 * 	
 	 * @return Решетка кода
+	 * @throws Exception 
 	 */
-	public ITrellis getTrellis() {
+	public ITrellis getTrellis() throws Exception {
 		if (trellis == null) {
 			ITrellis implicitTrellis = new BlockCodeTrellis(getGeneratorSpanForm());
 		//	try {
@@ -165,7 +167,7 @@ public class BlockCode implements Code {
 		return trellis; 
 	}
 
-	public int getMinDist() {
+	public int getMinDist() throws Exception {
 		if (minDist < 0) {
 			minDist = MinDistance.findMinDist(this);
 		}

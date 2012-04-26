@@ -1,5 +1,6 @@
 package codes;
 
+import math.ConvCodeSpanForm.SpanFormException;
 import math.MinDistance;
 import trellises.ITrellis;
 import trellises.TailbitingCodeTrellis;
@@ -23,8 +24,9 @@ public class TBCode extends TruncatedCode {
 	/**
 	 * 
 	 * @return Тайлбитинговая решетка кода
+	 * @throws SpanFormException 
 	 */
-	public ITrellis getTrellis() {
+	public ITrellis getTrellis() throws SpanFormException {
 		if (trellis == null) {
 			trellis = new TailbitingCodeTrellis(parentCode.getTrellis(), cycles);
 		}
@@ -32,7 +34,7 @@ public class TBCode extends TruncatedCode {
 		return trellis;
 	}
 	
-	public int getMinDist() {
+	public int getMinDist() throws SpanFormException {
 		if (minDist == -1) {
 			minDist = MinDistance.findMinDist(this);		
 		}

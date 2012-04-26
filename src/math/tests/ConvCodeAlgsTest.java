@@ -10,6 +10,7 @@ import java.io.IOException;
 
 import math.ConvCodeAlgs;
 import math.ConvCodeSpanForm;
+import math.ConvCodeSpanForm.SpanFormException;
 import math.Poly;
 import math.PolyMatrix;
 
@@ -55,7 +56,7 @@ public class ConvCodeAlgsTest {
 	}
 
 	@Test
-	public void trellisShouldCorresponfToCodeWords() {
+	public void trellisShouldCorresponfToCodeWords() throws SpanFormException {
 		PolyMatrix minBaseG = ConvCodeAlgs.getMinimalBaseGenerator(G);
 		ConvCodeSpanForm spanForm = ConvCodeAlgs.buildSpanForm(minBaseG); // should be done without exceptions
 

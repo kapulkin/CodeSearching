@@ -54,7 +54,7 @@ public class EnumeratorLogger<SomeCode extends Code> implements ICodeEnumerator<
 		if (mode == LoggingMode.TimeLogging) {
 			if ((System.currentTimeMillis() - lastOutline) > 1000) {
 				long elapsedTime = System.currentTimeMillis() - startTime;
-				double speed = viewedCodesCount / elapsedTime;
+				double speed = viewedCodesCount * 1000 / elapsedTime;
 				double remainingTime = ((totalCodesCount - viewedCodesCount) * elapsedTime / 1000 / viewedCodesCount);
 						
 				logger.info("codes viewed: " + viewedCodesCount + ", remaining time: " + remainingTime + "s, speed: " + speed + "c/s");

@@ -165,7 +165,14 @@ public class MathAlgs {
 				if(matr.get(j, bitPos) == true)
 				{
 					matr.getRow(j).xor(matr.getRow(i));
-					combinations.get(j).add(i);
+					
+					for (int k : combinations.get(i)) {
+						if (combinations.get(j).contains(k)) {
+							combinations.get(j).remove(k);
+						} else {
+							combinations.get(j).add(k);
+						}
+					}
 				}
 			}
 		}

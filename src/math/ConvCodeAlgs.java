@@ -8,6 +8,8 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import math.ConvCodeSpanForm.SpanFormException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -240,8 +242,9 @@ public class ConvCodeAlgs {
 	 * Спеновая форма включает в себя массив матриц - разложение полиномиальной по степеням, а так же индексы начал и концов строк.
 	 * @param matrix порождающая матрица сверточного кода в minimal-base форме.
 	 * @return спеновую форму порождающей матрицы сверточного кода
+	 * @throws SpanFormException 
 	 */
-	public static ConvCodeSpanForm buildSpanForm(PolyMatrix matrix) {
+	public static ConvCodeSpanForm buildSpanForm(PolyMatrix matrix) throws SpanFormException {
 		int degrees[] = sortRowsByDegree(matrix);
 		Matrix matrices[] = buildPowerDecomposition(matrix);
 
@@ -617,7 +620,7 @@ public class ConvCodeAlgs {
 		for (int i = 0;i < dependentRows.length; ++i) {
 			if (highestDegrees[dependentRows[i]] > maxDeg) {
 				maxDeg = highestDegrees[dependentRows[i]];
-				maxDegInd = i;
+				maxDegInd = dependentRows[i];
 			}
 		}
 		

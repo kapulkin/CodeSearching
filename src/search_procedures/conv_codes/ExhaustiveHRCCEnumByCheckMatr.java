@@ -41,8 +41,47 @@ public class ExhaustiveHRCCEnumByCheckMatr implements ICodeEnumerator<ConvCode> 
 		currentParityCheck = null;
 	}
 	
-	private void fillTopRow() {
-		long[] highBitPositions = topRowEnum.next();
+	private boolean columnEqualsUpToHigherBit(int i, int j) {
+		for (int l = 0;l < k + 1; ++l) {
+			if (currentParityCheck.get(0, i).getCoeff(l) != currentParityCheck.get(0, j).getCoeff(l)) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	private long[] skipEquivalentHighBitPositions() {
+		long[] oldHighBitPositions = topRowEnum.current();		
+		long[] highBitPositions = null;
+		
+		// TODO: write comment!!!!
+		while (topRowEnum.hasNext()) {
+			highBitPositions = topRowEnum.next();
+			
+			if (oldHighBitPositions == null) {
+				break;
+			}
+			
+			if (highBitPositions.length != oldHighBitPositions.length) {
+				break;
+			}
+			
+			if (columnEqualsUpToHigherBit((int)oldHighBitPositions[0], (int)highBitPositions[0]) && 
+					(highBitPositions.length == 1 || columnEqualsUpToHigherBit((int)oldHighBitPositions[1], (int)highBitPositions[1]))) {
+				continue;
+			}
+		}
+		
+		return highBitPositions;
+	}
+	
+	private boolean fillTopRow() {
+		long[] highBitPositions = skipEquivalentHighBitPositions();
+		
+		if (highBitPositions == null) {
+			return false;
+		}
 		
 		for (int column = 0; column < k + 1; ++column) {
 			if (Arrays.binarySearch(highBitPositions, column) >= 0) {
@@ -51,6 +90,8 @@ public class ExhaustiveHRCCEnumByCheckMatr implements ICodeEnumerator<ConvCode> 
 				currentParityCheck.get(0, column).setCoeff(delay, false);
 			}
 		}
+		
+		return true;
 	}
 	
 	private int checkSubmatrices() {
@@ -77,9 +118,7 @@ public class ExhaustiveHRCCEnumByCheckMatr implements ICodeEnumerator<ConvCode> 
 
 	@Override
 	public ConvCode next() {
-		if (topRowEnum != null && topRowEnum.hasNext()) {
-			fillTopRow();
-			
+		if (topRowEnum != null && fillTopRow()) {						
 			PolyMatrix parityCheck = currentParityCheck.clone();
 			
 			parityCheck.sortColumns();
@@ -121,22 +160,28 @@ public class ExhaustiveHRCCEnumByCheckMatr implements ICodeEnumerator<ConvCode> 
 		return new ConvCode(parityCheck, false);
 	}
 	
+	private static Random rnd = new Random();
+	
 	public ConvCode random() {
 		MatrixEnumerator contentEnum = new MatrixEnumerator(delay - 1, k + 1);
 		BigInteger maxIndex = contentEnum.count().add(BigInteger.valueOf(-1));		
-		BigInteger index = BigInteger.ZERO;
-		Random rnd = new Random();
+		BigInteger index = BigInteger.ZERO;		
 		
-		for (int bitIndex = 0; bitIndex < maxIndex.bitCount(); ++bitIndex) {
+		boolean matchPrefix = true;
+		for (int bitIndex = maxIndex.bitCount() - 1; bitIndex >= 0; --bitIndex) {
+			if (matchPrefix && !maxIndex.testBit(bitIndex)) continue;
+			
 			if (rnd.nextBoolean()) {
-				index.setBit(bitIndex);
+				index = index.setBit(bitIndex);
+			} else {
+				matchPrefix = false;
 			}
 		}
 		
-		Matrix content = contentEnum.getByIndex(index);
-		int bitPairIndex = rnd.nextInt((k + 2) * (k + 1) + 2);
-		int firstBitIndex = bitPairIndex >= (k + 2) * (k + 1) ? k + 1 : bitPairIndex / (k + 1);
-		int secondBitIndex = bitPairIndex >= (k + 2) * (k + 1) ? k + 1 : bitPairIndex % (k + 1);
+		Matrix content = contentEnum.random();//contentEnum.getByIndex(index);
+		int bitPairIndex = rnd.nextInt((k + 1) * k + 2);
+		int firstBitIndex = bitPairIndex >= (k + 1) * k ? k + 1 : bitPairIndex / k;
+		int secondBitIndex = bitPairIndex >= (k + 1) * k + 1 ? k + 1 : bitPairIndex % k;
 		
 		if (secondBitIndex >= firstBitIndex) ++secondBitIndex;
 		
@@ -153,8 +198,11 @@ public class ExhaustiveHRCCEnumByCheckMatr implements ICodeEnumerator<ConvCode> 
 			if (i == firstBitIndex || i == secondBitIndex) {
 				poly.setCoeff(delay, true);
 			}
+			
+			parityCheck.set(0, i, poly);
 		}
 		
+		parityCheck.sortColumns();
 		return new ConvCode(parityCheck, false);
 	}
 

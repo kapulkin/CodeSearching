@@ -21,7 +21,7 @@ public class FileCCEnumeratorTest {
 		FileCCEnumerator enumerator;
 		
 		try {
-			enumerator = new FileCCEnumerator("low_rate_cc.txt");
+			enumerator = new FileCCEnumerator("3&10&7.txt");
 		} catch (FileNotFoundException e) {			
 			e.printStackTrace();
 			return;
@@ -34,7 +34,9 @@ public class FileCCEnumeratorTest {
 			//logger.info("Free dist = " + code.getFreeDist());
 			try {
 				IOPolyMatrix.writeMatrix(code.generator(), System.out);
-			} catch (IOException e) {				
+				IOPolyMatrix.writeMatrix(code.parityCheck(), System.out);
+				logger.info("Free dist: " + code.getFreeDist());
+			} catch (Exception e) {				
 				e.printStackTrace();
 			}
 		}

@@ -39,7 +39,7 @@ public class BlockCodesSearcher {
 		public TaskPool() {
 			
 		}
-	}
+	}	
 	
 	public BlockCode[] searchTruncatedCodes(TaskPool[] pools) {
 		BlockCode[] codes = new BlockCode[pools.length];		

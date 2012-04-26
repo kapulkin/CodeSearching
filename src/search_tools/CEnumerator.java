@@ -2,6 +2,7 @@ package search_tools;
 
 import java.math.BigInteger;
 import java.util.NoSuchElementException;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,17 +113,48 @@ public class CEnumerator {
 	
 	public long[] getByIndex(BigInteger index) {
 		long[] sequence = new long[k];
-		long digit = 0;
+		BigInteger delta = BigInteger.ZERO;
+		long digit = 1;
 		
 		for (int i = k - 1; i >= 0; --i) {
-			BigInteger delta = BigInteger.ZERO;
-			
-			while ((delta.add(new CEnumerator(n - digit, k).count())).compareTo(index) <= 0) { 
-				delta = delta.add(new CEnumerator(n - digit, k).count());
+			while ((delta.add(new CEnumerator(n - digit, i).count())).compareTo(index) <= 0) { 
+				delta = delta.add(new CEnumerator(n - digit, i).count());
 				++digit;
 			}
 			
-			sequence[i] = digit;
+			sequence[k - i - 1] = digit - 1;
+			++digit;
+		}
+		
+		return sequence;
+	}
+	
+	private static Random rnd = new Random();
+	
+	public long[] random() {
+		long[] sequence = new long[k];		
+		
+		for (int i = 0;i < k; ++i) {
+			long ballIndex = (((long)rnd.nextInt() << 32) + rnd.nextInt()) % (n - i);
+			
+			for (int j = 0;j < i; ++j) {
+				if (sequence[j] <= ballIndex) {
+					++ballIndex;
+				}
+			}
+			
+			sequence[i] = ballIndex;
+		}
+		
+		for (int i = 0; i < k; ++i) {
+			for (int j = k - 1; j > i; --j) {
+				if (sequence[j] < sequence[j - 1]) {
+					long tmp = sequence[j];
+					
+					sequence[j] = sequence[j - 1];
+					sequence[j - 1] = tmp;
+				}
+			}
 		}
 		
 		return sequence;

@@ -6,6 +6,7 @@ import java.util.TreeSet;
 
 import math.BitArray;
 import math.ConvCodeSpanForm;
+import math.ConvCodeSpanForm.SpanFormException;
 import math.Matrix;
 import search_procedures.ICandidateEnumerator;
 import search_procedures.ICodeEnumerator;
@@ -29,8 +30,9 @@ public class DZTCodeSearcher extends BasicBlockCodesSearcher<BlockCode> {
 	 * @param n
 	 * @param minDist
 	 * @param ccEnum convolutional code enumerator
+	 * @throws SpanFormException 
 	 */
-	DZTCodeSearcher(int k, int n, int minDist, ICodeEnumerator<ConvCode> ccEnum) {
+	DZTCodeSearcher(int k, int n, int minDist, ICodeEnumerator<ConvCode> ccEnum) throws SpanFormException {
 		//super(minDist, Integer.MAX_VALUE);
 		this.k = k;
 		this.n = n;
@@ -47,7 +49,7 @@ public class DZTCodeSearcher extends BasicBlockCodesSearcher<BlockCode> {
 		return k - cc.getK() * scale1;				
 	}
 
-	public static int getStart(ConvCode cc) {
+	public static int getStart(ConvCode cc) throws SpanFormException {
 		// вычисляем начальное смещение для zt2 кода с тем, чтобы при объединенни кодов получить матрицу в спеновой форме.
 		ConvCodeSpanForm spanForm = cc.spanForm();
 		SortedSet<Integer> columns = new TreeSet<Integer>();
@@ -90,7 +92,7 @@ public class DZTCodeSearcher extends BasicBlockCodesSearcher<BlockCode> {
 
 		RowShiftingZTCodeSearcher rowZTSearcher;
 
-		public DZTCandidateEnumerator(ICodeEnumerator<ConvCode> ccEnum) {
+		public DZTCandidateEnumerator(ICodeEnumerator<ConvCode> ccEnum) throws SpanFormException {
 			this.ccEnum = ccEnum;
 			
 			ccCode = ccEnum.next();
@@ -112,8 +114,13 @@ public class DZTCodeSearcher extends BasicBlockCodesSearcher<BlockCode> {
 					if (cc == null) {
 						return null;
 					}
-					rowZTSearcher = new RowShiftingZTCodeSearcher(minDist, Integer.MAX_VALUE, cc, k, n);
-					zt2 = (ZTCode) rowZTSearcher.findNext();
+					try {
+						rowZTSearcher = new RowShiftingZTCodeSearcher(minDist, Integer.MAX_VALUE, cc, k, n);
+						zt2 = (ZTCode) rowZTSearcher.findNext();
+					} catch (SpanFormException e) {
+						e.printStackTrace();
+					}
+					// TODO: check for while(true) here.
 				} while (zt2 == null);
 				int scale1 = getScale1(ccCode, k, n);
 				zt1 = new ZTCode(ccCode, scale1);

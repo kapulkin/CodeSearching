@@ -1,5 +1,6 @@
 package search_procedures.block_codes;
 
+import math.ConvCodeSpanForm.SpanFormException;
 import codes.ConvCode;
 import codes.TruncatedCode;
 import search_procedures.conv_codes.RowShiftingCodeEnumerator;
@@ -15,7 +16,7 @@ public class RowShiftingZTCodeSearcher extends BasicBlockCodesSearcher<Truncated
 	}
 	
 	public RowShiftingZTCodeSearcher(int requiredMinDistance,
-			int requiredStateComplexity, ConvCode ccCode, int k, int n) {
+			int requiredStateComplexity, ConvCode ccCode, int k, int n) throws SpanFormException {
 		//super(requiredMinDistance, requiredStateComplexity);
 
 		int scale1 = DZTCodeSearcher.getScale1(ccCode, k, n);

@@ -9,6 +9,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
+import math.ConvCodeSpanForm.SpanFormException;
 import math.MinDistance;
 
 import org.slf4j.Logger;
@@ -97,16 +98,20 @@ public class DiscreditableCodesSearcher {
 		public boolean check(Code code) {
 			ConvCode _code = (ConvCode)code;
 			
-			if (_code.getFreeDist() < lowerBound) {
-				stupidCodes.put((double)_code.getFreeDist() / freeDist, _code);
-				if (stupidCodes.size() > BUFFER_SIZE) {
-					stupidCodes.entrySet().iterator().remove();
-				}
-				++stupidCodesCount;
+			try {
+				if (_code.getFreeDist() < lowerBound) {
+					stupidCodes.put((double)_code.getFreeDist() / freeDist, _code);
+					if (stupidCodes.size() > BUFFER_SIZE) {
+						stupidCodes.entrySet().iterator().remove();
+					}
+					++stupidCodesCount;
+					return false;
+				}/**/
+				
+				return _code.getFreeDist() >= freeDist;
+			} catch (Exception e) {
 				return false;
-			}/**/
-			
-			return _code.getFreeDist() >= freeDist;
+			}
 		}
 		
 	}
@@ -171,7 +176,12 @@ public class DiscreditableCodesSearcher {
 			logger.info("Stupid codes count: " + heur.getStupidCodesCount());
 			
 			for (ConvCode code : heur.getStupidCodes()) {			
-				System.out.println(code.getFreeDist() + " " + heur.getFreeDist() + " " + MinDistance.findMinDist(new ZTCode(code, 5).generator()));
+				try {
+					System.out.println(code.getFreeDist() + " " + heur.getFreeDist() + " " + MinDistance.findMinDist(new ZTCode(code, 5).generator()));
+				} catch (SpanFormException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				IOPolyMatrix.writeMatrix(code.generator(),  System.out);
 				IOMatrix.writeMatrix(new ZTCode(code, 5).generator(), new BufferedWriter(new OutputStreamWriter(System.out)));
 			}			

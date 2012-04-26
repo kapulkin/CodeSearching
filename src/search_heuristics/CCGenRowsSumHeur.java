@@ -1,5 +1,6 @@
 package search_heuristics;
 
+import math.ConvCodeAlgs;
 import math.MinDistance;
 import codes.Code;
 import codes.ConvCode;
@@ -18,7 +19,8 @@ public class CCGenRowsSumHeur implements IHeuristic {
 	public boolean check(Code code) {
 		ConvCode _code = (ConvCode)code;
 		int kblocksCount = (int)Math.ceil(((double)rowsCount / _code.getK())) * _code.getK();
-		ZTCode ztCode = new ZTCode(_code, kblocksCount - 1);
+		//ZTCode ztCode = new ZTCode(_code, kblocksCount - 1);
+		ZTCode ztCode = (ZTCode) ConvCodeAlgs.truncate(kblocksCount, (kblocksCount / _code.getK() + _code.getDelay()) * _code.getN(), _code);
 		
 		if (MinDistance.findMinDist(ztCode.generator()) < freeDist) {
 			return false;

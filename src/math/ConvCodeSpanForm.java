@@ -11,6 +11,20 @@ import java.util.TreeSet;
  *
  */
 public class ConvCodeSpanForm implements ISpanForm {
+	public class SpanFormException extends Exception {
+		public SpanFormException(String message) {
+			super(message);
+		}
+	}
+	
+	public class MatrixNotInSpanForm extends SpanFormException {
+
+		public MatrixNotInSpanForm(String message) {
+			super(message);
+		}
+
+	}
+
 	/**
 	 * Разложение по степеням порождающей матрицы сверточного кода, записанное в столбик. 
 	 */
@@ -33,7 +47,7 @@ public class ConvCodeSpanForm implements ISpanForm {
 	 */
 	public int spanTails[];
 
-	public ConvCodeSpanForm(Matrix matrix, int degrees[], int spanHeads[], int spanTails[]) {
+	public ConvCodeSpanForm(Matrix matrix, int degrees[], int spanHeads[], int spanTails[]) throws SpanFormException {
 		this.matrix = matrix;
 		this.degrees = degrees;
 		this.spanHeads = spanHeads;
@@ -114,21 +128,22 @@ public class ConvCodeSpanForm implements ISpanForm {
 	
 	/**
 	 * Проверяет корректность спеновой формы. 
+	 * @throws MatrixNotInSpanForm 
 	 */
-	private void checkSpanForm() {
+	private void checkSpanForm() throws SpanFormException {
 		if ((matrix.getRowCount() % degrees.length) != 0 || 
 				degrees.length != spanHeads.length ||
 				degrees.length != spanTails.length) {
-			throw new IllegalArgumentException("Wrong sizes of input matrices or arrays.");
+			throw new MatrixNotInSpanForm("Wrong sizes of input matrices or arrays.");
 		}
 
 		int b = getRowCount();
 		for (int i = 0; i < b; ++i) {
 			if (matrix.getRow(i).nextSetBit(0) != spanHeads[i]) {
-				throw new IllegalArgumentException("Span heads don't correspond to matrices.");
+				throw new MatrixNotInSpanForm("Span heads don't correspond to matrices.");
 			}
 			if (matrix.getRow(degrees[i] * b + i).previousSetBit(matrix.getColumnCount() - 1) != spanTails[i]) {
-				throw new IllegalArgumentException("Span tails don't correspond to matrices.");
+				throw new MatrixNotInSpanForm("Span tails don't correspond to matrices.");
 			}
 		}
 	}

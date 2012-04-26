@@ -79,7 +79,7 @@ public class BlockCodesTable {
 		}
 	}
 	
-	public static void writeCodes(BlockCode[] codes, BufferedWriter writer) throws IOException{
+	public static void writeCodes(BlockCode[] codes, BufferedWriter writer) throws Exception{
 		for(int i = 0;i < codes.length;i ++){
 			if(codes[i] != null){				
 				writer.write("k = " + codes[i].getK());

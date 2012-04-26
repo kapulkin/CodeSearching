@@ -1,5 +1,7 @@
 package math;
 
+import math.ConvCodeSpanForm.SpanFormException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,8 +85,9 @@ public class MinDistance {
 	 * Вычисляет минимальное расстояние блокового кода.
 	 * @param code блоковый код
 	 * @return минимальное расстояние блокового кода
+	 * @throws Exception 
 	 */
-	public static int findMinDist(BlockCode code) {
+	public static int findMinDist(BlockCode code) throws Exception {
 //		code.setMinDist(findMinDistWithBEAST(new BlockCodeTrellis(code.getGeneratorSpanForm()), 0, code.getN()));
 //		return code.getMinDist();
 		return findMinDistWithBEAST(code.getTrellis(), 0, code.getN());
@@ -94,8 +97,9 @@ public class MinDistance {
 	 * Вычисляет свободное расстояние сверточного кода.
 	 * @param code сверточный код
 	 * @return свободное расстояние сверточного кода
+	 * @throws SpanFormException 
 	 */
-	public static int findFreeDist(ConvCode code) {
+	public static int findFreeDist(ConvCode code) throws SpanFormException {
 //		code.setFreeDist(findMinDistWithBEAST(trellis, 0, code.getN() * (code.getDelay() + 1)));
 //		return code.getFreeDist();
 		return findMinDistWithBEAST(code.getTrellis(), 0, code.getN() * (code.getDelay() + 1));
@@ -105,8 +109,9 @@ public class MinDistance {
 	 * Вычисляет минимальное расстояние усеченного блокового кода.
 	 * @param code усеченного блоковый код
 	 * @return минимальное расстояние усеченного блокового кода
+	 * @throws SpanFormException 
 	 */
-	public static int findMinDist(TBCode code) {
+	public static int findMinDist(TBCode code) throws SpanFormException {
 		ITrellis trellis = code.getTrellis();//new BlockCodeTrellis(code.getGeneratorSpanForm());
 		
 		int minDist = Integer.MAX_VALUE;

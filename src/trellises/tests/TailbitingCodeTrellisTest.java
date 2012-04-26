@@ -10,6 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
+import math.ConvCodeSpanForm.SpanFormException;
 import math.MinDistance;
 import math.Poly;
 import math.PolyMatrix;
@@ -27,7 +28,7 @@ public class TailbitingCodeTrellisTest {
 	static final private Logger logger = LoggerFactory.getLogger(TailbitingCodeTrellisTest.class);
 	
 	@Test
-	public void testTrellisWithBEAST1() {
+	public void testTrellisWithBEAST1() throws SpanFormException {
 		PolyMatrix generator = new PolyMatrix(1, 2);
 		generator.set(0, 0, new Poly(new int [] {2}));
 		generator.set(0, 1, new Poly(new int [] {0, 1, 2}));
@@ -51,7 +52,7 @@ public class TailbitingCodeTrellisTest {
 	}
 
 	@Test
-	public void testTrellisWithBEAST2() {
+	public void testTrellisWithBEAST2() throws SpanFormException {
 		PolyMatrix generator = new PolyMatrix(1, 2);
 		generator.set(0, 0, new Poly(new int [] {0, 1, 2}));
 		generator.set(0, 1, new Poly(new int [] {0, 1, 3}));

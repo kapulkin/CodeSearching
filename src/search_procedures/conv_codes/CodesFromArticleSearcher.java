@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import trellises.Trellis;
 import trellises.Trellises;
 
+import math.ConvCodeSpanForm.SpanFormException;
 import math.MinDistance;
 import math.Poly;
 import math.PolyMatrix;
@@ -115,6 +116,8 @@ public class CodesFromArticleSearcher {
 				} catch (SQLException e) {
 					logger.error("Failed to save found code in database.");
 					e.printStackTrace();
+				} catch (SpanFormException e) {
+					e.printStackTrace();
 				}
 				for (ConvCode code : codesMap.get(delay)) {
 					if (code.parityCheck().equals(newCode.parityCheck())) {
@@ -152,6 +155,9 @@ public class CodesFromArticleSearcher {
 			} catch (SQLException e) {
 				logger.error("Failed to save found code in database.");
 				e.printStackTrace();
+			} catch (SpanFormException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			if (code.parityCheck().equals(newCode.parityCheck())) {
 				logger.info("Code from article is found:\n" + code.parityCheck());
@@ -181,7 +187,12 @@ public class CodesFromArticleSearcher {
 			newCode.setFreeDist(freeDist);
 			
 			try {
-				CodesDatabase.addConvCode(newCode, CodesDatabase.convCodesTable);
+				try {
+					CodesDatabase.addConvCode(newCode, CodesDatabase.convCodesTable);
+				} catch (SpanFormException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			} catch (SQLException e) {
 				logger.error("Failed to save found code in database.");
 				e.printStackTrace();

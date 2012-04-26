@@ -2,6 +2,7 @@ package search_tools;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Random;
 
 import math.Matrix;
 
@@ -52,6 +53,10 @@ public class MatrixEnumerator {
 	
 	public Matrix getByIndex(BigInteger index) {
 		return matrixByColumns(columnEnum.getByIndex(index));
+	}
+	
+	public Matrix random() {
+		return matrixByColumns(columnEnum.random());
 	}
 	
 	private Matrix matrixByColumns(long[] columns) {

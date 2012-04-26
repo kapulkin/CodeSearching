@@ -75,11 +75,60 @@ public class Main {
 		}
 	}
 	
+	private static void patch() throws IOException {
+		Scanner scanner = new Scanner(new File("3&6&6.txt"));
+		StringBuilder modifiedContent = new StringBuilder();		
+		
+		while (scanner.hasNext()) {
+			String line = scanner.nextLine();
+			
+			if (line.contains(",")) {
+				String[] gens = line.split(", ");
+				
+				for (int i = 0;i < 4; ++i) {
+					String gen = gens[i];
+					int digits = 0;
+					
+					for (int j = 0;j < gen.length(); ++j) {
+						if (Character.isDigit(gen.charAt(j))) {
+							++digits;
+						}
+					}
+					
+					if (i != 0) {
+						modifiedContent.append(", ");
+					}
+					
+					if (digits == 2) {
+						modifiedContent.append("0" + gen);
+					} else if (digits == 1) {
+						modifiedContent.append("00" + gen);
+					}
+					else {
+						modifiedContent.append(gen);
+					}					
+				}
+			} else {
+				modifiedContent.append(line);
+			}
+			
+			modifiedContent.append("\n");
+		}
+		
+		BufferedWriter writer = new BufferedWriter(new FileWriter(new File("_3&6&6.txt")));
+		
+		writer.write(modifiedContent.toString());
+		writer.flush();
+		//System.out.println(modifiedContent.toString().substring(0, 5000));
+	}
+	
 	/**
 	 * @param args
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
+		patch();		
+		
 		int[][] lowerBounds = DistanceBoundsParser.parse(false);
 		int[][] upperBounds = DistanceBoundsParser.parse(true);
 		

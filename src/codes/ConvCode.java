@@ -12,6 +12,7 @@ import math.BitArray;
 import math.BlockMatrix;
 import math.ConvCodeAlgs;
 import math.ConvCodeSpanForm;
+import math.ConvCodeSpanForm.SpanFormException;
 import math.Matrix;
 import math.MinDistance;
 import math.PolyMatrix;
@@ -191,8 +192,9 @@ public class ConvCode implements Code{
 	 * Метод приводит порождающую матрицу к minimal-base форме, а затем к спеновой форме.
 	 * После этого возвращает спеновую форму матрицы.
 	 * @return Спеновая форма порождающей матрицы. 
+	 * @throws SpanFormException 
 	 */
-	public ConvCodeSpanForm spanForm() {
+	public ConvCodeSpanForm spanForm() throws SpanFormException {
 		if (spanForm == null) {
 			genMatr = ConvCodeAlgs.getMinimalBaseGenerator(generator());
 			spanForm = ConvCodeAlgs.buildSpanForm(genMatr);
@@ -213,18 +215,42 @@ public class ConvCode implements Code{
 		
 		return genBlocks;
 	}
+
+	/**
+	 * Returns trellis, building by generator or parityChack matrix, as given in <code>byGenerator</code>.
+	 * @param byGenerator
+	 * @return
+	 * @throws SpanFormException
+	 */
+	public ITrellis getTrellis(boolean byGenerator) throws SpanFormException {
+		ITrellis trellis;
+		if (byGenerator) {
+			ITrellis implicitTrellis = new ConvCodeTrellis(spanForm());
+			try {
+				trellis = new LightTrellis(implicitTrellis);
+			} catch (IllegalArgumentException e) {
+				logger.debug("Failed to build explicit trellis, implicit will be used: {}", e.getMessage());
+				trellis = implicitTrellis;
+			}
+		} else {
+			trellis = Trellises.trellisFromParityCheckHR(checkMatr);
+			MinDistance.computeDistanceMetrics((Trellis)trellis);
+		}
+		
+		return trellis;
+	}
 	
-	public ITrellis getTrellis() {
+	public ITrellis getTrellis() throws SpanFormException {
 		if (trellis == null) {
-			if (genMatr != null) {
+			if (checkMatr == null) {
 				ITrellis implicitTrellis = new ConvCodeTrellis(spanForm());
-				try {
-					trellis = new LightTrellis(implicitTrellis);
-				} catch (IllegalArgumentException e) {
-					logger.debug("Failed to build explicit trellis, implicit will be used: {}", e.getMessage());
+			//	try {
+			//		trellis = new LightTrellis(implicitTrellis);
+			//	} catch (Exception e) { //IllegalArgumentException e) {
+				//	logger.debug("Failed to build explicit trellis, implicit will be used: {}", e.getMessage());
 					trellis = implicitTrellis;
-				}
-			}else {				
+			//	}
+			} else {				
 				trellis = Trellises.trellisFromParityCheckHR(checkMatr);
 				MinDistance.computeDistanceMetrics((Trellis)trellis);
 			}
@@ -232,7 +258,7 @@ public class ConvCode implements Code{
 		return trellis;
 	}
 	
-	public int getFreeDist() {
+	public int getFreeDist() throws SpanFormException {
 		if (freeDist == -1) {
 			freeDist = MinDistance.findFreeDist(this);
 		}
