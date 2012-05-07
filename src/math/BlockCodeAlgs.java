@@ -2,13 +2,18 @@ package math;
 
 import java.util.ArrayList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import search_procedures.block_codes.SearchMain;
 import trellises.BlockCodeTrellis;
 import trellises.Trellis;
 import trellises.Trellises;
 import codes.BlockCode;
 
 public class BlockCodeAlgs {
-
+	static final private Logger logger = LoggerFactory.getLogger(BlockCodeAlgs.class);
+	
 	/**
 	 * Расчет спэновой формы матрицы. Вычисления ведутся над входной матрицей.
 	 * @param matr
@@ -199,19 +204,51 @@ public class BlockCodeAlgs {
 	 */
 	public static Trellis buildExplicitTrellis(BlockCode code) {
 		return Trellises.getExplicitTrellisOf(new BlockCodeTrellis(code.getGeneratorSpanForm()));
-	}	
+	}		
+	
+	public static BlockCode fitToTheLength(BlockCode code, int length) {
+		if (!code.isGeneratorNull()) {
+			return new BlockCode(code.generator().assureColumnCount(length), true);
+		} else {
+			Matrix parityCheck = code.parityCheck().assureSize(length - code.getK(), length);
+			
+			for (int i = code.getN();i < length; ++i) {
+				parityCheck.set(i - code.getK(), i, true);
+			}
+			
+			return new BlockCode(parityCheck, false);
+		}
+	}
 	
 	public static BitArray[] buildCosetsWithBigWeight(BlockCode code, int weight) {		
 		BitArray cosetCharacteristicVector = new BitArray(1 << (code.getN() - code.getK()));
-		ArrayList<BitArray> badCosetsFront = new ArrayList<BitArray>();
+		BitArray dontMultiplyFlag = new BitArray(1 << (code.getN() - code.getK()));
+		//ArrayList<BitArray> badCosetsFront = new ArrayList<BitArray>();
 		Matrix parityCheck = code.parityCheck().transpose();
 		
 		cosetCharacteristicVector.set(0);
-		badCosetsFront.add(new BitArray(code.getN() - code.getK()));
-		for (int w = 1;w <= weight; ++w) {
-			ArrayList<BitArray> newFront = new ArrayList<BitArray>();
+		//badCosetsFront.add(new BitArray(code.getN() - code.getK()));
+		for (int w = 1;w < weight; ++w) {
+			//ArrayList<BitArray> newFront = new ArrayList<BitArray>();
 			
-			for (BitArray coset : badCosetsFront) {
+			for (int cosetInd = 0;cosetInd < cosetCharacteristicVector.getFixedSize(); ++cosetInd){//BitArray coset : badCosetsFront) {
+				if (dontMultiplyFlag.get(cosetInd)) {
+					dontMultiplyFlag.set(cosetInd, false);
+					continue;
+				}
+				
+				BitArray coset = new BitArray(code.getN() - code.getK());
+				
+				for (int b = 0;b < code.getN() - code.getK(); ++b) {
+					if ((cosetInd & (1 << b)) != 0) {
+						coset.set(b); 
+					}
+				}				
+				
+				if (cosetInd % 1000000 == 0) {
+					logger.info("w: " + w + " complete: " + cosetInd * 100.0 / cosetCharacteristicVector.getFixedSize() + "%");
+				}
+				
 				for (int i = 0;i < code.getN(); ++i) {
 					BitArray neighbour = new BitArray(coset);
 					
@@ -224,17 +261,24 @@ public class BlockCodeAlgs {
 						}
 					}
 					
+					if (neighbourIndex >= cosetCharacteristicVector.getFixedSize()) {
+						continue;
+					}
+					
 					if (!cosetCharacteristicVector.get(neighbourIndex)) {
 						cosetCharacteristicVector.set(neighbourIndex);
-						newFront.add(neighbour);
+						if (neighbourIndex > cosetInd) {
+							dontMultiplyFlag.set(neighbourIndex);
+							//cosetCharacteristicVector.set(neighbourIndex + cosetCharacteristicVector.getFixedSize() / 2);
+						}
 					}
 				}
 			}
 			
-			badCosetsFront = newFront;
-		}
+			//badCosetsFront = newFront;
+		} /**/
 		
-		System.out.println(cosetCharacteristicVector.cardinality());
+		System.out.println(cosetCharacteristicVector.getFixedSize() -  cosetCharacteristicVector.cardinality());
 		
 		ArrayList<BitArray> cosets = new ArrayList<BitArray>();
 		for (int cosetIndex = 0;cosetIndex < cosetCharacteristicVector.getFixedSize(); ++cosetIndex) {

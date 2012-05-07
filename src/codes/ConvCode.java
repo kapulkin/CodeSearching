@@ -312,5 +312,24 @@ public class ConvCode implements Code{
 		
 		return codeSeq;
 	}
+	
+	@Override
+	public boolean equals(Object code) {
+		ConvCode convCode = (ConvCode)code;
+		
+		if (getK() != convCode.getK()) {
+			return false;
+		}
+		
+		if (getN() != convCode.getN()) {
+			return false;
+		}
+		
+		if (convCode.generator().mul(parityCheck().transpose()).isZero()) {
+			return true;
+		}
+		
+		return false;
+	}
 		
 }

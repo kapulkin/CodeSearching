@@ -1,5 +1,7 @@
 package math;
 
+import codes.BlockCode;
+
 /**
  * Матрица булевых значений
  * 
@@ -172,11 +174,51 @@ public class Matrix implements Cloneable {
 		return tr;
 	}
 	
+	public Matrix assureColumnCount(int count) {
+		if (count == getColumnCount()) {
+			return this;
+		}
+		
+		Matrix modified = new Matrix(getRowCount(), count);
+		
+		for (int i = 0;i < getRowCount(); ++i) {
+			for (int j = 0;j < Math.min(count, getColumnCount()); ++j) {
+				modified.set(i, j, get(i, j));
+			}
+			for (int j = getColumnCount();j < count; ++j) {
+				modified.set(i, j, false);
+			}
+		}
+		
+		return modified;
+	}
+	
+	public Matrix assureRowCount(int count) {
+		if (count == getRowCount()) {
+			return (Matrix)this.clone();
+		}
+		
+		Matrix modified = new Matrix(count, getColumnCount());
+		
+		for (int i = 0;i < getColumnCount(); ++i) {
+			for (int j = 0;j < Math.min(count, getRowCount()); ++j) {
+				modified.set(j, i, get(j, i));
+			}
+			for (int j = getRowCount();j < count; ++j) {
+				modified.set(j, i, false);
+			}
+		}
+		
+		return modified;
+	}
+	
+	public Matrix assureSize(int rows, int columns) {
+		return assureRowCount(rows).assureColumnCount(columns);
+	}
+	
 	public boolean isZero() {
-		for(int i = 0;i < getRowCount();i ++)
-		{
-			for(int j = 0;j < getColumnCount();j ++)
-			{
+		for (int i = 0;i < getRowCount();i ++) {
+			for (int j = 0;j < getColumnCount();j ++) {
 				if (get(i, j) == true) {
 					return false;
 				}

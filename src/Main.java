@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import codes.BlockCode;
@@ -76,7 +77,7 @@ public class Main {
 	}
 	
 	private static void patch() throws IOException {
-		Scanner scanner = new Scanner(new File("3&12&8.txt"));
+		Scanner scanner = new Scanner(new File("3&10&7.txt"));
 		StringBuilder modifiedContent = new StringBuilder();		
 		
 		while (scanner.hasNext()) {
@@ -99,15 +100,15 @@ public class Main {
 						modifiedContent.append(", ");
 					}
 					
-					if (digits == 4) {
+					if (digits == 3) {
 						modifiedContent.append("0" + gen);
-					} else if (digits == 3) {
-						modifiedContent.append("00" + gen);
 					} else if (digits == 2) {
-						modifiedContent.append("000" + gen);
+						modifiedContent.append("00" + gen);
 					} else if (digits == 1) {
+						modifiedContent.append("000" + gen);
+					}/* else if (digits == 1) {
 						modifiedContent.append("0000" + gen);
-					}
+					}/**/
 					else {
 						modifiedContent.append(gen);
 					}					
@@ -119,11 +120,28 @@ public class Main {
 			modifiedContent.append("\n");
 		}
 		
-		BufferedWriter writer = new BufferedWriter(new FileWriter(new File("_3&12&8.txt")));
+		BufferedWriter writer = new BufferedWriter(new FileWriter(new File("_3&10&7.txt")));
 		
 		writer.write(modifiedContent.toString());
 		writer.flush();
 		//System.out.println(modifiedContent.toString().substring(0, 5000));
+	}
+	
+	private static void cutSimilarCodes() throws IOException {
+		Scanner scanner = new Scanner(new File("_3&6&6.txt"));
+		BufferedWriter writer = new BufferedWriter(new FileWriter(new File("__3&6&6.txt")));
+		ArrayList<ConvCode> codesTable = new ArrayList<ConvCode>();		
+		
+		while (scanner.hasNext()) {
+			ConvCode code = IOConvCode.readConvCode(scanner);
+			
+			if (!codesTable.contains(code)) {
+				IOConvCode.writeConvCode(code, writer, "pc");
+				codesTable.add(code);
+			}
+		}
+		
+		writer.flush();
 	}
 	
 	/**
@@ -131,7 +149,8 @@ public class Main {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
-		patch();		
+		patch();
+		//cutSimilarCodes();
 		
 		int[][] lowerBounds = DistanceBoundsParser.parse(false);
 		int[][] upperBounds = DistanceBoundsParser.parse(true);

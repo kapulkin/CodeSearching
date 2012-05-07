@@ -1,6 +1,5 @@
 package search_procedures.block_codes;
 
-import in_out_interfaces.IOConvCode;
 import in_out_interfaces.IOMatrix;
 
 import java.io.File;
@@ -11,11 +10,9 @@ import java.math.BigInteger;
 import java.util.Scanner;
 
 import codes.BlockCode;
-import codes.ConvCode;
 
 import search_procedures.CodesCounter;
 import search_procedures.ICodeEnumerator;
-import search_procedures.conv_codes.FileCCEnumerator;
 
 public class FileBCEnumerator implements ICodeEnumerator<BlockCode> {
 
@@ -26,6 +23,8 @@ public class FileBCEnumerator implements ICodeEnumerator<BlockCode> {
 		this.filename = fileName;
 		reset();
 	}
+	
+	
 	
 	@Override
 	public void reset() {

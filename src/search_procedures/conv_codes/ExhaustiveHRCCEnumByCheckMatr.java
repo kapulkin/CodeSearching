@@ -41,57 +41,51 @@ public class ExhaustiveHRCCEnumByCheckMatr implements ICodeEnumerator<ConvCode> 
 		currentParityCheck = null;
 	}
 	
-	private boolean columnEqualsUpToHigherBit(int i, int j) {
-		for (int l = 0;l < k + 1; ++l) {
-			if (currentParityCheck.get(0, i).getCoeff(l) != currentParityCheck.get(0, j).getCoeff(l)) {
-				return false;
+	private int firstPolyInGroup(int group) {
+		if (group == 0) {
+			return 0;
+		}
+		
+		for (int i = 1;i < k + 1; ++i) {
+			if (!currentParityCheck.get(0, i).equals(currentParityCheck.get(0, i - 1))) {
+				--group;
+				if (group == 0) {
+					return i;
+				}
 			}
 		}
 		
-		return true;
+		return -1;
 	}
 	
-	private long[] skipEquivalentHighBitPositions() {
-		long[] oldHighBitPositions = topRowEnum.current();		
-		long[] highBitPositions = null;
+	private int numberOfPolyGroups() {
+		int count = 1;
 		
-		// TODO: write comment!!!!
-		while (topRowEnum.hasNext()) {
-			highBitPositions = topRowEnum.next();
-			
-			if (oldHighBitPositions == null) {
-				break;
-			}
-			
-			if (highBitPositions.length != oldHighBitPositions.length) {
-				break;
-			}
-			
-			if (columnEqualsUpToHigherBit((int)oldHighBitPositions[0], (int)highBitPositions[0]) && 
-					(highBitPositions.length == 1 || columnEqualsUpToHigherBit((int)oldHighBitPositions[1], (int)highBitPositions[1]))) {
-				continue;
+		for (int i = 1;i < k + 1; ++i) {
+			if (!currentParityCheck.get(0, i).equals(currentParityCheck.get(0, i - 1))) {
+				++count;
 			}
 		}
 		
-		return highBitPositions;
+		return count;
 	}
 	
-	private boolean fillTopRow() {
-		long[] highBitPositions = skipEquivalentHighBitPositions();
-		
-		if (highBitPositions == null) {
-			return false;
+	private void eraseTopRow() {
+		for (int i = 0;i < k + 1; ++i) {
+			currentParityCheck.get(0, i).setCoeff(delay, false);
 		}
+	}
+	
+	private void fillTopRow() {
+		long[] highBitPositions = topRowEnum.next();//skipEquivalentHighBitPositions();
+				
+		eraseTopRow();	
 		
-		for (int column = 0; column < k + 1; ++column) {
-			if (Arrays.binarySearch(highBitPositions, column) >= 0) {
-				currentParityCheck.get(0, column).setCoeff(delay, true);
-			}else{
-				currentParityCheck.get(0, column).setCoeff(delay, false);
-			}
-		}
+		if (highBitPositions.length == 2) {
+			currentParityCheck.get(0, firstPolyInGroup((int)highBitPositions[1])).setCoeff(delay, true);
+		}		
 		
-		return true;
+		currentParityCheck.get(0, firstPolyInGroup((int)highBitPositions[0])).setCoeff(delay, true);
 	}
 	
 	private int checkSubmatrices() {
@@ -118,7 +112,9 @@ public class ExhaustiveHRCCEnumByCheckMatr implements ICodeEnumerator<ConvCode> 
 
 	@Override
 	public ConvCode next() {
-		if (topRowEnum != null && fillTopRow()) {						
+		if (topRowEnum != null && topRowEnum.hasNext()) {
+			fillTopRow();
+			
 			PolyMatrix parityCheck = currentParityCheck.clone();
 			
 			parityCheck.sortColumns();
@@ -130,7 +126,7 @@ public class ExhaustiveHRCCEnumByCheckMatr implements ICodeEnumerator<ConvCode> 
 			if (!parityCheckEnum.hasNext())
 				return null;
 			
-			Matrix content = badColumn == -1 ? parityCheckEnum.getNext() : parityCheckEnum.getNext(badColumn);
+			Matrix content = parityCheckEnum.getNext();//badColumn == -1 ? parityCheckEnum.getNext() : parityCheckEnum.getNext(badColumn);
 			
 			currentParityCheck = new PolyMatrix(1, k + 1);
 			
@@ -151,7 +147,9 @@ public class ExhaustiveHRCCEnumByCheckMatr implements ICodeEnumerator<ConvCode> 
 		//	}
 		//}
 		
-		topRowEnum = new HammingBallEnumerator(k + 1, 2);
+		int polyGroups = numberOfPolyGroups(); 
+		
+		topRowEnum = new HammingBallEnumerator(polyGroups, Math.min(2, polyGroups));
 		fillTopRow();		
 		
 		PolyMatrix parityCheck = currentParityCheck.clone();

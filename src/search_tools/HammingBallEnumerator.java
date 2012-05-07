@@ -1,16 +1,25 @@
 package search_tools;
 
 import java.math.BigInteger;
+import java.util.Random;
 
 public class HammingBallEnumerator {
 	private int k;
-	private int n;
+	private long n;
 	private CEnumerator sphereEnum;
 	
-	public HammingBallEnumerator(int n, int k) {
+	public HammingBallEnumerator(long n, int k) {
 		this.k = k;
 		this.n = n;
 		sphereEnum = new CEnumerator(n, 1);
+	}
+	
+	public int getK() {
+		return k;
+	}
+	
+	public long getN() {
+		return n;
 	}
 	
 	public BigInteger count() {
@@ -39,4 +48,5 @@ public class HammingBallEnumerator {
 		sphereEnum = new CEnumerator(n, sphereEnum.getK() + 1);
 		return sphereEnum.next();
 	}
+	
 }

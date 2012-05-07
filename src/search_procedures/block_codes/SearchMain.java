@@ -4,16 +4,22 @@ import in_out_interfaces.DistanceBoundsParser;
 import in_out_interfaces.IOBlockMatrix;
 import in_out_interfaces.IOMatrix;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.StreamTokenizer;
 import java.math.BigInteger;
 
 import math.BitArray;
 import math.BlockCodeAlgs;
+import math.BlockMatrix;
 import math.ConvCodeAlgs;
 import math.Matrix;
 import math.MaximalLinearSubspace;
@@ -84,6 +90,57 @@ public class SearchMain {
 		
 	}
 	
+	private static class FileBCEnumeratorWrapper implements ICodeEnumerator<TruncatedCode> {
+		private FileBCEnumerator bcEnum;
+		private int b;
+		
+		public FileBCEnumeratorWrapper(FileBCEnumerator bcEnum, int b) {
+			this.bcEnum = bcEnum;
+			this.b = b;	
+		}
+
+		@Override
+		public void reset() {
+			bcEnum.reset();			
+		}
+
+		@Override
+		public TruncatedCode next() {
+			BlockCode code = bcEnum.next();
+			
+			if (code == null) {
+				return null;
+			}
+			
+			BlockMatrix generator = new BlockMatrix(code.generator(), b, b + 1);
+			int v = generator.getColumnCount() - 1;
+			
+			for (;v >= 0; --v) {
+				if (!generator.get(0, v).isZero()) {
+					break;
+				}
+			}
+			
+			logger.debug("" + v);
+			
+			Matrix[] genBlocks = new Matrix[v + 1];
+			
+			for (int i = 0;i <= v; ++i) {
+				genBlocks[i] = generator.get(0, i);
+			}
+			
+			ConvCode convCode = new ConvCode(genBlocks);
+			
+			convCode.parityCheck();
+			return ConvCodeAlgs.truncate(code.getK(), code.getN(), convCode);
+		}
+
+		@Override
+		public BigInteger count() {			
+			return bcEnum.count();
+		}
+	}
+	
 	public static int estimateTaskTime(BlockCodesSearcher.SearchTask task, ExhaustiveHRCCEnumByCheckMatr ccEnum, IHeuristic ccHeur) {
 		int attempts = 10000;		
 		long avgTime = 1;
@@ -114,7 +171,7 @@ public class SearchMain {
 		return time.intValue();
 	} 
 	
-	private static void searchSingleCode(int k, int n, int s, int d, int kTrunc, ICodeEnumerator<ConvCode> ccEnum) throws Exception {
+	private static void searchSingleCode(int k, int n, int s, int d, ICodeEnumerator<TruncatedCode> bcEnum) throws Exception {
 		BlockCodesSearcher.SearchTask task = new BlockCodesSearcher.SearchTask();
 		BlockCodesSearcher.TaskPool pool = new BlockCodesSearcher.TaskPool();				
 		
@@ -123,15 +180,15 @@ public class SearchMain {
 		task.MinDist = d;
 		task.StateComplexity = s;
 		
-		TruncatedCodeEnumerator truncEnum = new TruncatedCodeEnumerator(ccEnum, kTrunc, n);
-		CodeLogger loggerEnum = new CodeLogger(truncEnum);
+		//TruncatedCodeEnumerator truncEnum = new TruncatedCodeEnumerator(ccEnum, kTrunc, n);
+		CodeLogger loggerEnum = new CodeLogger(bcEnum);
 		
 		CombinedHeuristic tb_heuristic = new CombinedHeuristic();
 		
 		tb_heuristic.addHeuristic(1, new BCPreciseStateComplexity(s, false));
 		tb_heuristic.addHeuristic(0, new BCPreciseMinDist(d, false));
 		
-		CosetCodeSearcher cosetSearcher = new CosetCodeSearcher(k, d);
+		CosetCodeSearcher cosetSearcher = new CosetCodeSearcher(k, n, d);
 		
 		cosetSearcher.setHeuristic(tb_heuristic);
 		cosetSearcher.setCandidateEnumerator(loggerEnum);
@@ -243,7 +300,7 @@ public class SearchMain {
 			}
 		}
 				
-	}
+	}	
 	
 	public static void main(String[] args) throws Exception {
 		/*CombinedHeuristic heuristic = new CombinedHeuristic();		
@@ -253,10 +310,65 @@ public class SearchMain {
 
 		ExhaustiveHRCCEnumByCheckMatr exhaustiveEnum = new ExhaustiveHRCCEnumByCheckMatr(6, task.StateComplexity, heuristic);
 		SiftingCCEnumerator ccEnum = new SiftingCCEnumerator(new EnumeratorLogger<ConvCode>(exhaustiveEnum), heuristic);
-		logger.info("count=" + exhaustiveEnum.count());/**/
-		FileCCEnumerator ccEnum = new FileCCEnumerator("_3&12&8.txt");
+		logger.info("count=" + exhaustiveEnum.count());/**/		
+		int d;
+		int k, n;
+		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+		StreamTokenizer tokenizer = new StreamTokenizer(in);
 		
-		searchSingleCode(57, 76, 140, 8, 57, ccEnum);
+		tokenizer.wordChars('_', '_');
+		tokenizer.wordChars('&', '&');
+		
+		System.out.println("k, n, d");
+		
+		tokenizer.nextToken();
+		k = (int)tokenizer.nval;
+		
+		tokenizer.nextToken();
+		n = (int)tokenizer.nval;
+		
+		tokenizer.nextToken();
+		d = (int)tokenizer.nval;
+		
+		System.out.println("1 - truncate convolutional codes");
+		System.out.println("2 - use already defined truncated codes");
+		
+		int choise;
+		String filename;
+		
+		tokenizer.nextToken();
+		choise = (int)tokenizer.nval;
+				
+		ICodeEnumerator<TruncatedCode> bcEnum;
+		
+		if (choise == 1) {
+			System.out.println("file name");
+			
+			tokenizer.nextToken();
+			filename = tokenizer.sval;
+			
+			FileCCEnumerator ccEnum = new FileCCEnumerator(filename + ".txt");
+			int kTrunc;
+			
+			System.out.println("truncate to");
+			
+			tokenizer.nextToken();
+			kTrunc = (int)tokenizer.nval;
+			
+			bcEnum = new TruncatedCodeEnumerator(ccEnum, kTrunc, n);
+		} else {
+			int b;
+			
+			filename = "truncated_codes";
+			System.out.println("b");			
+			
+			tokenizer.nextToken();
+			b = (int)tokenizer.nval;
+			
+			bcEnum = new FileBCEnumeratorWrapper(new FileBCEnumerator(filename + ".txt"), b);
+		}
+				
+		searchSingleCode(k, n, 140, d, bcEnum);
 		//findGoodTruncatedCodes(ccEnum);
 		//searchNewCodes();
 	}

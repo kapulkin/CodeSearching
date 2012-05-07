@@ -36,7 +36,7 @@ public class MaximalLinearSubspace {
 		for (int n = 1;n < (1 << q); ++n) {
 			int bit = GrayCode.getChangedPosition(n);
 			
-			combination.xor(qSubset[bit]);
+			combination.xor(qSubset[bit]);			
 			if (Arrays.binarySearch(vectorSet, combination, new BitVectorComp()) < 0) {
 				return false;
 			}
@@ -51,7 +51,7 @@ public class MaximalLinearSubspace {
 				break;
 			}
 			
-			for (int j = 0;j < vectorSet.length; ++j) {
+			for (int j = i + 1;j < vectorSet.length; ++j) {
 				if (j > MAX_SETSIZE) {
 					break;
 				}
@@ -77,15 +77,15 @@ public class MaximalLinearSubspace {
 			return new BitArray[] { vectorSet[0] };
 		}
 		
+		dim = vectorSet[0].getFixedSize();
+		
 		if (q == 2) {
 			return findTwo(vectorSet);
 		}
 		
 		int qDiv3 = (int)Math.ceil((double)q / 3);
 		CEnumerator qDiv3SubsetsEnum = new CEnumerator(vectorSet.length, qDiv3);
-		ArrayList<long[]> qDiv3IndependentSequences = new ArrayList<long[]>();
-		
-		dim = vectorSet[0].getFixedSize();
+		ArrayList<long[]> qDiv3IndependentSequences = new ArrayList<long[]>();		
 		
 		int subsetsViewed = 0;
 		while (qDiv3SubsetsEnum.hasNext()) {
