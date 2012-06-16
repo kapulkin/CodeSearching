@@ -239,13 +239,15 @@ public class Trellises {
 				edge1.dst = v;
 				edge1.metrics = new int[0];
 				
-				newLayer[v].Predecessors[1] = edge1;
+				newLayer[v].Predecessors[1] = newLayer[v].Predecessors[0];
+				newLayer[v].Predecessors[0] = edge1;
 				
 				if(lastLayer[edge1.src].Accessors[0] == null)
 				{
 					lastLayer[edge1.src].Accessors[0] = edge1;
 				}else{
-					lastLayer[edge1.src].Accessors[1] = edge1;
+					lastLayer[edge1.src].Accessors[1] = lastLayer[edge1.src].Accessors[0];
+					lastLayer[edge1.src].Accessors[0] = edge1;
 				}
 								
 			}

@@ -47,9 +47,9 @@ public class BeastAlgorithmTest {
 	public void beastInfiniteEvaluation() throws IOException, SpanFormException {
 		PolyMatrix mat = new PolyMatrix(1, 3);
 		
-		mat.set(0, 0, new Poly(new boolean[] {true}));
-		mat.set(0, 1, new Poly(new boolean[] {true}));
-		mat.set(0, 2, new Poly(new boolean[] {true}));
+		mat.set(0, 0, new Poly(new int[] {0}));
+		mat.set(0, 1, new Poly(new int[] {0, 1, 2}));
+		mat.set(0, 2, new Poly(new int[] {0, 1, 2}));
 		
 		ConvCode code = new ConvCode(mat, false);
 		

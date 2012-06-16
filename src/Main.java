@@ -163,8 +163,7 @@ public class Main {
 		IOPolyMatrix.writeMatrix(code.parityCheck(), System.out);
 		IOTrellis.writeTrellisInGVZFormat(code.getTrellis(), new BufferedWriter(new FileWriter(new File("trellis.dot"))));
 		
-		System.out.println(code.getFreeDist());
-		System.out.println(MinDistance.assureFreeDist(code, 7));
+		System.out.println(code.getFreeDist());		
 		
 		/*int[][] lowerBounds = DistanceBoundsParser.parse(false);
 		int[][] upperBounds = DistanceBoundsParser.parse(true);
