@@ -159,6 +159,14 @@ public class BitSet implements Cloneable, java.io.Serializable {
 	initWords(nbits);
 	sizeIsSticky = true;
     }
+    
+    public BitSet(long bits) {
+	initWords(Long.SIZE);
+	words[0] = bits;
+	wordsInUse = 1;
+	sizeIsSticky = true;
+    }
+
 
     private void initWords(int nbits) {
 	words = new long[wordIndex(nbits-1) + 1];
@@ -205,6 +213,14 @@ public class BitSet implements Cloneable, java.io.Serializable {
                                                 " > toIndex: " + toIndex);
     }
 
+    public long getWord(int i) {
+    	if (i < wordsInUse) {
+    		return words[i];
+    	}
+    	
+    	return -1;
+    }
+    
     /**
      * Sets the bit at the specified index to the complement of its
      * current value.

@@ -1,7 +1,11 @@
 package in_out_interfaces;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StreamTokenizer;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -11,6 +15,20 @@ import math.BitArray;
 import math.Matrix;
 
 public class IOMatrix {
+	
+	public static Matrix readMatrix(InputStream _in) throws IOException {
+		BufferedReader in = new BufferedReader(new InputStreamReader(_in));
+		StreamTokenizer tokenizer = new StreamTokenizer(in);
+		int k, n, radix;
+		
+		tokenizer.nextToken();
+		k = (int)tokenizer.nval;
+		
+		tokenizer.nextToken();
+		n = (int)tokenizer.nval;
+		
+		return new Matrix(k, n);
+	}
 	
 	public static Matrix readMatrix(Scanner scanner) throws IOException {
 		return readMatrix(scanner, 0);

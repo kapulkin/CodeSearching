@@ -5,9 +5,13 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.StreamTokenizer;
 import java.util.ArrayList;
 import java.util.Scanner;
+
+import ch.qos.logback.classic.Logger;
 
 import codes.BlockCode;
 import codes.ConvCode;
@@ -22,6 +26,7 @@ import math.BitArray;
 import math.BlockCodeAlgs;
 import math.BlockMatrix;
 import math.ConvCodeAlgs;
+import math.ConvCodeSpanForm.SpanFormException;
 import math.Matrix;
 import math.MinDistance;
 import math.Poly;
@@ -147,12 +152,20 @@ public class Main {
 	/**
 	 * @param args
 	 * @throws IOException 
+	 * @throws SpanFormException 
 	 */
-	public static void main(String[] args) throws IOException {
-		patch();
+	public static void main(String[] args) throws IOException, SpanFormException {
+		//patch();
 		//cutSimilarCodes();
 		
-		int[][] lowerBounds = DistanceBoundsParser.parse(false);
+		ConvCode code = IOConvCode.readConvCode(System.in);
+		
+		IOPolyMatrix.writeMatrix(code.parityCheck(), System.out);
+		IOTrellis.writeTrellisInGVZFormat(code.getTrellis(), new BufferedWriter(new FileWriter(new File("trellis.dot"))));
+		
+		System.out.println(code.getFreeDist());
+		
+		/*int[][] lowerBounds = DistanceBoundsParser.parse(false);
 		int[][] upperBounds = DistanceBoundsParser.parse(true);
 		
 		BlockCodesTable.createTables(256, 256);
@@ -169,7 +182,7 @@ public class Main {
 					break;
 				}
 			}			
-		}		
+		}/**/		
 	}
 
 }

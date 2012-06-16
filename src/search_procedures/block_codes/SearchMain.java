@@ -16,11 +16,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.StreamTokenizer;
 import java.math.BigInteger;
+import java.util.Arrays;
 
 import math.BitArray;
 import math.BlockCodeAlgs;
 import math.BlockMatrix;
 import math.ConvCodeAlgs;
+import math.MLSRandomMethod;
 import math.Matrix;
 import math.MaximalLinearSubspace;
 
@@ -33,14 +35,18 @@ import search_heuristics.CCPreciseFreeDist;
 import search_heuristics.CombinedHeuristic;
 import search_heuristics.IHeuristic;
 import search_heuristics.LinearDependenceCashingHeur;
+import search_procedures.CollectionEnumerator;
 import search_procedures.EnumeratorLogger;
 import search_procedures.ICodeEnumerator;
 import search_procedures.conv_codes.ExhaustiveHRCCEnumByCheckMatr;
 import search_procedures.conv_codes.FileCCEnumerator;
 import search_procedures.conv_codes.SiftingCCEnumerator;
+import search_tools.CEnumerator;
+import search_tools.HammingBallEnumerator;
 import codes.BlockCode;
 import codes.ConvCode;
 import codes.TruncatedCode;
+import database.CodesMongoDB;
 
 public class SearchMain {
 	
@@ -141,6 +147,74 @@ public class SearchMain {
 		}
 	}
 	
+	private static class SubcodesEnumerator implements ICodeEnumerator<BlockCode> {
+		private ICodeEnumerator<? extends BlockCode> codeEnum;
+		private BlockCode code;
+		private HammingBallEnumerator rowsEnum;
+		private int rowsToRemove;
+		
+		public SubcodesEnumerator(ICodeEnumerator<? extends BlockCode> codeEnum, int rowsToRemove) {
+			this.codeEnum = codeEnum;		
+			this.rowsToRemove = rowsToRemove;
+			reset();
+		}
+		
+		public SubcodesEnumerator(BlockCode code, int rowsToRemove) {
+			this.code = code;
+			this.rowsToRemove = rowsToRemove;
+			reset();
+		}
+		
+		@Override
+		public void reset() {			
+			//rowsEnum = new CEnumerator(code.getK(), rowsEnum.getK());
+			if (codeEnum != null) {
+				codeEnum.reset();
+				code = codeEnum.next();
+			}
+			rowsEnum = new HammingBallEnumerator(code.getK(), rowsToRemove);
+		}
+
+		@Override
+		public BlockCode next() {			
+			if (!rowsEnum.hasNext()) {
+				if (codeEnum == null) {
+					return null;
+				}
+				
+				code = codeEnum.next();
+				
+				if (code == null) {
+					return null;
+				}
+				
+				rowsEnum = new HammingBallEnumerator(code.getK(), rowsToRemove);				
+			}
+			
+			long[] rows = rowsEnum.next();
+			
+			Matrix subcodeGen = new Matrix(code.getK() - rows.length, code.getN());
+			int subcodeRow = 0;
+			
+			for (int row = 0; row < code.getK(); ++row) {
+				if (Arrays.binarySearch(rows, row) < 0) {
+					for (int i = 0;i < code.getN(); ++i) {
+						subcodeGen.set(subcodeRow, i, code.generator().get(row, i));
+					}
+					++subcodeRow;
+				}
+			}
+			
+			return new BlockCode(subcodeGen, true);
+		}
+
+		@Override
+		public BigInteger count() {			
+			return rowsEnum.count();
+		}
+		
+	}
+	
 	public static int estimateTaskTime(BlockCodesSearcher.SearchTask task, ExhaustiveHRCCEnumByCheckMatr ccEnum, IHeuristic ccHeur) {
 		int attempts = 10000;		
 		long avgTime = 1;
@@ -171,7 +245,7 @@ public class SearchMain {
 		return time.intValue();
 	} 
 	
-	private static void searchSingleCode(int k, int n, int s, int d, ICodeEnumerator<TruncatedCode> bcEnum) throws Exception {
+	private static void searchSingleCode(int k, int n, int s, int d, ICodeEnumerator<? extends BlockCode> bcEnum) throws Exception {
 		BlockCodesSearcher.SearchTask task = new BlockCodesSearcher.SearchTask();
 		BlockCodesSearcher.TaskPool pool = new BlockCodesSearcher.TaskPool();				
 		
@@ -204,41 +278,50 @@ public class SearchMain {
 	
 	private static void findGoodTruncatedCodes(ICodeEnumerator<ConvCode> ccEnum) throws IOException {
 		ConvCode code;
-		BufferedWriter writer = new BufferedWriter(new FileWriter(new File("truncated_codes.txt")));
+		//BufferedWriter writer = new BufferedWriter(new FileWriter(new File("truncated_codes.txt")));
+		CodesMongoDB db = new CodesMongoDB("truncated_codes");		
+		int[][] lowerBounds = DistanceBoundsParser.parse(false);		
+		
+		BlockCodesTable.createTables(256, 256);
+		db.clear();
 		
 		int code_number = 0;
 		while ((code = ccEnum.next()) != null) {
-			try {
-				for (int n = (int)Math.ceil((double)30 / code.getN()) * code.getN(); n < 100; n += code.getN()) {
-					for (int k = (int)Math.ceil((double)10 / code.getK()) * code.getK(); k <= n * code.getK() / code.getN(); k += code.getK()) {
-						if (n - k > 20) {
-							continue;
+			
+			for (int n = (int)Math.ceil((double)30 / code.getN()) * code.getN(); n < 100; n += code.getN()) {
+				for (int k = (int)Math.ceil((double)10 / code.getK()) * code.getK(); k <= n * code.getK() / code.getN(); k += code.getK()) {
+					if (n - k > 20) {
+						continue;
+					}
+					
+					logger.info("code={}", code_number);
+					logger.info("k={},n={}", k, n);
+					
+					TruncatedCode truncCode = ConvCodeAlgs.truncate(k, n, code);
+					
+					try {
+						if (truncCode.getMinDist() < lowerBounds[k][n]) {
+							continue;							
 						}
 						
-						logger.info("code={}", code_number);
-						logger.info("k={},n={}", k, n);
-						
-						TruncatedCode truncCode = ConvCodeAlgs.truncate(k, n, code);
 						BitArray[] fatSyndroms = BlockCodeAlgs.buildCosetsWithBigWeight(truncCode, truncCode.getMinDist());
 						
 						if(fatSyndroms.length != 0) {
-							writer.write(Integer.toString(truncCode.getK()));
-							writer.newLine();
-							IOMatrix.writeMatrix(truncCode.generator(), writer);
-							writer.flush();
+							db.addBlockCode(truncCode, true);							
 						}
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
 				}
-			} catch (Exception e) {
-				
 			}
 			++code_number;
 		}
 	}
 	
-	private static void searchNewCodes() throws IOException {
-		FileBCEnumerator bcEnum = new FileBCEnumerator("truncated_codes.txt");
-		BufferedWriter writer = new BufferedWriter(new FileWriter(new File("new_codes.txt")));
+	private static void searchNewCodes() throws IOException {		
+		CodesMongoDB truncDB = new CodesMongoDB("truncated_codes");
+		CodesMongoDB newDB = new CodesMongoDB("new_codes");
+		CollectionEnumerator<BlockCode> bcEnum = new CollectionEnumerator<BlockCode>(truncDB.getBlockCodes());
 		
 		int[][] lowerBounds = DistanceBoundsParser.parse(false);
 		int[][] upperBounds = DistanceBoundsParser.parse(true);
@@ -246,58 +329,78 @@ public class SearchMain {
 		BlockCodesTable.createTables(256, 256);
 		BlockCodesTable.distanceUpperBounds = upperBounds;
 		
-		int b = 2;
+		int b = 3;
 		
 		BlockCodesTable.computeTBStateLowerBounds(b, b + 1);
 		
-		MaximalLinearSubspace basisSearcher = new MaximalLinearSubspace();
+		MaximalLinearSubspace basisSearcher = new MLSRandomMethod(1);
 		BlockCode code;
-		while ((code = bcEnum.next()) != null) {
-			try {
-				logger.info("d={},lb={}", code.getMinDist(), lowerBounds[code.getK()][code.getN()]);
-				logger.info("k={},n={}", code.getK(), code.getN());
-				if (code.getMinDist() > lowerBounds[code.getK()][code.getN()]) {
-					writer.write(Integer.toString(code.getK()));
-					writer.newLine();
-					IOMatrix.writeMatrix(code.generator(), writer);
-					writer.flush();
+		int codesFound = 0;
+		int codesViewed = 0;
+		while ((code = bcEnum.next()) != null) {			
+			//logger.info("d={},lb={}", code.getMinDist(), lowerBounds[code.getK()][code.getN()]);
+			logger.info("k={},n={}", code.getK(), code.getN());
+			logger.info("codes={}", codesFound);
+			logger.info("viewed={}", codesViewed++);
+			
+			SubcodesEnumerator subEnum = new SubcodesEnumerator(code, 1);
+			BlockCode subcode;
+			int subcodeViewed = 0;
+			
+			while((subcode = subEnum.next()) != null) {
+				if (subcode.getN() - subcode.getK() > 20) {
+					continue;
 				}
 				
-				for (int q = 1;q <= 3; ++q) {
-					logger.info("q={},lb={}", q, lowerBounds[code.getK() + q][code.getN()]);
-					if (code.getMinDist() > lowerBounds[code.getK() + q][code.getN()]) {
-						logger.info("found");
-						BitArray[] fatSyndroms = BlockCodeAlgs.buildCosetsWithBigWeight(code, code.getMinDist());
-						BitArray[] syndroms = basisSearcher.findBasis(fatSyndroms, q);
-						
-						if (syndroms == null) {
+				logger.info("viewed={}", codesViewed);
+				logger.info("subcodesViewed={}", subcodeViewed++);
+				
+				try {
+					if (subcode.getMinDist() > lowerBounds[subcode.getK()][subcode.getN()]) {
+						newDB.addBlockCode(subcode, true);					
+					}
+				} catch (Exception e) {				
+					e.printStackTrace();
+					continue;
+				}
+				
+				for (int q = 1;q <= 10; ++q) {
+					logger.info("q={}", q);
+					
+					try {
+						if (subcode.getMinDist() > lowerBounds[subcode.getK() + q][subcode.getN()]) {						
+							BitArray[] fatSyndroms = BlockCodeAlgs.buildCosetsWithBigWeight(subcode, subcode.getMinDist());
+							BitArray[] syndroms = basisSearcher.findBasis(fatSyndroms, q);
+							
+							if (syndroms == null) {
+								break;
+							}
+							
+							++codesFound;
+							
+							Matrix newGenerator = new Matrix(subcode.getK() + q, subcode.getN());
+							
+							for (int i = 0;i < subcode.getK(); ++i) {
+								newGenerator.setRow(i, subcode.generator().getRow(i));
+							}		
+							
+							for (int i = subcode.getK();i < subcode.getK() + q; ++i) {
+								BitArray cosetLeader = BlockCodeAlgs.findCosetLeader(subcode, syndroms[i - subcode.getK()]); 
+								newGenerator.setRow(i, cosetLeader);
+							}
+							
+							BlockCode extendedCode = new BlockCode(newGenerator, true);
+							
+							logger.info("writing");
+							newDB.addBlockCode(extendedCode, true);
 							break;
 						}
-						
-						Matrix newGenerator = new Matrix(code.getK() + q, code.getN());
-						
-						for (int i = 0;i < code.getK(); ++i) {
-							newGenerator.setRow(i, code.generator().getRow(i));
-						}		
-						
-						for (int i = code.getK();i < code.getK() + q; ++i) {
-							BitArray cosetLeader = BlockCodeAlgs.findCosetLeader(code, syndroms[i - code.getK()]); 
-							newGenerator.setRow(i, cosetLeader);
-						}
-						
-						BlockCode extendedCode = new BlockCode(newGenerator, true);
-						
-						logger.info("writing");
-						writer.write(Integer.toString(code.getK()));
-						writer.newLine();
-						IOMatrix.writeMatrix(extendedCode.generator(), writer);
-						writer.flush();
+					} catch (Exception e) {					
+						e.printStackTrace();
 					}
 					
 				}
-			} catch (Exception e) {
-				
-			}
+			}	
 		}
 				
 	}	
@@ -311,7 +414,7 @@ public class SearchMain {
 		ExhaustiveHRCCEnumByCheckMatr exhaustiveEnum = new ExhaustiveHRCCEnumByCheckMatr(6, task.StateComplexity, heuristic);
 		SiftingCCEnumerator ccEnum = new SiftingCCEnumerator(new EnumeratorLogger<ConvCode>(exhaustiveEnum), heuristic);
 		logger.info("count=" + exhaustiveEnum.count());/**/		
-		int d;
+		/*int d;
 		int k, n;
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		StreamTokenizer tokenizer = new StreamTokenizer(in);
@@ -339,7 +442,7 @@ public class SearchMain {
 		tokenizer.nextToken();
 		choise = (int)tokenizer.nval;
 				
-		ICodeEnumerator<TruncatedCode> bcEnum;
+		ICodeEnumerator<? extends BlockCode> bcEnum;
 		
 		if (choise == 1) {
 			System.out.println("file name");
@@ -365,11 +468,21 @@ public class SearchMain {
 			tokenizer.nextToken();
 			b = (int)tokenizer.nval;
 			
-			bcEnum = new FileBCEnumeratorWrapper(new FileBCEnumerator(filename + ".txt"), b);
+			bcEnum = new SubcodesEnumerator(new FileBCEnumeratorWrapper(new FileBCEnumerator(filename + ".txt"), b), 1);
+			//bcEnum = new FileBCEnumeratorWrapper(new FileBCEnumerator(filename + ".txt"), b);
 		}
 				
-		searchSingleCode(k, n, 140, d, bcEnum);
+		searchSingleCode(k, n, 140, d, bcEnum);/**/
+		//FileCCEnumerator ccEnum = new FileCCEnumerator("2&10&10.txt");
+		//CodesMongoDB db = new CodesMongoDB("truncated_codes");
+		//CollectionEnumerator<ConvCode> ccEnum = new CollectionEnumerator<ConvCode>(new CodesMongoDB("convolutional_codes").getConvCodes(2, 3, 11, 10));
+		//ConvCode code;
+		
+		//db.clear();
+		//while ((code = ccEnum.next()) != null) {
+		//	db.addConvCode(code, false);
+		//}
 		//findGoodTruncatedCodes(ccEnum);
-		//searchNewCodes();
+		searchNewCodes();
 	}
 }

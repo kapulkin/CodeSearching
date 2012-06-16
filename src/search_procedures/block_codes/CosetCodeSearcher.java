@@ -1,12 +1,20 @@
 package search_procedures.block_codes;
 
+import in_out_interfaces.IOMatrix;
+
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Scanner;
 
 import math.BitArray;
 import math.BlockCodeAlgs;
+import math.MLSRandomMethod;
 import math.Matrix;
 import math.MaximalLinearSubspace;
 import codes.BlockCode;
@@ -42,17 +50,30 @@ public class CosetCodeSearcher extends BasicBlockCodesSearcher<BlockCode> {
 		writer.flush();
 	}
 	
+	private BitArray[] readCosetsFromFile() throws IOException {
+		//BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(COSET_FILENAME)));
+		Matrix cosets = IOMatrix.readMatrix(new Scanner(new File(COSET_FILENAME)));
+		BitArray[] _cosets = new BitArray[cosets.getRowCount()];
+		
+		for (int row = 0; row < cosets.getRowCount(); ++row) {
+			_cosets[row] = cosets.getRow(row);
+		}
+		
+		return _cosets;
+	}
+	
 	@Override
 	protected BlockCode process(BlockCode candidate) {
 		BlockCode subcode = candidate;
 		
-		//subcode = BlockCodeAlgs.fitToTheLength(subcode, n);
+		//subcode = new BlockCode(subcode.generator(), true);
+		subcode = BlockCodeAlgs.fitToTheLength(subcode, n);
 		
 		if (heuristic != null && !heuristic.check(subcode)) {
 			return null;
 		}		
 		
-		MaximalLinearSubspace basisSearcher = new MaximalLinearSubspace();		
+		MaximalLinearSubspace basisSearcher = new MLSRandomMethod(1);		
 		int q = k - subcode.getK();		
 		
 		if (q == 0) {
@@ -61,11 +82,18 @@ public class CosetCodeSearcher extends BasicBlockCodesSearcher<BlockCode> {
 		
 		BitArray[] bigCosets = BlockCodeAlgs.buildCosetsWithBigWeight(subcode, d);
 		
-		try {
+		/*try {
+			bigCosets = readCosetsFromFile();
+			System.out.println(bigCosets.length);
+		}  catch (IOException e) {			
+			e.printStackTrace();
+		}/**/
+		
+		/*try {
 			writeCosetsToFile(bigCosets);
 		} catch (IOException e) {			
 			e.printStackTrace();
-		}
+		}/**/
 		
 		BitArray[] syndroms = basisSearcher.findBasis(bigCosets, q);
 		

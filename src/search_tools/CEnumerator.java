@@ -135,7 +135,7 @@ public class CEnumerator {
 		long[] sequence = new long[k];		
 		
 		for (int i = 0;i < k; ++i) {
-			long ballIndex = (((long)rnd.nextInt() << 32) + rnd.nextInt()) % (n - i);
+			long ballIndex = (((long)rnd.nextInt(Integer.MAX_VALUE) << 31) + rnd.nextInt(Integer.MAX_VALUE)) % (n - i);
 			
 			for (int j = 0;j < i; ++j) {
 				if (sequence[j] <= ballIndex) {

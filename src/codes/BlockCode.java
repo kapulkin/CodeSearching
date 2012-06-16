@@ -1,5 +1,11 @@
 package codes;
 
+import in_out_interfaces.IOMatrix;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+
 import trellises.BlockCodeTrellis;
 import trellises.ITrellis;
 import trellises.LightTrellis;
@@ -109,6 +115,7 @@ public class BlockCode implements Code {
 	{
 		if(genMatr == null)
 			genMatr = MathAlgs.findOrthogonalMatrix(checkMatr, false);
+		
 		return genMatr;
 	}
 	
@@ -140,7 +147,7 @@ public class BlockCode implements Code {
 	 * @return Спеновая форма порождающей матрицы
 	 */
 	public SpanForm getGeneratorSpanForm()
-	{
+	{		
 		if(genSpanForm == null)
 		{
 			genSpanForm = BlockCodeAlgs.toSpanForm(generator());

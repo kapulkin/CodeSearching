@@ -39,6 +39,17 @@ public class BitArray implements Cloneable{
 		this.fixedSize = array.fixedSize;
 	}
 	
+	public BitArray(String array) {
+		bitSet = new BitSet();
+		fixedSize = array.length();
+		
+		for (int i = 0;i < fixedSize; ++i) {
+			if (array.charAt(i) == '1') {
+				bitSet.set(i);
+			}
+		}
+	}
+	
 	public int getFixedSize() {
 		return fixedSize;
 	}

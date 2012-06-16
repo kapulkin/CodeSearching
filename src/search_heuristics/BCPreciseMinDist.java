@@ -42,6 +42,7 @@ public class BCPreciseMinDist implements IHeuristic {
 		try {
 			minDistance = _code.getMinDist();
 		} catch(Exception e) {
+			e.printStackTrace();
 			return false;
 		}
 		

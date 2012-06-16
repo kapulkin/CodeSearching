@@ -1,5 +1,10 @@
 package math;
 
+import in_out_interfaces.IOMatrix;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 
 import org.slf4j.Logger;
@@ -237,6 +242,10 @@ public class BlockCodeAlgs {
 					continue;
 				}
 				
+				if (!cosetCharacteristicVector.get(cosetInd)) {
+					continue;
+				}
+				
 				BitArray coset = new BitArray(code.getN() - code.getK());
 				
 				for (int b = 0;b < code.getN() - code.getK(); ++b) {
@@ -246,6 +255,9 @@ public class BlockCodeAlgs {
 				}				
 				
 				if (cosetInd % 1000000 == 0) {
+					if (cosetCharacteristicVector.getFixedSize() -  cosetCharacteristicVector.cardinality() == 0) {
+						break;
+					}
 					logger.info("w: " + w + " complete: " + cosetInd * 100.0 / cosetCharacteristicVector.getFixedSize() + "%");
 				}
 				
@@ -259,11 +271,7 @@ public class BlockCodeAlgs {
 						if (neighbour.get(b)) {
 							neighbourIndex ^= (1 << b); 
 						}
-					}
-					
-					if (neighbourIndex >= cosetCharacteristicVector.getFixedSize()) {
-						continue;
-					}
+					}					
 					
 					if (!cosetCharacteristicVector.get(neighbourIndex)) {
 						cosetCharacteristicVector.set(neighbourIndex);
@@ -324,7 +332,7 @@ public class BlockCodeAlgs {
 			if (syndrome.get(i)) {
 				cosetWord.set(permSubmatrix[i]);
 			}
-		}
+		}		
 		
 		return cosetWord;
 	}

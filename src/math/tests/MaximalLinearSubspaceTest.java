@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import search_procedures.block_codes.SearchMain;
 
 import math.BitArray;
+import math.MLSCliqueMethod;
 import math.MaximalLinearSubspace;
 import static org.junit.Assert.*;
 
@@ -31,7 +32,7 @@ public class MaximalLinearSubspaceTest {
 		BitArray s5 = new BitArray(4);
 		s5.set(3);
 		
-		MaximalLinearSubspace mls = new MaximalLinearSubspace();
+		MaximalLinearSubspace mls = new MLSCliqueMethod();
 		BitArray[] basis = mls.findBasis(new BitArray[] { s1, s2, s3, s4, s5 }, 3);
 		
 		assertTrue(basis != null);

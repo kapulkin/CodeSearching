@@ -1,5 +1,10 @@
 package math;
 
+import in_out_interfaces.IOMatrix;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -68,11 +73,11 @@ public class MathAlgs {
 		Matrix ortMat = new Matrix(mat.getColumnCount() - mat.getRowCount(), mat.getColumnCount());
 		//Позиции единичек в строчках перестановочной подматрицы 
 		int[] permutationRows = new int[mat.getRowCount()];
+		int[] invPermutationRows = new int[mat.getRowCount()];
 		
-		if(allowModifications)
-		{
+		if (allowModifications) {
 			workingMat = mat;
-		}else{
+		} else {
 			workingMat = (Matrix)mat.clone();
 		}
 		
@@ -83,30 +88,31 @@ public class MathAlgs {
 		for(int i = 0;i < workingMat.getColumnCount();i ++) {
 			if(permSubmatrix.containsKey(i)) {
 				permutationRows[permSubmatrix.get(i)] = permColumnsViwed;
+				invPermutationRows[permColumnsViwed] = permSubmatrix.get(i);
 				permColumnsViwed ++;
 			}
 		}
 		
 		permColumnsViwed = 0;
-		for(int i = 0;i < ortMat.getColumnCount();i ++) {
-			if(!permSubmatrix.containsKey(i)) {			
+		for (int i = 0;i < ortMat.getColumnCount();i ++) {
+			if (!permSubmatrix.containsKey(i)) {			
 				// заполнение строки единичной подматрицы
-				for(int j = 0;j < ortMat.getRowCount();j ++) {
+				for (int j = 0;j < ortMat.getRowCount();j ++) {
 					// если диагональный элемент
-					if(j == i - permColumnsViwed) {
+					if (j == i - permColumnsViwed) {
 						ortMat.set(j, i, true);
-					}else {
+					} else {
 						ortMat.set(j, i, false);
 					}
 				}				
-			}else {
+			} else {
 				int j = 0;
 				// Расчет произведений permColumnsViwed-й строки транспонированной перестановочной матрицы
 				// на столбцы неперестановочной подматрицы исходной матрицы. Эти произведения по сути 
 				// представляют собой строчку исходной матрицы с номером permutationRows[permColumnsViwed]. 
-				for(int k = 0;k < workingMat.getColumnCount();k ++) {
-					if(!permSubmatrix.containsKey(k)) {
-						ortMat.set(j, i, workingMat.get(permutationRows[permColumnsViwed], k));
+				for (int k = 0;k < workingMat.getColumnCount();k ++) {
+					if (!permSubmatrix.containsKey(k)) {
+						ortMat.set(j, i, workingMat.get(invPermutationRows[permColumnsViwed], k));
 						++ j;
 					}
 				}
