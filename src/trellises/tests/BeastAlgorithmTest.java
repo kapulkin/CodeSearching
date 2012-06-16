@@ -60,6 +60,20 @@ public class BeastAlgorithmTest {
 		logger.info("time: {}ms", System.currentTimeMillis() - start);
 	}
 	
+	@Test
+	public void distanceTest() throws SpanFormException {
+		PolyMatrix mat = new PolyMatrix(1, 3);
+		
+		mat.set(0, 0, new Poly(new int[] {0, 1, 2, 4, 5, 6, 10}));
+		mat.set(0, 1, new Poly(new int[] {0, 3, 4, 5, 9, 10}));
+		mat.set(0, 2, new Poly(new int[] {0, 2, 5, 6, 8, 9, 10}));
+		
+		ConvCode code = new ConvCode(mat, false);
+		
+		logger.info("BEAST: {}", code.getFreeDist());
+		assertTrue(code.getFreeDist() == 7);
+	}
+	
 	//@Test
 	public void testHighRateConvCodeDistanceSearch() {
 		FreeDist4CCEnumerator codeEnumerator = new FreeDist4CCEnumerator(5, 9);

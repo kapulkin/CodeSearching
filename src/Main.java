@@ -164,6 +164,7 @@ public class Main {
 		IOTrellis.writeTrellisInGVZFormat(code.getTrellis(), new BufferedWriter(new FileWriter(new File("trellis.dot"))));
 		
 		System.out.println(code.getFreeDist());
+		System.out.println(MinDistance.assureFreeDist(code, 7));
 		
 		/*int[][] lowerBounds = DistanceBoundsParser.parse(false);
 		int[][] upperBounds = DistanceBoundsParser.parse(true);

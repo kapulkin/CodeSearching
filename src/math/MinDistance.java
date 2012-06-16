@@ -1,5 +1,7 @@
 package math;
 
+import java.util.ArrayList;
+
 import math.ConvCodeSpanForm.SpanFormException;
 
 import org.slf4j.Logger;
@@ -8,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import codes.BlockCode;
 import codes.ConvCode;
 import codes.TBCode;
+import search_tools.CEnumerator;
 import trellises.ITrellis;
 import trellises.ITrellisIterator;
 import trellises.Trellis;
@@ -81,6 +84,46 @@ public class MinDistance {
 		return minDist;
 	}
 
+	public static boolean assureFreeDist(ConvCode code, int freeDist) {
+		for (int i = 0; i < code.parityCheck().getColumnCount(); ++i) {
+			if (code.parityCheck().get(0, i).isZero()) {
+				return freeDist <= 1;
+			}
+		}
+		
+		for (int d = 2; d < freeDist; ++d) {
+			CEnumerator weightEnum = new CEnumerator(code.getN() * (code.getDelay() + 1), d);
+			
+			while (weightEnum.hasNext()) {
+				long[] pows = weightEnum.next();
+				Poly[] polys = new Poly[code.getN()];
+				
+				for (int i = 0;i < polys.length; ++i) {
+					polys[i] = new Poly();
+				}
+				
+				for (int i = 0;i < pows.length; ++i) {
+					int polyInd = (int)pows[i] / (code.getDelay() + 1);
+					int pow = (int)pows[i] % (code.getDelay() + 1);
+					
+					polys[polyInd].add(Poly.getUnitPoly().mulPow(pow));
+				}
+				
+				Poly sum = new Poly();
+				
+				for (int i = 0;i < code.getN(); ++i) {
+					sum.add(polys[i].mul(code.parityCheck().get(0, i)));
+				}
+				
+				if (sum.isZero()) {
+					return false;
+				}
+			}
+		}
+		
+		return true;
+	}
+	
 	/**
 	 * Вычисляет минимальное расстояние блокового кода.
 	 * @param code блоковый код

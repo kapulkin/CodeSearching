@@ -175,7 +175,10 @@ public class Trellises {
 		{
 			firstLayer[v] = new Vertex();
 			firstLayer[v].Accessors = new IntEdge[2];
-			firstLayer[v].Predecessors = new IntEdge[2];
+			if (mergeLastLayers)
+				firstLayer[v].Predecessors = new IntEdge[2];
+			else
+				firstLayer[v].Predecessors = new IntEdge[1];
 		}
 		layers.add(firstLayer);
 		
@@ -187,26 +190,19 @@ public class Trellises {
 			for(int v = 0;v < newLayer.length;v ++)
 			{
 				newLayer[v] = new Vertex();
-				newLayer[v].Accessors = new IntEdge[2];
-				newLayer[v].Predecessors = new IntEdge[2];
+				if (l == levels - 3 && !mergeLastLayers)
+					newLayer[v].Accessors = new IntEdge[1];
+				else
+					newLayer[v].Accessors = new IntEdge[2];
+				
+				if (l == levels - 2 && !mergeLastLayers)
+					newLayer[v].Predecessors = new IntEdge[1];
+				else
+					newLayer[v].Predecessors = new IntEdge[2];
 				
 				// индекс ребра соответствует значению l-ого бита кодового слова.
 				IntEdge edge0 = new IntEdge();
 				IntEdge edge1 = new IntEdge();
-				
-				edge0.bits = new BitArray(1);
-				edge0.src = v;	// при переходе из lastLayer по нулевому ребру содержимое памяти не менялось
-				edge0.dst = v;
-				edge0.metrics = new int[0];
-				
-				newLayer[v].Predecessors[0] = edge0;				
-				
-				if(lastLayer[edge0.src].Accessors[0] == null)
-				{
-					lastLayer[edge0.src].Accessors[0] = edge0;
-				}else{
-					lastLayer[edge0.src].Accessors[1] = edge0;
-				}
 				
 				// при переходе из lastLayer по единичному ребру содержимое памяти изменилось в соотв. с H[l]
 				// вычисляем маску изменения памяти
@@ -219,9 +215,27 @@ public class Trellises {
 					}
 				}
 				
-				edge1.bits = new BitArray(1);
-				edge1.bits.set(0, true);
-				edge1.src = v ^ h;
+				edge0.bits = new BitArray(1);
+				edge0.bits.set(0, true);
+				edge0.src = v ^ h;	// при переходе из lastLayer по нулевому ребру содержимое памяти не менялось
+				edge0.dst = v;
+				edge0.metrics = new int[0];
+				
+				newLayer[v].Predecessors[0] = edge0;				
+				
+				if(lastLayer[edge0.src].Accessors[0] == null)
+				{
+					lastLayer[edge0.src].Accessors[0] = edge0;
+				}else{
+					lastLayer[edge0.src].Accessors[1] = edge0;
+				}
+				
+				if (l == levels - 2 && !mergeLastLayers) {					
+					continue;
+				}
+				
+				edge1.bits = new BitArray(1);				
+				edge1.src = v;
 				edge1.dst = v;
 				edge1.metrics = new int[0];
 				
@@ -233,6 +247,7 @@ public class Trellises {
 				}else{
 					lastLayer[edge1.src].Accessors[1] = edge1;
 				}
+								
 			}
 			
 			layers.add(newLayer);
